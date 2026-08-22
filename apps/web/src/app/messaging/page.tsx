@@ -68,6 +68,9 @@ export default function MessagingPage() {
         <h2>Delivery</h2>
         <p>Wireless carriers are not liable for delayed or undelivered messages. BandWagon cannot guarantee that any specific email, SMS, RCS, or notification will be delivered on time.</p>
 
+        <h2>Public SMS Opt-In Example</h2>
+        <p>See the <Link href="/sms-opt-in">public SMS opt-in example</Link> for the consent presentation used for carrier and compliance review.</p>
+
         <h2>Related Policies</h2>
         <p>See the <Link href="/privacy">Privacy Policy</Link> and <Link href="/terms">Terms of Use</Link> for additional information.</p>
 
