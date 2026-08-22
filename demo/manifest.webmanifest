@@ -1,0 +1,12 @@
+{
+  "id": "/",
+  "name": "FloMoGo - Powered by BandWagon Demo",
+  "short_name": "FloMoGo",
+  "description": "Interactive fake-data demo of the BandWagon community carpool platform.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#0f172a",
+  "icons": []
+}

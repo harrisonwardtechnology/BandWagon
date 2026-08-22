@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>FloMoGo - Powered by BandWagon - Interactive Demo</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-wrap">
+      <div class="logo">FG</div>
+      <div>
+        <div class="brand">FloMoGo</div>
+        <div class="subbrand">Hop on the BandWagon. - Interactive Demo</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button id="privacyBtn" class="btn ghost">What People Can See</button>
+      <button id="installHelpBtn" class="btn ghost">Install App</button>
+      <button id="resetBtn" class="btn ghost">Reset Demo</button>
+    </div>
+  </header>
+
+  <div class="disclaimer">
+    <strong>FloMoGo is powered by BandWagon, a Harrison Ward Technology product. Independent third-party coordination service.</strong> This demo only illustrates how people can connect. No transportation is provided, supervised, tracked, verified, or guaranteed.
+  </div>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="section-label">Demo Persona</div>
+      <div class="persona-tabs">
+        <button class="persona active" data-role="requester">Requester / Parent</button>
+        <button class="persona" data-role="driver">Driver</button>
+        <button class="persona" data-role="admin">Organization Admin</button>
+      </div>
+
+      <div class="section-label">Walkthrough</div>
+      <nav id="steps" class="steps"></nav>
+
+      <div class="sidebar-card">
+        <div class="small-label">Privacy Defaults</div>
+        <div class="pill-row"><span class="pill good">Phone Hidden</span><span class="pill good">Email Hidden</span></div>
+        <div class="pill-row"><span class="pill good">No GPS Tracking</span></div>
+      </div>
+    </aside>
+
+    <section class="content">
+      <div id="screen"></div>
+    </section>
+  </main>
+
+  <dialog id="privacyModal">
+    <div class="modal-head">
+      <div><h2>What People Can See</h2><p>Information is disclosed in stages, not all at once.</p></div>
+      <button class="icon-btn" id="closePrivacy" aria-label="Close">×</button>
+    </div>
+    <div class="privacy-grid">
+      <div class="privacy-card"><h3>Before A Match</h3><p><b>Visible:</b> event, general area, seats needed, transportation note, limited identity.</p><p><b>Hidden:</b> exact address, phone, email.</p></div>
+      <div class="privacy-card"><h3>After Confirmation</h3><p><b>Visible:</b> only details necessary to complete the ride.</p><p>Phone/email remain hidden when the owner chooses relay-only contact.</p></div>
+      <div class="privacy-card"><h3>During The Ride</h3><p>Status changes are manual: On My Way, Picked Up, Dropped Off, Arrival Confirmed.</p><p><b>No GPS, route, speed, or vehicle tracking.</b></p></div>
+      <div class="privacy-card"><h3>After The Ride</h3><p>Precise information is minimized and retained only according to policy. Users can export or request deletion of personal data.</p></div>
+    </div>
+    <div class="notice">The platform is not owned, operated, sponsored, endorsed, supervised, or managed by the organization, school, district, booster club, association, or governing body whose members may use it.</div>
+  </dialog>
+
+  <dialog id="installModal">
+    <div class="modal-head"><div><h2>Install FloMoGo</h2><p>Use it like an app without an App Store download.</p></div><button class="icon-btn" id="closeInstall" aria-label="Close">×</button></div>
+    <div class="privacy-grid">
+      <div class="privacy-card"><h3>iPhone / iPad</h3><p>Open FloMoGo in Safari → Share → Add to Home Screen → turn on Open as Web App if shown → Add.</p></div>
+      <div class="privacy-card"><h3>Android</h3><p>Open FloMoGo in Chrome → menu → Install app / Install and create shortcut → Install.</p></div>
+    </div>
+    <div class="notice">Installing FloMoGo does not enable GPS tracking. The same service remains available in a normal browser.</div>
+  </dialog>
+  <footer class="disclaimer">Powered by <strong>BandWagon</strong> - A Harrison Ward Technology product. FloMoGo is not owned, operated, sponsored, endorsed, supervised, or managed by FMHS, LISD, a band/booster organization, or a governing body.</footer>
+  <script src="app.js"></script>
+</body>
+</html>
