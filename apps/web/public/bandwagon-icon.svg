@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#101b33"/>
+  <circle cx="174" cy="367" r="44" fill="#fff"/>
+  <circle cx="365" cy="367" r="44" fill="#fff"/>
+  <path d="M92 305h342l-35-116c-9-30-37-51-68-51H189c-31 0-59 21-68 51L92 305Z" fill="#fff"/>
+  <text x="256" y="275" font-family="Arial, sans-serif" font-size="104" font-weight="700" text-anchor="middle" fill="#101b33">BW</text>
+</svg>
