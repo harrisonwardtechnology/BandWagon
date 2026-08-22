@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Terms of Use | BandWagon",
-  description: "BandWagon terms of use and transportation coordination terms."
+  description: "Terms of Use and messaging terms for BandWagon and FloMoGo."
 };
 
 export default function TermsPage() {
@@ -12,61 +12,157 @@ export default function TermsPage() {
         <Link className="brand-link" href="/">BandWagon</Link>
         <div className="eyebrow">A Harrison Ward Technology product</div>
         <h1>Terms of Use</h1>
-        <p>Effective August 21, 2026</p>
+        <p>Last updated: August 21, 2026</p>
       </header>
 
       <section className="notice">
-        <strong>Important:</strong> BandWagon only helps community members connect. It does not provide, dispatch, supervise, monitor, certify, or guarantee transportation.
+        <strong>Important:</strong> BandWagon and FloMoGo are independent community
+        coordination services. They are not transportation providers, do not operate
+        vehicles, do not employ or supervise drivers, and do not guarantee rides.
       </section>
 
       <article className="legal-card">
-        <h2>1. Independent Third-Party Service</h2>
-        <p>BandWagon is an independent product operated by Harrison Ward Technology. It is not owned, operated, sponsored, endorsed, supervised, or managed by any school, school district, band program, booster organization, sports organization, church, nonprofit, association, or governing body whose members may use it. References to organizations or groups are solely for the purpose of helping users identify and connect with their community.</p>
+        <h2>1. About BandWagon and FloMoGo</h2>
+        <p>
+          BandWagon is a community transportation coordination platform operated by
+          Harrison Ward Technology. FloMoGo is an organization-facing service name
+          powered by BandWagon. The service helps participating community members
+          voluntarily find and communicate with one another about possible rides.
+        </p>
 
-        <h2>2. Coordination Only</h2>
-        <p>BandWagon is a technology platform for voluntary community ride coordination. BandWagon does not provide transportation, employ drivers, dispatch vehicles, select drivers, inspect vehicles, conduct background checks, determine driver fitness, verify licensing or insurance, supervise passengers, monitor routes, or guarantee any ride.</p>
-        <p>Users and household managers are solely responsible for deciding whether they are comfortable requesting, offering, accepting, or providing transportation with another member.</p>
+        <h2>2. Independent Service and No Organizational Affiliation</h2>
+        <p>
+          Unless expressly stated otherwise for a particular organization, BandWagon,
+          FloMoGo, and Harrison Ward Technology are independent third parties and are
+          not affiliated with, sponsored by, endorsed by, operated by, or acting on
+          behalf of any school, school district, band program, booster organization,
+          governing body, or participating community organization.
+        </p>
 
-        <h2>3. Eligibility and Accounts</h2>
-        <p>Users must provide accurate account information and maintain control of their verified email and any verified mobile number. Organization or household rules may impose additional eligibility requirements. Household managers may control permissions for minors associated with their household.</p>
+        <h2>3. Transportation Disclaimer and No Liability</h2>
+        <p>
+          BandWagon only introduces or connects people who may wish to coordinate
+          transportation. BandWagon does not provide transportation, select or approve
+          drivers, inspect vehicles, perform background checks unless specifically
+          disclosed, supervise participants, verify insurance, determine fitness to
+          drive, guarantee availability, or control the conduct of users.
+        </p>
+        <p>
+          Drivers, passengers, parents, guardians, and household managers are solely
+          responsible for deciding whether a ride arrangement is appropriate and for
+          complying with applicable laws, licensing, insurance, supervision, safety,
+          and parental or guardian requirements. Use of the service and participation
+          in any ride arrangement are voluntary and at the participants' own risk.
+        </p>
 
-        <h2>4. Organization and Group Membership</h2>
-        <p>Membership may require a registration code, invitation, or organization approval. Membership in BandWagon does not represent certification, endorsement, or approval of a person's suitability to transport another person.</p>
+        <h2>4. No Location Tracking</h2>
+        <p>
+          BandWagon is not a live vehicle or person tracking service. The service may
+          use addresses, map areas, event locations, and pickup or drop-off information
+          to help users coordinate rides, but it does not continuously track a driver,
+          passenger, child, vehicle, or device.
+        </p>
 
-        <h2>5. Ride Requests and Offers</h2>
-        <p>Ride requests, offers, matches, confirmations, pickup/drop-off status, and related actions represent communications between users. A confirmed match is not a transportation contract with Harrison Ward Technology or BandWagon.</p>
+        <h2>5. Accounts, Households, and Minors</h2>
+        <p>
+          Users must provide accurate account information and protect access to their
+          accounts. Household managers may manage household members and, where
+          configured, require approval of ride requests made by minors. Parents and
+          guardians remain responsible for determining whether and how a minor may use
+          the service and participate in a ride.
+        </p>
 
-        <h2>6. No Emergency Use</h2>
-        <p>BandWagon is not an emergency transportation or emergency communication service. Users should contact appropriate emergency services when immediate assistance is required.</p>
+        <h2>6. Acceptable Use</h2>
+        <p>
+          Users may not misuse the service, impersonate another person, submit
+          knowingly false information, harass others, attempt unauthorized access,
+          scrape private information, circumvent security or privacy controls, or use
+          BandWagon for unlawful purposes. Accounts may be restricted, blocked, or
+          removed to protect users or the service.
+        </p>
 
-        <h2>7. SMS/RCS Messaging Terms</h2>
-        <p>Users may voluntarily opt in to BandWagon SMS/RCS messaging. Messages may include account verification, ride requests, offers, confirmations, schedule changes, reminders, pickup/drop-off status, cancellations, and other transactional service communications. Message frequency varies. Message and data rates may apply.</p>
-        <p>To stop SMS/RCS messages, reply <strong>STOP</strong>. For assistance, reply <strong>HELP</strong> or use the BandWagon support/contact process. Carriers are not liable for delayed or undelivered messages. Mobile messaging consent is optional and is not a condition of creating or using a BandWagon account where email communication is available.</p>
+        <h2>7. SMS Messaging Program</h2>
+        <p>
+          Users may optionally consent to receive recurring transactional SMS messages
+          from BandWagon, including FloMoGo ride coordination messages. Messages may
+          include ride requests, ride offers, confirmations, schedule changes,
+          cancellations, reminders, pickup and drop-off status, account activity, and
+          other ride-coordination notifications.
+        </p>
+        <p>
+          <strong>Message frequency varies. Message and data rates may apply.</strong>
+          SMS consent is optional and is not required to create or use a BandWagon
+          account. Users who do not consent to SMS may use available email
+          notifications instead.
+        </p>
+        <p>
+          Reply <strong>STOP</strong> to opt out of SMS messages. Reply{" "}
+          <strong>HELP</strong> for assistance. Carriers are not liable for delayed or
+          undelivered messages.
+        </p>
+        <p>
+          For assistance, use the contact information published on BandWagon or visit
+          the <Link href="/messaging">Messaging &amp; SMS Consent</Link> page.
+        </p>
 
-        <h2>8. User Conduct</h2>
-        <p>Users may not misuse the platform, harass other members, circumvent blocks or privacy controls, impersonate another person, scrape member information, send spam, attempt unauthorized access, or use BandWagon for illegal or abusive activity.</p>
+        <h2>8. SMS Privacy</h2>
+        <p>
+          Mobile phone numbers, SMS opt-in information, and SMS consent information
+          are not sold, rented, or shared with third parties or affiliates for
+          marketing or promotional purposes. See the{" "}
+          <Link href="/privacy">Privacy Policy</Link> for additional information.
+        </p>
 
-        <h2>9. Blocking, Suspension, and Termination</h2>
-        <p>Users may block other accounts. Organization administrators may restrict organization-scoped access where authorized, and BandWagon may suspend or terminate accounts or organizations for abuse, security threats, legal requirements, or material violations of these Terms.</p>
+        <h2>9. Email and Service Communications</h2>
+        <p>
+          BandWagon may send service-related email, including account verification,
+          security notices, ride coordination, reminders, and administrative
+          communications. Notification preferences may be available depending on the
+          message and organization configuration.
+        </p>
 
-        <h2>10. Privacy</h2>
-        <p>Use of BandWagon is also governed by the <Link href="/privacy">Privacy Policy</Link>. Users should review the public <Link href="/messaging">Messaging & SMS Consent</Link> page before enabling mobile messaging.</p>
+        <h2>10. Ride Information and Privacy</h2>
+        <p>
+          Information visible to other users depends on the stage of a ride request
+          and applicable privacy settings. BandWagon is designed to limit unnecessary
+          disclosure of precise home addresses and personal contact information.
+          Participants should only use information disclosed through the service for
+          legitimate ride coordination.
+        </p>
 
-        <h2>11. Availability and Changes</h2>
-        <p>The service may change, experience downtime, or be discontinued. Calendar events, notifications, messages, and ride information may be delayed or unavailable due to systems outside BandWagon's control.</p>
+        <h2>11. Pickup and Drop-Off Confirmations</h2>
+        <p>
+          Pickup, drop-off, completion, no-show, or similar status features are
+          coordination records supplied by users. They are not independent
+          verification, monitoring, emergency response, or a guarantee of a person's
+          location or safety.
+        </p>
 
-        <h2>12. Disclaimers and Liability</h2>
-        <p>BandWagon is provided as a coordination tool. Transportation decisions and transportation itself occur independently between users. Final warranty disclaimers, limitation-of-liability terms, indemnification provisions, dispute-resolution terms, and jurisdiction-specific legal provisions will be reviewed by qualified counsel before broad public use.</p>
+        <h2>12. Availability and Changes</h2>
+        <p>
+          The service may change, experience interruptions, or become unavailable.
+          Features, notification methods, organization settings, and these Terms may
+          be updated as the service develops.
+        </p>
 
-        <h2>13. Changes to These Terms</h2>
-        <p>These Terms may be updated as the platform evolves. Material changes may require renewed acknowledgment.</p>
+        <h2>13. Right to Stop Using the Service</h2>
+        <p>
+          Users may stop using BandWagon and may request deletion of eligible personal
+          information in accordance with the Privacy Policy and applicable law.
+          Certain information may be retained when reasonably necessary for security,
+          legal, fraud-prevention, or operational recordkeeping purposes.
+        </p>
 
         <h2>14. Contact</h2>
-        <p>Questions about these Terms may be submitted to Harrison Ward Technology through BandWagon's public support/contact process.</p>
+        <p>
+          Questions, privacy requests, messaging assistance, or reports of misuse may
+          be submitted using the contact method published on the BandWagon website.
+        </p>
 
         <div className="legal-links">
           <Link href="/privacy">Privacy Policy</Link>
-          <Link href="/messaging">Messaging & SMS Consent</Link>
+          <Link href="/messaging">Messaging &amp; SMS Consent</Link>
+          <Link href="/sms-opt-in">SMS Opt-In Example</Link>
           <Link href="/">BandWagon Home</Link>
         </div>
       </article>
