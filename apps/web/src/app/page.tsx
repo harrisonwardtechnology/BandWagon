@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { floMoGoBrand, platformBrand } from "@/lib/branding";
 import { resolveTenant } from "@/lib/tenant";
 
@@ -42,7 +43,14 @@ export default async function Home() {
         </article>
       </section>
 
-      <footer>Powered by {platformBrand.name}, a {platformBrand.vendorName} product.</footer>
+      <footer>
+        <div>Powered by {platformBrand.name}, a {platformBrand.vendorName} product.</div>
+        <div className="site-footer-links">
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
+          <Link href="/messaging">Messaging & SMS Consent</Link>
+        </div>
+      </footer>
     </main>
   );
 }
