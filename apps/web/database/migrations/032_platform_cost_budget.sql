@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS platform_cost_budgets (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   budget_month date NOT NULL,
   budget_cents integer NOT NULL CHECK (budget_cents > 0),
+  fixed_monthly_cost_cents integer NOT NULL DEFAULT 0 CHECK (fixed_monthly_cost_cents >= 0),
   alert_recipients text[] NOT NULL DEFAULT '{}',
   enabled boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
