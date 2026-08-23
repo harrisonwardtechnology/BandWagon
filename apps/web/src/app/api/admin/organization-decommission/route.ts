@@ -1,6 +1,6 @@
 import { getDb } from "@/lib/db";
 import { requireBaseSessionIdentity } from "@/lib/auth";
-import { previewOrganizationDecommission,requestOrganizationDecommission,listOrganizationDecommissions } from "@/lib/organization-decommission";
+import { previewOrganizationDecommission,createOrganizationDecommissionConfirmation,listOrganizationDecommissions } from "@/lib/organization-decommission";
 
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
@@ -31,7 +31,7 @@ export async function POST(request:Request){
     const access=await requireOrgDecommissionAccess(organizationId);
     const emergency=Boolean(body.emergency);
     if(emergency&&access.identity.platformRole!=='owner')return Response.json({error:'Only a Platform Owner can force emergency decommission while active rides exist'},{status:403});
-    const result=await requestOrganizationDecommission({organizationId,confirmation:String(body.confirmation||''),reason:String(body.reason||''),emergency,requestedByPersonId:access.identity.personId,requestedByPlatformRole:access.identity.platformRole||null});
-    return Response.json({ok:true,...result});
+    const result=await createOrganizationDecommissionConfirmation({organizationId,confirmation:String(body.confirmation||''),reason:String(body.reason||''),emergency,requestedByPersonId:access.identity.personId,requestedByPlatformRole:access.identity.platformRole||null});
+    return Response.json({ok:true,confirmationRequired:true,...result});
   }catch(error){return Response.json({error:error instanceof Error?error.message:'Unable to request organization decommission'},{status:400});}
 }
