@@ -2,6 +2,7 @@ import { getDb } from "@/lib/db";
 import { encryptSensitive } from "@/lib/data-security";
 import { runStructuredAi } from "@/lib/ai-gateway";
 import { createManualEvent } from "@/lib/events";
+import { assertOrgAiFeatureEnabled } from "@/lib/org-ai";
 import type { SessionIdentity } from "@/lib/auth";
 
 function dbRequired(){const db=getDb();if(!db)throw new Error("Database is not configured");return db;}
@@ -28,7 +29,7 @@ function normalizedProposal(value:any){
 }
 
 export async function createEventIntakeDraft(identity:SessionIdentity,input:{organizationId:string;text:string}){
-  const db=dbRequired();await assertOrgAdmin(identity,input.organizationId);
+  const db=dbRequired();await assertOrgAdmin(identity,input.organizationId);await assertOrgAiFeatureEnabled(input.organizationId,"event_intake");
   const text=input.text.trim();if(text.length<10)throw new Error("Paste enough information to identify an event");if(text.length>20000)throw new Error("Event source text is too long");
   const draft=await db.query(`insert into event_intake_drafts(organization_id,created_by_person_id,source_type,source_text_ciphertext,status) values($1,$2,'pasted_text',$3,'draft') returning id`,[input.organizationId,identity.personId,encryptSensitive(text)]);
   try{
