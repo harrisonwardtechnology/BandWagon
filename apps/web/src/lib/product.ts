@@ -1,6 +1,7 @@
 import { getDb } from "@/lib/db";
 import type { SessionIdentity } from "@/lib/auth";
-import { acceptRideOffer, createRideOffer, createRideRequest, transitionRide } from "@/lib/rides";
+import { acceptRideOffer, createRideOffer, createRideRequest } from "@/lib/rides";
+import { transitionRide } from "@/lib/ride-lifecycle";
 import { generateMatchSuggestions } from "@/lib/matching";
 import { attachLocationsToRideRequest, createPrivateLocation, getLocationForViewer } from "@/lib/location-privacy";
 import { geocodeAddress } from "@/lib/geocoding";
