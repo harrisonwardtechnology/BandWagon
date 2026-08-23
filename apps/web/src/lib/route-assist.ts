@@ -16,15 +16,15 @@ export async function refreshRouteAssistRecommendations(organizationId:string,dr
   const available=Number(ride.capacity_snapshot||0)-Number(ride.seats_reserved||0);if(available<=0)continue;
   for(const req of open.rows){
    if(Number(req.seats_needed)>available)continue;if(ride.event_id&&req.event_id&&ride.event_id!==req.event_id)continue;if(ride.direction!==req.direction)continue;if(ride.lat==null||ride.lng==null||req.lat==null||req.lng==null)continue;
-   const route=await routeMetrics({lat:Number(ride.lat),lng:Number(ride.lng)},{lat:Number(req.lat),lng:Number(req.lng)});
+   const route=await routeMetrics({lat:Number(ride.lat),lng:Number(ride.lng)},{lat:Number(req.lat),lng:Number(req.lng)},{organizationId});
    const detourKm=route.distanceMeters/1000,extraMinutes=Math.ceil(route.durationSeconds/60+2);
    const baselineMinutes=Math.max(10,Math.abs(new Date(ride.requested_pickup_at||ride.starts_at||Date.now()).getTime()-new Date(req.requested_pickup_at||req.starts_at||Date.now()).getTime())/60000+30);
    const deviation=round((extraMinutes/baselineMinutes)*100,1);
    if(extraMinutes>Number(pref.max_route_extra_minutes||10)||deviation>Number(pref.max_route_deviation_percent||10))continue;
    const score=Math.max(0,Math.min(100,round(100-(extraMinutes/Math.max(1,Number(pref.max_route_extra_minutes||10))*35)-(deviation/Math.max(1,Number(pref.max_route_deviation_percent||10))*25)+10,1)));
-   const reasons=["same_event_or_route","capacity_available","within_time_limit","within_deviation_limit",route.provider];
+   const reasons=["same_event_or_route","capacity_available","within_time_limit","within_deviation_limit",route.provider,route.cacheHit?"routing_cache_hit":"routing_live_check"];
    const row=(await db.query(`insert into driver_ride_recommendations (organization_id,driver_person_id,ride_request_id,source_route_id,estimated_detour_distance_meters,estimated_deviation_percent,estimated_extra_minutes,score,reason_codes,status,expires_at,updated_at) values ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,'recommended',now()+interval '6 hours',now()) on conflict (driver_person_id,ride_request_id,source_route_id) do update set estimated_detour_distance_meters=excluded.estimated_detour_distance_meters,estimated_deviation_percent=excluded.estimated_deviation_percent,estimated_extra_minutes=excluded.estimated_extra_minutes,score=excluded.score,reason_codes=excluded.reason_codes,status=case when driver_ride_recommendations.status in ('accepted','dismissed') then driver_ride_recommendations.status else 'recommended' end,expires_at=excluded.expires_at,updated_at=now() returning *`,[organizationId,driverPersonId,req.id,ride.id,route.distanceMeters,deviation,extraMinutes,score,JSON.stringify(reasons)])).rows[0];
-   out.push({...row,event_title:req.title,passenger_name:req.passenger_name,routing_provider:route.provider});
+   out.push({...row,event_title:req.title,passenger_name:req.passenger_name,routing_provider:route.provider,routing_cache_hit:Boolean(route.cacheHit)});
   }
  }
  return out.sort((a,b)=>Number(b.score)-Number(a.score));
