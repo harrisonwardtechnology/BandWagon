@@ -44,7 +44,7 @@ export async function createSupportCheckout(input: {
   params.set("mode", "payment");
   params.set("success_url", `${appUrl}/support?success=1&session_id={CHECKOUT_SESSION_ID}`);
   params.set("cancel_url", `${appUrl}/support?cancelled=1`);
-  params.set("submit_type", input.type === "sponsor" ? "donate" : "donate");
+  params.set("submit_type", input.type === "sponsor" ? "donate" : "pay");
 
   params.set("line_items[0][quantity]", "1");
   params.set("line_items[0][price_data][currency]", "usd");
