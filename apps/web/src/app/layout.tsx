@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { platformBrand } from "@/lib/branding";
 import PwaRegister from "./PwaRegister";
+import SupportModeBanner from "@/components/support-mode-banner";
 
 export const viewport: Viewport = {
   themeColor: "#101b33",
@@ -57,6 +58,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <PwaRegister />
+        <SupportModeBanner />
         {children}
       </body>
     </html>
