@@ -1,4 +1,4 @@
-# BandWagon Roadmap To v1
+# BandWagon Roadmap To v2
 
 This roadmap intentionally uses larger release packages: one release PR, one review/merge, one deployment, and one migration run per release.
 
@@ -153,6 +153,109 @@ This roadmap intentionally uses larger release packages: one release PR, one rev
 
 ---
 
+## 2.0 - Native Mobile Apps
+**Goal:** Deliver first-class iOS and Android apps without forking BandWagon into three separate products.
+
+### Mobile architecture
+- keep the BandWagon backend, data model, authorization, safety rules, tenant isolation, AI gateway, and notification engine authoritative
+- expose stable versioned application APIs for web, iOS, and Android clients
+- build one shared native codebase where practical; React Native / Expo is the leading candidate because BandWagon already uses TypeScript / React
+- keep the PWA and desktop web experience fully supported for accessibility, admin workflows, and users who do not install an app
+- define deep links / universal links so ride requests, approvals, safety alerts, and organization invitations open directly in the correct screen
+
+### Native account / identity
+- secure token storage using iOS Keychain and Android Keystore
+- device registration and session management
+- biometric unlock as an optional convenience layer after normal BandWagon authentication
+- Sign in with Apple / Google where useful, while preserving email / phone OTP and organization policies
+- account recovery and device-loss flows
+
+### Native notifications
+- Apple Push Notification Service (APNs)
+- Firebase Cloud Messaging (FCM) for Android
+- device-level notification preferences
+- actionable notifications such as Accept Ride, Approve Student Ride, Driver Arriving, and I Need Help
+- push token lifecycle / invalid-token cleanup
+- SMS/RCS remains the critical fallback rather than the primary routine channel
+
+### Safety / emergency experience
+- prominent native Emergency Assist entry point during active rides
+- direct device Call 911 action; BandWagon does not represent itself as an emergency dispatch service
+- one-touch guardian / safety-circle alert
+- optional user-initiated live location sharing during a safety event or active ride, subject to explicit privacy controls
+- native location permission model with clear foreground / background distinctions
+- no passive background tracking by default
+- native share sheet for ride / safety details when appropriate
+
+### Ride experience
+- native driver / rider active-ride screen
+- arrival / pickup / drop-off actions
+- maps / navigation handoff to Apple Maps, Google Maps, or preferred installed mapping app
+- calendar add / open actions
+- camera integration for driver credential capture
+- photo/document upload with on-device cropping / compression before private S3 upload
+- offline / poor-connectivity handling for currently active ride details and queued non-critical updates
+
+### Mobile UX
+- fast household / organization switcher
+- large, simple active-ride controls
+- accessibility / Dynamic Type / VoiceOver / TalkBack
+- dark mode
+- haptics only where useful, particularly safety and ride-state confirmations
+- tablet support where reasonable, especially for administrators
+
+### Privacy / platform requirements
+- Apple App Privacy disclosures
+- Google Play Data Safety disclosures
+- age rating / child-safety review
+- COPPA/privacy counsel review before store submission because minors are central to the product
+- clear permission explanations for location, notifications, camera, photos, and biometrics
+- minimize mobile analytics / advertising SDKs; BandWagon does not need ad-tech tracking
+- no sensitive documents in crash reports, analytics events, push payloads, screenshots, or logs
+- App Store / Play Store privacy-policy and account-deletion requirements
+
+### App distribution / operations
+- Apple Developer Program and App Store Connect
+- Google Play Console
+- TestFlight beta channel
+- Google Play internal / closed testing
+- staged rollouts and remote feature flags
+- native crash / performance monitoring with sensitive-data scrubbing
+- CI/CD for signed iOS / Android builds
+- release compatibility policy between mobile app versions and BandWagon API versions
+- minimum supported OS policy
+
+### Product opportunities enabled by native
+- richer actionable push notifications
+- home-screen widgets for next ride / upcoming event
+- Live Activities / Dynamic Island on supported iPhones for an active ride, if privacy review supports it
+- Android equivalent ongoing ride notification
+- native QR organization join / event check-in
+- easier camera-based document capture
+- improved Emergency Assist UX
+- optional CarPlay / Android Auto investigation only if it can be done safely and within platform rules
+
+### Native admin scope
+The initial native apps should prioritize parents, students, and drivers. Complex organization administration can remain web-first unless real usage shows a clear need for native admin screens.
+
+**Exit:** A user can install BandWagon from the Apple App Store or Google Play, sign in, switch organizations, manage household rides, receive native notifications, complete an active ride, use Emergency Assist, and upload driver credentials while all authoritative rules remain server-side.
+
+---
+
+## Post-v2 Candidates
+
+- home-screen widgets / Live Activities expansion
+- richer organization analytics
+- route / demand forecasting
+- AI admin copilot expansion
+- QR event check-in / attendance integrations
+- school / district roster integrations where legally and contractually appropriate
+- broader SSO / identity integrations
+- optional white-label / organization-branded mobile experience only if demand justifies the operational cost
+- CarPlay / Android Auto only after safety and platform-policy review
+
+---
+
 ## Release Sequence
 
 ```text
@@ -163,6 +266,8 @@ This roadmap intentionally uses larger release packages: one release PR, one rev
 0.15  SaaS / Privacy / Production Candidate
   |
 1.0   FloMoGo Production / General Availability
+  |
+2.0   Native iOS / Android Apps
 ```
 
-The priority from here is finishing product workflows and operational controls rather than adding speculative features. New ideas can be parked for post-v1 unless they are required for safety, privacy, tenant isolation, or launch readiness.
+The priority through v1 is finishing product workflows and operational controls rather than adding speculative features. Native application work begins after v1 so it is built on a stable API and product contract instead of duplicating unfinished product logic.
