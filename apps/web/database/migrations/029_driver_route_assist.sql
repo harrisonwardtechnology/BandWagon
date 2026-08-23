@@ -1,23 +1,24 @@
 -- 029_driver_route_assist.sql
 -- Driver-controlled willingness to deviate from an existing route to assist open ride requests.
--- RouteAssist is opt-in. Time and distance limits are both enforced; whichever threshold is reached first wins.
+-- RouteAssist is opt-in per organization. Time and distance limits are both enforced;
+-- whichever threshold is reached first wins.
 
-alter table driver_preferences
+alter table driver_organization_settings
   add column if not exists route_assist_enabled boolean not null default false,
   add column if not exists max_route_deviation_percent numeric(5,2) not null default 10,
   add column if not exists max_route_extra_minutes integer not null default 10,
   add column if not exists route_assist_notify boolean not null default true;
 
-alter table driver_preferences
-  drop constraint if exists driver_preferences_route_deviation_check;
-alter table driver_preferences
-  add constraint driver_preferences_route_deviation_check
+alter table driver_organization_settings
+  drop constraint if exists driver_org_settings_route_deviation_check;
+alter table driver_organization_settings
+  add constraint driver_org_settings_route_deviation_check
   check (max_route_deviation_percent >= 0 and max_route_deviation_percent <= 50);
 
-alter table driver_preferences
-  drop constraint if exists driver_preferences_route_extra_minutes_check;
-alter table driver_preferences
-  add constraint driver_preferences_route_extra_minutes_check
+alter table driver_organization_settings
+  drop constraint if exists driver_org_settings_route_extra_minutes_check;
+alter table driver_organization_settings
+  add constraint driver_org_settings_route_extra_minutes_check
   check (max_route_extra_minutes >= 0 and max_route_extra_minutes <= 60);
 
 create table if not exists driver_ride_recommendations (
