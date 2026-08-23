@@ -1,5 +1,6 @@
 type DoDomainCheck = { domain?: string; zone?: string; provider?: string; nameservers?: string[] };
 type DoDomainSession = { id?: string; token?: string; connectUrl?: string; domain?: string; records?: unknown[]; warnings?: unknown[] };
+type DoDomainDisconnect = { connectionId?: string; disconnectedAt?: string; alreadyDisconnected?: boolean };
 
 function configured(){return Boolean(process.env.DODOMAIN_SECRET_KEY);}
 function apiBase(){return (process.env.DODOMAIN_API_BASE_URL||"https://app.dodomain.io").replace(/\/$/,"");}
@@ -33,4 +34,11 @@ export async function createAutomaticDomainSetup(input:{hostname:string;targetHo
   const session=await request<DoDomainSession>("/api/v1/sessions",{method:"POST",body:JSON.stringify({domain:input.hostname,records:[{type:"CNAME",host,value:input.targetHostname}],...(input.returnUrl?{returnUrl:input.returnUrl}:{})})});
   if(!session.connectUrl)throw new Error("DoDomain did not return a connect URL");
   return{available:true,provider:"dodomain",sessionId:session.id||null,connectUrl:session.connectUrl,inspection} as const;
+}
+
+export async function disconnectAutomaticDomain(connectionId:string){
+  if(!configured())return{configured:false,skipped:true,reason:"DoDomain is not configured"} as const;
+  const id=String(connectionId||"").trim();if(!id)return{configured:true,skipped:true,reason:"No DoDomain connection ID is recorded"} as const;
+  const result=await request<DoDomainDisconnect>(`/api/v1/connections/${encodeURIComponent(id)}`,{method:"DELETE"});
+  return{configured:true,skipped:false,connectionId:id,...result} as const;
 }
