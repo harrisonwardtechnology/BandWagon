@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { getDb } from "@/lib/db";
+import { getRedis } from "@/lib/redis";
 import { sendEmailNotification } from "@/lib/email-send";
 
 export const runtime="nodejs";
@@ -14,6 +15,17 @@ function validEmail(value:string){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value
 function validSecureEvidence(value:string){
   if(!value)return true;
   try{const u=new URL(value);return u.protocol==="https:"&&u.hostname.toLowerCase()==="secret.harrisonward.com";}catch{return false;}
+}
+function privateRateKey(value:string){
+  const secret=process.env.AUTH_SECRET||process.env.DATA_ENCRYPTION_KEY||'bandwagon-rate-limit';
+  return crypto.createHmac('sha256',secret).update(value).digest('hex').slice(0,32);
+}
+async function rateLimit(request:Request,email:string){
+  const redis=getRedis();if(!redis)return{allowed:true};if(redis.status==='wait')await redis.connect();
+  const ip=String(request.headers.get('cf-connecting-ip')||request.headers.get('x-forwarded-for')?.split(',')[0]||'unknown').trim();
+  const keys=[{key:`security-report:ip:${privateRateKey(ip)}`,limit:10},{key:`security-report:email:${privateRateKey(email)}`,limit:5}];
+  for(const item of keys){const n=await redis.incr(item.key);if(n===1)await redis.expire(item.key,3600);if(n>item.limit)return{allowed:false};}
+  return{allowed:true};
 }
 
 export async function POST(request:Request){
@@ -35,13 +47,15 @@ export async function POST(request:Request){
   if(!validEmail(contactEmail))return Response.json({error:"A valid contact email is required"},{status:400});
   if(!validSecureEvidence(secureEvidenceUrl))return Response.json({error:"Sensitive evidence links must use https://secret.harrisonward.com"},{status:400});
   if(!safeHarborAcknowledged)return Response.json({error:"Please acknowledge the responsible disclosure rules"},{status:400});
+  const rate=await rateLimit(request,contactEmail).catch(()=>({allowed:true}));
+  if(!rate.allowed)return Response.json({error:"Too many reports were submitted recently. Please wait before trying again. For an urgent critical issue, use the contact information on the Security page."},{status:429});
 
   const id=trackingId();
   await db.query(`insert into security_reports
     (tracking_id,report_type,severity,title,description,reproduction_steps,affected_url,contact_email,secure_evidence_url,reporter_acknowledged_safe_harbor,metadata)
     values($1,$2,$3,$4,$5,$6,$7,$8,$9,true,$10::jsonb)`,[
     id,reportType,severity,title,description,reproductionSteps||null,affectedUrl||null,contactEmail,secureEvidenceUrl||null,
-    JSON.stringify({userAgent:request.headers.get("user-agent")||null})
+    JSON.stringify({userAgent:request.headers.get("user-agent")||null,rateLimitedByHashedIdentifiers:true})
   ]);
 
   const securityInbox=process.env.SECURITY_EMAIL||process.env.SUPPORT_EMAIL;
