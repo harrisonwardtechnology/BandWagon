@@ -19,6 +19,8 @@ export async function POST(request: Request) {
         identifier: String(body.identifier || ""),
         displayName: body.displayName || null,
         householdName: body.householdName || null,
+        birthMonth: body.birthMonth == null || body.birthMonth === "" ? null : Number(body.birthMonth),
+        birthYear: body.birthYear == null || body.birthYear === "" ? null : Number(body.birthYear),
         requestIp: requestIp(request),
       });
       return NextResponse.json(result);

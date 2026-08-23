@@ -40,6 +40,22 @@ function normalizeIdentifier(value: string) {
   return { type: "phone" as const, destination: phone, lookup: lookupHash(phone) };
 }
 
+function screenedAge(birthMonth: number, birthYear: number) {
+  const now = new Date();
+  const currentYear = now.getUTCFullYear();
+  const currentMonth = now.getUTCMonth() + 1;
+  if (!Number.isInteger(birthMonth) || birthMonth < 1 || birthMonth > 12) throw new Error("Enter a valid birth month");
+  if (!Number.isInteger(birthYear) || birthYear < currentYear - 120 || birthYear > currentYear) throw new Error("Enter a valid birth year");
+  // Month/year only: if the birthday falls in the current month, remain conservative until next month.
+  return currentYear - birthYear - (currentMonth <= birthMonth ? 1 : 0);
+}
+
+function ageBand(age: number) {
+  if (age < 13) return "under_13" as const;
+  if (age < 18) return "13_17" as const;
+  return "adult" as const;
+}
+
 async function findExistingAccount(type: "email" | "phone", lookup: string) {
   const db = dbRequired();
   const result = type === "email"
@@ -62,6 +78,8 @@ export async function requestOtp(input: {
   identifier: string;
   displayName?: string | null;
   householdName?: string | null;
+  birthMonth?: number | null;
+  birthYear?: number | null;
   requestIp?: string | null;
 }) {
   const db = dbRequired();
@@ -70,6 +88,22 @@ export async function requestOtp(input: {
   const displayName = input.displayName?.trim() || null;
   if (!existing && !displayName) {
     return { ok: false as const, signupDetailsRequired: true as const };
+  }
+
+  let signupAgeBand: "under_13" | "13_17" | "adult" | null = null;
+  if (!existing) {
+    if (input.birthMonth == null || input.birthYear == null) {
+      return { ok: false as const, signupDetailsRequired: true as const, ageDetailsRequired: true as const };
+    }
+    const age = screenedAge(Number(input.birthMonth), Number(input.birthYear));
+    signupAgeBand = ageBand(age);
+    if (signupAgeBand === "under_13") {
+      return {
+        ok: false as const,
+        underAge: true as const,
+        message: "Direct BandWagon accounts are for ages 13+. A parent or guardian can add a younger student as a managed household profile.",
+      };
+    }
   }
 
   const recent = await db.query(
@@ -86,12 +120,13 @@ export async function requestOtp(input: {
   await db.query(
     `insert into auth_otp_challenges
       (id,purpose,destination_type,identifier_lookup,destination_ciphertext,person_id,user_account_id,
-       code_hash,signup_display_name,signup_household_name,request_ip_hash,expires_at)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,now()+($12 || ' minutes')::interval)`,
+       code_hash,signup_display_name,signup_household_name,signup_birth_month,signup_birth_year,request_ip_hash,expires_at)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,now()+($14 || ' minutes')::interval)`,
     [
       id,purpose,normalized.type,normalized.lookup,encryptSensitive(normalized.destination),
       existing?.person_id || null,existing?.user_account_id || null,codeHash,displayName,
-      input.householdName?.trim() || null,input.requestIp ? digest(`ip:${input.requestIp}`) : null,String(OTP_TTL_MINUTES),
+      input.householdName?.trim() || null,input.birthMonth || null,input.birthYear || null,
+      input.requestIp ? digest(`ip:${input.requestIp}`) : null,String(OTP_TTL_MINUTES),
     ]
   );
 
@@ -126,6 +161,7 @@ export async function requestOtp(input: {
     challengeId: id,
     destinationType: normalized.type,
     signup: !existing,
+    signupAgeBand,
     ...(process.env.AUTH_DEBUG_OTP === "true" ? { debugCode: code } : {}),
   };
 }
@@ -138,11 +174,15 @@ async function createSession(client: any, userAccountId: string, requestIp?: str
      values ($1,$2,now()+($3 || ' days')::interval,$4,$5) returning id,expires_at`,
     [
       userAccountId,tokenHash,String(SESSION_DAYS),
-      requestIp ? digest(`ip:${requestIp}`) : null,
-      userAgent ? digest(`ua:${userAgent}`) : null,
+      requestIp ? digest(`ip:${inputOrEmpty(requestIp)}`) : null,
+      userAgent ? digest(`ua:${inputOrEmpty(userAgent)}`) : null,
     ]
   );
   return { token, sessionId: result.rows[0].id, expiresAt: result.rows[0].expires_at };
+}
+
+function inputOrEmpty(value: string) {
+  return value || "";
 }
 
 export async function verifyOtp(input: {
@@ -175,21 +215,26 @@ export async function verifyOtp(input: {
     const destination = decryptSensitive(challenge.destination_ciphertext);
 
     if (challenge.purpose === "sign_up") {
+      const age = screenedAge(Number(challenge.signup_birth_month), Number(challenge.signup_birth_year));
+      const band = ageBand(age);
+      if (band === "under_13") throw new Error("Direct BandWagon accounts are limited to ages 13+");
+      const isMinor = band === "13_17";
       const household = await client.query(
         `insert into households (name,public_ref,status,created_at,updated_at)
          values ($1,'hh_' || lower(encode(gen_random_bytes(8),'hex')),'active',now(),now()) returning id`,
         [challenge.signup_household_name || `${challenge.signup_display_name}'s household`]
       );
       const person = await client.query(
-        `insert into people (display_name,person_type,status,created_at,updated_at)
-         values ($1,'adult','active',now(),now()) returning id`,
-        [challenge.signup_display_name]
+        `insert into people
+          (display_name,person_type,birth_month,birth_year,age_band,age_screened_at,student_approval_required,status,created_at,updated_at)
+         values ($1,$2,$3,$4,$5,now(),$6,'active',now(),now()) returning id`,
+        [challenge.signup_display_name,isMinor ? 'minor' : 'adult',challenge.signup_birth_month,challenge.signup_birth_year,band,isMinor]
       );
       personId = person.rows[0].id;
       await client.query(
         `insert into household_members (household_id,person_id,household_role,can_manage_household)
-         values ($1,$2,'manager',true)`,
-        [household.rows[0].id,personId]
+         values ($1,$2,$3,$4)`,
+        [household.rows[0].id,personId,isMinor ? 'student' : 'manager',!isMinor]
       );
       await client.query(`update people set household_id=$1 where id=$2`, [household.rows[0].id,personId]);
       const account = await client.query(

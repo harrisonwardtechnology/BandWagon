@@ -6,6 +6,8 @@ export function AppNav({active}:{active?:string}) {
     ["Rides","/app/rides"],
     ["Household","/app/household"],
     ["Driver","/app/driver"],
+    ["Credentials","/app/driver/credentials"],
+    ["Safety","/app/safety"],
   ];
   async function signOut() {
     await fetch("/api/auth/session",{method:"DELETE"}).catch(()=>{});

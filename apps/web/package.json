@@ -11,6 +11,8 @@
     "push:generate-vapid": "web-push generate-vapid-keys"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.850.0",
+    "@aws-sdk/s3-request-presigner": "^3.850.0",
     "ioredis": "^5.4.2",
     "next": "^15.5.0",
     "pg": "^8.13.3",
