@@ -21,6 +21,12 @@ export type PushPayload = {
   data?: Record<string, unknown>;
 };
 
+export type PushDeliveryContext = {
+  notificationType?: string;
+  urgency?: "routine" | "important" | "critical";
+  correlationId?: string | null;
+};
+
 export async function savePushSubscription(input: {
   endpoint: string;
   p256dh: string;
@@ -75,27 +81,33 @@ async function logDelivery(input: {
   personId?: string | null;
   endpoint?: string | null;
   status: string;
+  context?: PushDeliveryContext;
   metadata?: Record<string, unknown>;
 }) {
   const db = getDb();
   if (!db) return;
   await db.query(
     `insert into notification_deliveries
-      (person_id, organization_id, notification_type, channel, destination_ref, status, estimated_cost_cents, metadata)
-     values ($1,$2,'platform_test','push',$3,$4,0,$5::jsonb)`,
+      (person_id, organization_id, notification_type, channel, destination_ref, status,
+       estimated_cost_cents, metadata, urgency, correlation_id)
+     values ($1,$2,$3,'push',$4,$5,0,$6::jsonb,$7,$8)`,
     [
       input.personId || null,
       input.organizationId || null,
+      input.context?.notificationType || "platform_test",
       input.endpoint || null,
       input.status,
       JSON.stringify(input.metadata || {}),
+      input.context?.urgency || "routine",
+      input.context?.correlationId || null,
     ]
   );
 }
 
 export async function sendPushToSubscription(
   subscription: { endpoint: string; p256dh: string; auth: string; person_id?: string | null; organization_id?: string | null },
-  payload: PushPayload
+  payload: PushPayload,
+  context: PushDeliveryContext = {}
 ) {
   configureVapid();
 
@@ -107,8 +119,8 @@ export async function sendPushToSubscription(
       },
       JSON.stringify(payload),
       {
-        TTL: 3600,
-        urgency: "normal",
+        TTL: context.urgency === "critical" ? 300 : 3600,
+        urgency: context.urgency === "critical" ? "high" : "normal",
       }
     );
 
@@ -117,6 +129,7 @@ export async function sendPushToSubscription(
       organizationId: subscription.organization_id,
       endpoint: subscription.endpoint,
       status: "accepted",
+      context,
       metadata: { statusCode: result.statusCode },
     });
 
@@ -134,6 +147,7 @@ export async function sendPushToSubscription(
       organizationId: subscription.organization_id,
       endpoint: subscription.endpoint,
       status: gone ? "revoked" : "failed",
+      context,
       metadata: { statusCode, message: error?.message || "Push failed" },
     });
 
@@ -170,7 +184,12 @@ export async function sendPushTest(input: {
 
   const outcomes = [];
   for (const row of result.rows) {
-    outcomes.push(await sendPushToSubscription(row, input.payload));
+    outcomes.push(
+      await sendPushToSubscription(row, input.payload, {
+        notificationType: "platform_test",
+        urgency: "routine",
+      })
+    );
   }
 
   return {
