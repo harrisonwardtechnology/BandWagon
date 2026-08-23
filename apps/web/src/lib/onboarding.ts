@@ -1,0 +1,236 @@
+import { getDb } from "@/lib/db";
+import { lookupHash } from "@/lib/data-security";
+import { upsertDriverProfile } from "@/lib/drivers";
+
+function dbRequired() {
+  const db = getDb();
+  if (!db) throw new Error("Database is not configured");
+  return db;
+}
+
+async function managedHousehold(personId: string) {
+  const db = dbRequired();
+  const result = await db.query(
+    `select h.* from household_members hm join households h on h.id=hm.household_id
+     where hm.person_id=$1 and hm.can_manage_household=true and h.status='active' limit 1`,
+    [personId]
+  );
+  if (!result.rowCount) throw new Error("You do not manage an active household");
+  return result.rows[0];
+}
+
+export async function getOnboardingContext(personId: string) {
+  const db = dbRequired();
+  const household = await db.query(
+    `select h.*,hm.household_role,hm.can_manage_household
+     from household_members hm join households h on h.id=hm.household_id
+     where hm.person_id=$1 and h.status='active' limit 1`,
+    [personId]
+  );
+  const householdId = household.rows[0]?.id || null;
+  const members = householdId ? await db.query(
+    `select p.id,p.display_name,p.preferred_name,p.person_type,p.birth_year,p.student_approval_required,
+            hm.household_role,hm.can_manage_household
+     from household_members hm join people p on p.id=hm.person_id
+     where hm.household_id=$1 and p.status='active' order by hm.created_at`,
+    [householdId]
+  ) : { rows: [] };
+  const organizations = await db.query(
+    `select o.id,coalesce(o.display_name,o.name) as name,o.slug,m.role,m.status
+     from memberships m join organizations o on o.id=m.organization_id
+     where m.person_id=$1 and m.group_id is null and m.status='active' and o.status='active'
+     order by name`,
+    [personId]
+  );
+  const driverProfiles = await db.query(
+    `select dp.*,o.id as organization_id,coalesce(o.display_name,o.name) as organization_name
+     from driver_profiles dp
+     join memberships m on m.person_id=dp.person_id and m.status='active'
+     join organizations o on o.id=m.organization_id and o.status='active'
+     where dp.person_id=$1 and m.group_id is null order by organization_name`,
+    [personId]
+  );
+  return {
+    household: household.rows[0] || null,
+    members: members.rows,
+    organizations: organizations.rows,
+    driverProfiles: driverProfiles.rows,
+  };
+}
+
+export async function addStudentToHousehold(input: {
+  managerPersonId: string;
+  displayName: string;
+  preferredName?: string | null;
+  birthYear?: number | null;
+  relationshipLabel?: string | null;
+  studentApprovalRequired?: boolean;
+}) {
+  const db = dbRequired();
+  const household = await managedHousehold(input.managerPersonId);
+  const name = input.displayName.trim();
+  if (!name) throw new Error("Student name is required");
+  const birthYear = input.birthYear == null ? null : Number(input.birthYear);
+  if (birthYear && (birthYear < 1900 || birthYear > new Date().getFullYear())) throw new Error("Invalid birth year");
+
+  const client = await db.connect();
+  try {
+    await client.query("BEGIN");
+    const person = await client.query(
+      `insert into people
+        (household_id,display_name,preferred_name,person_type,birth_year,student_approval_required,status,created_at,updated_at)
+       values ($1,$2,$3,'minor',$4,$5,'active',now(),now()) returning *`,
+      [household.id,name,input.preferredName?.trim() || null,birthYear,input.studentApprovalRequired !== false]
+    );
+    const studentId = person.rows[0].id;
+    await client.query(
+      `insert into household_members (household_id,person_id,household_role,can_manage_household)
+       values ($1,$2,'student',false)`,
+      [household.id,studentId]
+    );
+    await client.query(
+      `insert into guardian_relationships
+        (guardian_person_id,minor_person_id,relationship_label,can_approve_rides,can_manage_profile)
+       values ($1,$2,$3,true,true)`,
+      [input.managerPersonId,studentId,input.relationshipLabel?.trim() || "Parent / Guardian"]
+    );
+
+    const parentMemberships = await client.query(
+      `select organization_id,role from memberships
+       where person_id=$1 and group_id is null and status='active'`,
+      [input.managerPersonId]
+    );
+    for (const membership of parentMemberships.rows) {
+      const existing = await client.query(
+        `select id from memberships where organization_id=$1 and person_id=$2 and group_id is null limit 1`,
+        [membership.organization_id,studentId]
+      );
+      if (existing.rowCount) {
+        await client.query(`update memberships set status='active',updated_at=now() where id=$1`, [existing.rows[0].id]);
+      } else {
+        await client.query(
+          `insert into memberships (organization_id,person_id,role,status,updated_at)
+           values ($1,$2,'member','active',now())`,
+          [membership.organization_id,studentId]
+        );
+      }
+    }
+    await client.query("COMMIT");
+    return person.rows[0];
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function joinOrganizationWithCode(input: { personId: string; code: string }) {
+  const db = dbRequired();
+  const code = input.code.trim().toUpperCase();
+  if (!code) throw new Error("Join code is required");
+  const hash = lookupHash(code);
+  const client = await db.connect();
+  try {
+    await client.query("BEGIN");
+    const codeResult = await client.query(
+      `select c.*,o.status as organization_status,coalesce(o.display_name,o.name) as organization_name
+       from organization_join_codes c join organizations o on o.id=c.organization_id
+       where c.code_hash=$1 for update`,
+      [hash]
+    );
+    if (!codeResult.rowCount) throw new Error("Join code was not recognized");
+    const joinCode = codeResult.rows[0];
+    if (joinCode.status !== 'active' || joinCode.organization_status !== 'active') throw new Error("Join code is not active");
+    if (joinCode.expires_at && new Date(joinCode.expires_at).getTime() < Date.now()) throw new Error("Join code has expired");
+    if (joinCode.max_uses != null && Number(joinCode.use_count) >= Number(joinCode.max_uses)) throw new Error("Join code has reached its use limit");
+
+    const existing = await client.query(
+      `select * from memberships where organization_id=$1 and person_id=$2 and group_id is null limit 1 for update`,
+      [joinCode.organization_id,input.personId]
+    );
+    let membership;
+    let outcome: 'joined' | 'already_member' = 'joined';
+    if (existing.rowCount && existing.rows[0].status === 'active') {
+      membership = existing.rows[0];
+      outcome = 'already_member';
+    } else if (existing.rowCount) {
+      membership = (await client.query(
+        `update memberships set status='active',role=$1,joined_via_code_id=$2,updated_at=now() where id=$3 returning *`,
+        [joinCode.default_role || 'member',joinCode.id,existing.rows[0].id]
+      )).rows[0];
+    } else {
+      membership = (await client.query(
+        `insert into memberships (organization_id,person_id,role,status,joined_via_code_id,updated_at)
+         values ($1,$2,$3,'active',$4,now()) returning *`,
+        [joinCode.organization_id,input.personId,joinCode.default_role || 'member',joinCode.id]
+      )).rows[0];
+    }
+    if (outcome === 'joined') {
+      await client.query(`update organization_join_codes set use_count=use_count+1,updated_at=now() where id=$1`, [joinCode.id]);
+    }
+    await client.query(
+      `insert into organization_join_events (organization_id,person_id,join_code_id,outcome,metadata)
+       values ($1,$2,$3,$4,$5::jsonb)`,
+      [joinCode.organization_id,input.personId,joinCode.id,outcome,JSON.stringify({ label:joinCode.label || null })]
+    );
+    await client.query("COMMIT");
+    return { membership, organizationId:joinCode.organization_id, organizationName:joinCode.organization_name, outcome };
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function copyOrganizationMembershipToStudent(input: {
+  managerPersonId: string;
+  studentPersonId: string;
+  organizationId: string;
+}) {
+  const db = dbRequired();
+  const household = await managedHousehold(input.managerPersonId);
+  const student = await db.query(
+    `select 1 from household_members where household_id=$1 and person_id=$2 and household_role='student'`,
+    [household.id,input.studentPersonId]
+  );
+  if (!student.rowCount) throw new Error("Student is not in your household");
+  const parentMembership = await db.query(
+    `select 1 from memberships where organization_id=$1 and person_id=$2 and group_id is null and status='active'`,
+    [input.organizationId,input.managerPersonId]
+  );
+  if (!parentMembership.rowCount) throw new Error("You are not a member of that organization");
+  const existing = await db.query(
+    `select id from memberships where organization_id=$1 and person_id=$2 and group_id is null limit 1`,
+    [input.organizationId,input.studentPersonId]
+  );
+  if (existing.rowCount) {
+    return (await db.query(`update memberships set status='active',updated_at=now() where id=$1 returning *`, [existing.rows[0].id])).rows[0];
+  }
+  return (await db.query(
+    `insert into memberships (organization_id,person_id,role,status,updated_at) values ($1,$2,'member','active',now()) returning *`,
+    [input.organizationId,input.studentPersonId]
+  )).rows[0];
+}
+
+export async function configureSelfAsDriver(input: {
+  personId: string;
+  organizationId: string;
+  enabled: boolean;
+  capacity?: number;
+  vehicleLabel?: string | null;
+  vehicleColor?: string | null;
+  willingByDefault?: boolean;
+}) {
+  return upsertDriverProfile({
+    organizationId: input.organizationId,
+    personId: input.personId,
+    status: input.enabled ? 'active' : 'paused',
+    defaultCapacity: input.capacity || 4,
+    willingByDefault: input.enabled && input.willingByDefault !== false,
+    allowMultiPassenger: true,
+    vehicleLabel: input.vehicleLabel || null,
+    vehicleColor: input.vehicleColor || null,
+  });
+}
