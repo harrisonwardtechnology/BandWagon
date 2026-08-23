@@ -1,6 +1,7 @@
 import { requireAdminTestToken } from "@/lib/admin-test";
 import { getDb } from "@/lib/db";
-import { acceptRideOffer, approveRideRequest, createRideOffer, createRideRequest, listRideRequests, listRides, transitionRide } from "@/lib/rides";
+import { acceptRideOffer, approveRideRequest, createRideOffer, createRideRequest, listRideRequests, listRides } from "@/lib/rides";
+import { transitionRide } from "@/lib/ride-lifecycle";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
