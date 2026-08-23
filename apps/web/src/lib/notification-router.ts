@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { getDb } from "@/lib/db";
+import { getVerifiedPhone } from "@/lib/accounts";
 import { sendPushToSubscription, type PushPayload } from "@/lib/push";
 import { sendTwilioNotification } from "@/lib/twilio-send";
 import { sendEmailNotification } from "@/lib/email-send";
@@ -103,6 +104,11 @@ async function recipientContext(request: NotificationRequest) {
     email = result.rows[0]?.normalized_email || null;
   }
 
+  let phone = request.phone || null;
+  if (!phone && request.personId) {
+    phone = await getVerifiedPhone(request.personId);
+  }
+
   const params: unknown[] = [];
   let where = "where status='active'";
   if (request.personId) {
@@ -120,7 +126,7 @@ async function recipientContext(request: NotificationRequest) {
     params
   );
 
-  return { preferences, email, subscriptions: subscriptions.rows };
+  return { preferences, email, phone, subscriptions: subscriptions.rows };
 }
 
 function shouldUseReminderPreference(type: string) {
@@ -183,11 +189,11 @@ export async function routeNotification(request: NotificationRequest) {
   const pushAvailable = result.push.accepted > 0;
   const sendSmsNow = policy.smsImmediate || (policy.smsFallback && !pushAvailable);
 
-  if (sendSmsNow && smsAllowed && request.phone) {
+  if (sendSmsNow && smsAllowed && context.phone) {
     result.messaging.attempted = true;
     try {
       const outcome = await sendTwilioNotification({
-        to: request.phone,
+        to: context.phone,
         body: request.body,
         mode: "auto",
         personId: request.personId,
@@ -202,8 +208,8 @@ export async function routeNotification(request: NotificationRequest) {
     } catch (error) {
       result.messaging.error = error instanceof Error ? error.message : "Messaging failed";
     }
-  } else if (sendSmsNow && !request.phone) {
-    result.messaging.skipped = "No phone supplied";
+  } else if (sendSmsNow && !context.phone) {
+    result.messaging.skipped = "No verified phone available";
   } else if (sendSmsNow && !smsAllowed) {
     result.messaging.skipped = "SMS/RCS disabled by notification preferences";
   }
