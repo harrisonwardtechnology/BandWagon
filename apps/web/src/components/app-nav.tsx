@@ -8,6 +8,7 @@ export function AppNav({active}:{active?:string}) {
     ["Driver","/app/driver"],
     ["Credentials","/app/driver/credentials"],
     ["Safety","/app/safety"],
+    ["Settings","/app/settings/notifications"],
   ];
   async function signOut() {
     await fetch("/api/auth/session",{method:"DELETE"}).catch(()=>{});
