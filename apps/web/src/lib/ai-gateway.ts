@@ -1,5 +1,6 @@
 import { getDb } from "@/lib/db";
 import { getPrivateObjectBytes } from "@/lib/object-storage";
+import { assertOrgAiFeatureEnabled,type OrgAiFeature } from "@/lib/org-ai";
 
 function dbRequired(){const db=getDb();if(!db)throw new Error("Database is not configured");return db;}
 function env(name:string){const value=process.env[name];if(!value)throw new Error(`${name} is not configured`);return value;}
@@ -8,6 +9,15 @@ type AiInput={
   purpose:string;organizationId?:string|null;personId?:string|null;documentId?:string|null;
   modelAlias?:string;instruction:string;image?:{bytes:Buffer;contentType:string}|null;promptVersion?:string;
 };
+
+function featureForPurpose(purpose:string):OrgAiFeature|null{
+  if(["insurance_review","driver_license_review","document_review"].includes(purpose))return "document_review";
+  if(purpose==="event_intake")return "event_intake";
+  if(["match_explanation","match_explanations"].includes(purpose))return "match_explanations";
+  if(["admin_copilot","admin_question"].includes(purpose))return "admin_copilot";
+  if(["safety_summary","incident_summary"].includes(purpose))return "safety_summaries";
+  return null;
+}
 
 function parseJsonText(value:string){
   const cleaned=value.trim().replace(/^```json\s*/i,"").replace(/```$/," ").trim();
@@ -29,6 +39,8 @@ async function recordDaily(input:{organizationId?:string|null;purpose:string;mod
 }
 
 export async function runStructuredAi(input:AiInput){
+  const feature=featureForPurpose(input.purpose);
+  if(feature&&input.organizationId)await assertOrgAiFeatureEnabled(input.organizationId,feature);
   const db=dbRequired();
   const modelAlias=input.modelAlias||process.env.AI_FAST_MODEL||"bandwagon-fast";
   const job=await db.query(
