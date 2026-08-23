@@ -8,6 +8,12 @@ function dbRequired() {
   return db;
 }
 
+function assertScope(scopeOrganizationId: string | null | undefined, organizationId: string) {
+  if (scopeOrganizationId && scopeOrganizationId !== organizationId) {
+    throw new Error("This organization is not available on the current BandWagon tenant");
+  }
+}
+
 async function managedHousehold(personId: string) {
   const db = dbRequired();
   const result = await db.query(
@@ -19,7 +25,7 @@ async function managedHousehold(personId: string) {
   return result.rows[0];
 }
 
-export async function getOnboardingContext(personId: string) {
+export async function getOnboardingContext(personId: string, organizationScopeId?: string | null) {
   const db = dbRequired();
   const household = await db.query(
     `select h.*,hm.household_role,hm.can_manage_household
@@ -39,16 +45,22 @@ export async function getOnboardingContext(personId: string) {
     `select o.id,coalesce(o.display_name,o.name) as name,o.slug,m.role,m.status
      from memberships m join organizations o on o.id=m.organization_id
      where m.person_id=$1 and m.group_id is null and m.status='active' and o.status='active'
+       and ($2::uuid is null or o.id=$2::uuid)
      order by name`,
-    [personId]
+    [personId,organizationScopeId || null]
   );
   const driverProfiles = await db.query(
-    `select dp.*,o.id as organization_id,coalesce(o.display_name,o.name) as organization_name
-     from driver_profiles dp
-     join memberships m on m.person_id=dp.person_id and m.status='active'
-     join organizations o on o.id=m.organization_id and o.status='active'
-     where dp.person_id=$1 and m.group_id is null order by organization_name`,
-    [personId]
+    `select dos.*,dp.vehicle_label,dp.vehicle_make,dp.vehicle_model,dp.vehicle_color,
+            dp.license_plate_hint,dp.notes,o.id as organization_id,
+            coalesce(o.display_name,o.name) as organization_name
+     from driver_organization_settings dos
+     join driver_profiles dp on dp.person_id=dos.driver_person_id
+     join organizations o on o.id=dos.organization_id and o.status='active'
+     join memberships m on m.person_id=dos.driver_person_id and m.organization_id=dos.organization_id
+       and m.group_id is null and m.status='active'
+     where dos.driver_person_id=$1 and ($2::uuid is null or dos.organization_id=$2::uuid)
+     order by organization_name`,
+    [personId,organizationScopeId || null]
   );
   return {
     household: household.rows[0] || null,
@@ -94,27 +106,8 @@ export async function addStudentToHousehold(input: {
        values ($1,$2,$3,true,true)`,
       [input.managerPersonId,studentId,input.relationshipLabel?.trim() || "Parent / Guardian"]
     );
-
-    const parentMemberships = await client.query(
-      `select organization_id,role from memberships
-       where person_id=$1 and group_id is null and status='active'`,
-      [input.managerPersonId]
-    );
-    for (const membership of parentMemberships.rows) {
-      const existing = await client.query(
-        `select id from memberships where organization_id=$1 and person_id=$2 and group_id is null limit 1`,
-        [membership.organization_id,studentId]
-      );
-      if (existing.rowCount) {
-        await client.query(`update memberships set status='active',updated_at=now() where id=$1`, [existing.rows[0].id]);
-      } else {
-        await client.query(
-          `insert into memberships (organization_id,person_id,role,status,updated_at)
-           values ($1,$2,'member','active',now())`,
-          [membership.organization_id,studentId]
-        );
-      }
-    }
+    -- Organization membership is intentionally NOT inherited from the parent.
+    -- A household manager explicitly chooses each organization for each student.
     await client.query("COMMIT");
     return person.rows[0];
   } catch (error) {
@@ -125,7 +118,7 @@ export async function addStudentToHousehold(input: {
   }
 }
 
-export async function joinOrganizationWithCode(input: { personId: string; code: string }) {
+export async function joinOrganizationWithCode(input: { personId: string; code: string; organizationScopeId?: string | null }) {
   const db = dbRequired();
   const code = input.code.trim().toUpperCase();
   if (!code) throw new Error("Join code is required");
@@ -141,6 +134,7 @@ export async function joinOrganizationWithCode(input: { personId: string; code: 
     );
     if (!codeResult.rowCount) throw new Error("Join code was not recognized");
     const joinCode = codeResult.rows[0];
+    assertScope(input.organizationScopeId,joinCode.organization_id);
     if (joinCode.status !== 'active' || joinCode.organization_status !== 'active') throw new Error("Join code is not active");
     if (joinCode.expires_at && new Date(joinCode.expires_at).getTime() < Date.now()) throw new Error("Join code has expired");
     if (joinCode.max_uses != null && Number(joinCode.use_count) >= Number(joinCode.max_uses)) throw new Error("Join code has reached its use limit");
@@ -156,13 +150,15 @@ export async function joinOrganizationWithCode(input: { personId: string; code: 
       outcome = 'already_member';
     } else if (existing.rowCount) {
       membership = (await client.query(
-        `update memberships set status='active',role=$1,joined_via_code_id=$2,updated_at=now() where id=$3 returning *`,
+        `update memberships set status='active',role=$1,joined_via_code_id=$2,
+           membership_source='join_code',updated_at=now() where id=$3 returning *`,
         [joinCode.default_role || 'member',joinCode.id,existing.rows[0].id]
       )).rows[0];
     } else {
       membership = (await client.query(
-        `insert into memberships (organization_id,person_id,role,status,joined_via_code_id,updated_at)
-         values ($1,$2,$3,'active',$4,now()) returning *`,
+        `insert into memberships
+          (organization_id,person_id,role,status,joined_via_code_id,membership_source,updated_at)
+         values ($1,$2,$3,'active',$4,'join_code',now()) returning *`,
         [joinCode.organization_id,input.personId,joinCode.default_role || 'member',joinCode.id]
       )).rows[0];
     }
@@ -188,8 +184,10 @@ export async function copyOrganizationMembershipToStudent(input: {
   managerPersonId: string;
   studentPersonId: string;
   organizationId: string;
+  organizationScopeId?: string | null;
 }) {
   const db = dbRequired();
+  assertScope(input.organizationScopeId,input.organizationId);
   const household = await managedHousehold(input.managerPersonId);
   const student = await db.query(
     `select 1 from household_members where household_id=$1 and person_id=$2 and household_role='student'`,
@@ -206,10 +204,14 @@ export async function copyOrganizationMembershipToStudent(input: {
     [input.organizationId,input.studentPersonId]
   );
   if (existing.rowCount) {
-    return (await db.query(`update memberships set status='active',updated_at=now() where id=$1 returning *`, [existing.rows[0].id])).rows[0];
+    return (await db.query(
+      `update memberships set status='active',membership_source='guardian_added',updated_at=now()
+       where id=$1 returning *`, [existing.rows[0].id]
+    )).rows[0];
   }
   return (await db.query(
-    `insert into memberships (organization_id,person_id,role,status,updated_at) values ($1,$2,'member','active',now()) returning *`,
+    `insert into memberships (organization_id,person_id,role,status,membership_source,updated_at)
+     values ($1,$2,'member','active','guardian_added',now()) returning *`,
     [input.organizationId,input.studentPersonId]
   )).rows[0];
 }
@@ -217,12 +219,14 @@ export async function copyOrganizationMembershipToStudent(input: {
 export async function configureSelfAsDriver(input: {
   personId: string;
   organizationId: string;
+  organizationScopeId?: string | null;
   enabled: boolean;
   capacity?: number;
   vehicleLabel?: string | null;
   vehicleColor?: string | null;
   willingByDefault?: boolean;
 }) {
+  assertScope(input.organizationScopeId,input.organizationId);
   return upsertDriverProfile({
     organizationId: input.organizationId,
     personId: input.personId,

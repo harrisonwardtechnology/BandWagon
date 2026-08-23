@@ -70,23 +70,11 @@ export async function createRideRequest(input: {
        approved_by_person_id,approved_at,status)
      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,case when $11='approved' then now() else null end,$13)
      returning *`,
-    [
-      input.organizationId,
-      input.eventId || null,
-      input.requesterPersonId,
-      input.passengerPersonId,
-      input.direction,
-      Math.max(1, Math.min(12, Number(input.seatsNeeded || 1))),
-      input.pickupNote || null,
-      input.dropoffNote || null,
-      input.requestedPickupAt ? new Date(input.requestedPickupAt) : null,
-      input.requestedDropoffAt ? new Date(input.requestedDropoffAt) : null,
-      approval.status,
-      approval.approvedBy,
-      status,
-    ]
+    [input.organizationId,input.eventId || null,input.requesterPersonId,input.passengerPersonId,input.direction,
+     Math.max(1, Math.min(12, Number(input.seatsNeeded || 1))),input.pickupNote || null,input.dropoffNote || null,
+     input.requestedPickupAt ? new Date(input.requestedPickupAt) : null,
+     input.requestedDropoffAt ? new Date(input.requestedDropoffAt) : null,approval.status,approval.approvedBy,status]
   );
-
   await db.query(
     `insert into ride_status_events (ride_request_id,actor_person_id,event_type,to_status,metadata)
      values ($1,$2,'ride_request_created',$3,$4::jsonb)`,
@@ -101,8 +89,7 @@ export async function approveRideRequest(input: { rideRequestId: string; guardia
   if (!current.rowCount) throw new Error("Ride request not found");
   const request = current.rows[0];
   const guardian = await db.query(
-    `select 1 from guardian_relationships
-     where guardian_person_id=$1 and minor_person_id=$2 and can_approve_rides=true`,
+    `select 1 from guardian_relationships where guardian_person_id=$1 and minor_person_id=$2 and can_approve_rides=true`,
     [input.guardianPersonId, request.passenger_person_id]
   );
   if (!guardian.rowCount) throw new Error("Guardian is not authorized to approve this passenger's rides");
@@ -136,9 +123,15 @@ export async function createRideOffer(input: {
   await assertActiveMembership(request.organization_id, input.driverPersonId);
   if (request.passenger_person_id === input.driverPersonId) throw new Error("Passenger cannot be the driver for this request");
 
-  const profile = await db.query(`select status,default_capacity from driver_profiles where person_id=$1`, [input.driverPersonId]);
-  if (profile.rowCount && profile.rows[0].status !== 'active') throw new Error("Driver profile is not active");
-  const offered = Math.max(1, Math.min(12, Number(input.seatsOffered || profile.rows[0]?.default_capacity || 1)));
+  const settings = await db.query(
+    `select status,default_capacity from driver_organization_settings
+     where organization_id=$1 and driver_person_id=$2`,
+    [request.organization_id,input.driverPersonId]
+  );
+  if (!settings.rowCount || settings.rows[0].status !== 'active') {
+    throw new Error("Driver is not enabled for this organization");
+  }
+  const offered = Math.max(1, Math.min(12, Number(input.seatsOffered || settings.rows[0].default_capacity || 1)));
   if (offered < request.seats_needed) throw new Error("Driver does not have enough seats for this request");
 
   const offer = await db.query(
@@ -149,22 +142,12 @@ export async function createRideOffer(input: {
      returning *`,
     [input.rideRequestId,input.driverPersonId,offered,input.note || null,input.proposedPickupAt ? new Date(input.proposedPickupAt) : null]
   );
-
   await db.query(
     `insert into ride_status_events (ride_request_id,actor_person_id,event_type,metadata)
      values ($1,$2,'driver_offer_created',$3::jsonb)`,
     [input.rideRequestId,input.driverPersonId,JSON.stringify({ offerId: offer.rows[0].id, seatsOffered: offered })]
   );
-
-  await routeNotification({
-    notificationType: 'driver_offer',
-    title: 'A driver offered a ride',
-    body: 'A driver has offered to help with your BandWagon ride request.',
-    personId: request.requester_person_id,
-    organizationId: request.organization_id,
-    url: `/rides/requests/${request.public_ref}`,
-  }).catch(() => {});
-
+  await routeNotification({notificationType:'driver_offer',title:'A driver offered a ride',body:'A driver has offered to help with your BandWagon ride request.',personId:request.requester_person_id,organizationId:request.organization_id,url:`/rides/requests/${request.public_ref}`}).catch(() => {});
   return offer.rows[0];
 }
 
@@ -189,6 +172,12 @@ export async function acceptRideOffer(input: { rideRequestId: string; offerId: s
     );
     if (!offerResult.rowCount) throw new Error("Offer is not available");
     const offer = offerResult.rows[0];
+    const driverSettings = await client.query(
+      `select 1 from driver_organization_settings
+       where organization_id=$1 and driver_person_id=$2 and status='active'`,
+      [request.organization_id,offer.driver_person_id]
+    );
+    if (!driverSettings.rowCount) throw new Error("Driver is no longer enabled for this organization");
 
     const rideResult = await client.query(
       `insert into rides (organization_id,event_id,ride_request_id,accepted_offer_id,driver_person_id,status,scheduled_pickup_at)
@@ -205,18 +194,14 @@ export async function acceptRideOffer(input: { rideRequestId: string; offerId: s
       [ride.id,request.id,input.actorPersonId,JSON.stringify({ offerId: offer.id, driverPersonId: offer.driver_person_id })]
     );
     await client.query('COMMIT');
-
     await Promise.allSettled([
-      routeNotification({ notificationType:'ride_matched', title:'Ride confirmed', body:'Your BandWagon ride is confirmed.', personId:request.requester_person_id, organizationId:request.organization_id, url:`/rides/${ride.public_ref}` }),
-      routeNotification({ notificationType:'ride_matched', title:'Ride confirmed', body:'Your BandWagon ride offer was accepted.', personId:offer.driver_person_id, organizationId:request.organization_id, url:`/rides/${ride.public_ref}` }),
+      routeNotification({notificationType:'ride_matched',title:'Ride confirmed',body:'Your BandWagon ride is confirmed.',personId:request.requester_person_id,organizationId:request.organization_id,url:`/rides/${ride.public_ref}`}),
+      routeNotification({notificationType:'ride_matched',title:'Ride confirmed',body:'Your BandWagon ride offer was accepted.',personId:offer.driver_person_id,organizationId:request.organization_id,url:`/rides/${ride.public_ref}`}),
     ]);
     return ride;
   } catch (error) {
-    await client.query('ROLLBACK').catch(() => {});
-    throw error;
-  } finally {
-    client.release();
-  }
+    await client.query('ROLLBACK').catch(() => {}); throw error;
+  } finally { client.release(); }
 }
 
 const transitions: Record<string,string[]> = {
@@ -254,17 +239,9 @@ export async function transitionRide(input: { rideId: string; actorPersonId: str
      values ($1,$2,$3,'ride_status_changed',$4,$5,$6::jsonb)`,
     [ride.id,ride.ride_request_id,input.actorPersonId,ride.status,input.toStatus,JSON.stringify({ reason: input.reason || null })]
   );
-
   const type = input.toStatus === 'driver_en_route' || input.toStatus === 'arrived' ? 'driver_arriving' : input.toStatus === 'cancelled' ? 'last_minute_cancellation' : null;
   if (type) {
-    await routeNotification({
-      notificationType:type,
-      title: input.toStatus === 'cancelled' ? 'Ride cancelled' : 'Driver update',
-      body: input.toStatus === 'driver_en_route' ? 'Your driver is on the way.' : input.toStatus === 'arrived' ? 'Your driver has arrived.' : 'Your BandWagon ride was cancelled.',
-      personId:ride.requester_person_id,
-      organizationId:ride.organization_id,
-      url:`/rides/${ride.public_ref}`,
-    }).catch(() => {});
+    await routeNotification({notificationType:type,title:input.toStatus === 'cancelled' ? 'Ride cancelled' : 'Driver update',body:input.toStatus === 'driver_en_route' ? 'Your driver is on the way.' : input.toStatus === 'arrived' ? 'Your driver has arrived.' : 'Your BandWagon ride was cancelled.',personId:ride.requester_person_id,organizationId:ride.organization_id,url:`/rides/${ride.public_ref}`}).catch(() => {});
   }
   return result.rows[0];
 }
@@ -274,14 +251,9 @@ export async function listRideRequests(organizationId: string) {
   const result = await db.query(
     `select rr.*,e.title as event_title,p.display_name as passenger_name,rq.display_name as requester_name,
        (select count(*)::int from ride_offers ro where ro.ride_request_id=rr.id and ro.status='offered') as open_offers
-     from ride_requests rr
-     left join events e on e.id=rr.event_id
-     join people p on p.id=rr.passenger_person_id
-     join people rq on rq.id=rr.requester_person_id
-     where rr.organization_id=$1
-     order by coalesce(rr.requested_pickup_at,e.starts_at,rr.created_at) asc`,
-    [organizationId]
-  );
+     from ride_requests rr left join events e on e.id=rr.event_id join people p on p.id=rr.passenger_person_id
+     join people rq on rq.id=rr.requester_person_id where rr.organization_id=$1
+     order by coalesce(rr.requested_pickup_at,e.starts_at,rr.created_at) asc`, [organizationId]);
   return result.rows;
 }
 
@@ -289,14 +261,8 @@ export async function listRides(organizationId: string) {
   const db = dbRequired();
   const result = await db.query(
     `select r.*,e.title as event_title,d.display_name as driver_name,p.display_name as passenger_name
-     from rides r
-     left join events e on e.id=r.event_id
-     join people d on d.id=r.driver_person_id
-     join ride_requests rr on rr.id=r.ride_request_id
-     join people p on p.id=rr.passenger_person_id
-     where r.organization_id=$1
-     order by coalesce(r.scheduled_pickup_at,r.created_at) asc`,
-    [organizationId]
-  );
+     from rides r left join events e on e.id=r.event_id join people d on d.id=r.driver_person_id
+     join ride_requests rr on rr.id=r.ride_request_id join people p on p.id=rr.passenger_person_id
+     where r.organization_id=$1 order by coalesce(r.scheduled_pickup_at,r.created_at) asc`, [organizationId]);
   return result.rows;
 }
