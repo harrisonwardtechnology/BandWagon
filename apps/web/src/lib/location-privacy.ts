@@ -49,15 +49,36 @@ async function canReveal(locationId: string, actorPersonId: string, rideId?: str
   if (location.owner_person_id === actorPersonId) return { granted:true, reason:'owner', location };
   if (location.reveal_policy === 'never') return { granted:false, reason:'policy_never', location };
   if (!rideId) return { granted:false, reason:'ride_required', location };
+
   const ride = await db.query(
-    `select r.driver_person_id,rr.requester_person_id,rr.passenger_person_id
-     from rides r join ride_requests rr on rr.id=r.ride_request_id
-     where r.id=$1 and (rr.pickup_location_id=$2 or rr.dropoff_location_id=$2)`, [rideId,locationId]
+    `select r.driver_person_id,
+            exists (
+              select 1
+              from ride_request_assignments a
+              join ride_requests rr on rr.id=a.ride_request_id
+              where a.ride_id=r.id and a.status='confirmed'
+                and (rr.pickup_location_id=$2 or rr.dropoff_location_id=$2)
+            ) or exists (
+              select 1 from ride_requests rr
+              where rr.id=r.ride_request_id and (rr.pickup_location_id=$2 or rr.dropoff_location_id=$2)
+            ) as location_linked,
+            exists (
+              select 1
+              from ride_request_assignments a
+              join ride_requests rr on rr.id=a.ride_request_id
+              where a.ride_id=r.id and a.status='confirmed'
+                and (rr.requester_person_id=$3 or rr.passenger_person_id=$3)
+            ) or exists (
+              select 1 from ride_requests rr
+              where rr.id=r.ride_request_id and (rr.requester_person_id=$3 or rr.passenger_person_id=$3)
+            ) as actor_participant
+     from rides r where r.id=$1`,
+    [rideId,locationId,actorPersonId]
   );
-  if (!ride.rowCount) return { granted:false, reason:'ride_not_linked', location };
+  if (!ride.rowCount || !ride.rows[0].location_linked) return { granted:false, reason:'ride_not_linked', location };
   const row = ride.rows[0];
   if (location.reveal_policy === 'matched_driver' && row.driver_person_id === actorPersonId) return { granted:true, reason:'matched_driver', location };
-  if (location.reveal_policy === 'ride_participants' && [row.driver_person_id,row.requester_person_id,row.passenger_person_id].includes(actorPersonId)) return { granted:true, reason:'ride_participant', location };
+  if (location.reveal_policy === 'ride_participants' && (row.driver_person_id === actorPersonId || row.actor_participant)) return { granted:true, reason:'ride_participant', location };
   return { granted:false, reason:'not_authorized', location };
 }
 
@@ -86,11 +107,26 @@ export async function getLocationForViewer(input: { locationId:string; actorPers
 
 export async function attachLocationsToRideRequest(input:{rideRequestId:string;actorPersonId:string;pickupLocationId?:string|null;dropoffLocationId?:string|null}) {
   const db = dbRequired();
-  const rr = await db.query(`select requester_person_id,passenger_person_id from ride_requests where id=$1`,[input.rideRequestId]);
+  const rr = await db.query(`select organization_id,requester_person_id,passenger_person_id from ride_requests where id=$1`,[input.rideRequestId]);
   if (!rr.rowCount) throw new Error("Ride request not found");
-  if (rr.rows[0].requester_person_id !== input.actorPersonId) {
-    const guardian = await db.query(`select 1 from guardian_relationships where guardian_person_id=$1 and minor_person_id=$2 and can_approve_rides=true`,[input.actorPersonId,rr.rows[0].passenger_person_id]);
+  const request = rr.rows[0];
+  if (request.requester_person_id !== input.actorPersonId) {
+    const guardian = await db.query(`select 1 from guardian_relationships where guardian_person_id=$1 and minor_person_id=$2 and can_approve_rides=true`,[input.actorPersonId,request.passenger_person_id]);
     if (!guardian.rowCount) throw new Error("Not authorized to set ride locations");
+  }
+  const locationIds = [input.pickupLocationId,input.dropoffLocationId].filter(Boolean) as string[];
+  if (locationIds.length) {
+    const locations = await db.query(
+      `select id,organization_id,owner_person_id from private_locations where id=any($1::uuid[]) and status='active'`,
+      [locationIds]
+    );
+    if (locations.rowCount !== locationIds.length) throw new Error("One or more ride locations are unavailable");
+    for (const location of locations.rows) {
+      if (location.organization_id !== request.organization_id) throw new Error("Ride location belongs to a different organization");
+      if (location.owner_person_id && ![input.actorPersonId,request.requester_person_id,request.passenger_person_id].includes(location.owner_person_id)) {
+        throw new Error("Ride location is owned by another account");
+      }
+    }
   }
   const result = await db.query(`update ride_requests set pickup_location_id=$1,dropoff_location_id=$2,updated_at=now() where id=$3 returning *`,[input.pickupLocationId || null,input.dropoffLocationId || null,input.rideRequestId]);
   return result.rows[0];
