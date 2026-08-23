@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHmac } from "node:crypto";
 import { getDb } from "@/lib/db";
 
 type Point={lat:number;lng:number};
@@ -8,7 +8,7 @@ type RouteContext={organizationId?:string|null};
 function db(){return getDb();}
 function haversineKm(a:Point,b:Point){const r=(v:number)=>v*Math.PI/180,dLat=r(b.lat-a.lat),dLng=r(b.lng-a.lng);const x=Math.sin(dLat/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLng/2)**2;return 6371*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
 function estimate(a:Point,b:Point):RouteMetrics{const roadKm=haversineKm(a,b)*1.35;return{distanceMeters:Math.round(roadKm*1000),durationSeconds:Math.max(60,Math.round((roadKm/35)*3600)),provider:'estimate'};}
-function routeHash(a:Point,b:Point){const normalized=[a.lat,a.lng,b.lat,b.lng].map(v=>Number(v).toFixed(4)).join('|');return createHash('sha256').update(`drive|${normalized}`).digest('hex');}
+function routeHash(a:Point,b:Point,context?:RouteContext){const normalized=[a.lat,a.lng,b.lat,b.lng].map(v=>Number(v).toFixed(4)).join('|');const secret=process.env.AUTH_SECRET||process.env.DATA_ENCRYPTION_KEY||'bandwagon-routing-cache-development';return createHmac('sha256',secret).update(`drive|${context?.organizationId||'global'}|${normalized}`).digest('hex');}
 function cacheMinutes(){return Math.max(1,Math.min(120,Number(process.env.ROUTING_CACHE_MINUTES||15)));}
 function googleCostMicrousd(){return Math.max(0,Math.round(Number(process.env.GOOGLE_ROUTES_ESTIMATED_COST_USD_PER_CALL||0)*1_000_000));}
 
@@ -35,7 +35,7 @@ async function cached(hash:string,context?:RouteContext):Promise<RouteMetrics|nu
 async function cache(hash:string,metrics:RouteMetrics){const database=db();if(!database)return;await database.query(`insert into routing_cache(route_hash,provider,distance_meters,duration_seconds,expires_at) values($1,$2,$3,$4,now()+($5::text||' minutes')::interval) on conflict(route_hash) do update set provider=excluded.provider,distance_meters=excluded.distance_meters,duration_seconds=excluded.duration_seconds,created_at=now(),expires_at=excluded.expires_at`,[hash,metrics.provider,metrics.distanceMeters,metrics.durationSeconds,cacheMinutes()]).catch(()=>null);}
 
 export async function routeMetrics(origin:Point,destination:Point,context?:RouteContext):Promise<RouteMetrics>{
- const hash=routeHash(origin,destination);const hit=await cached(hash,context);if(hit)return hit;
+ const hash=routeHash(origin,destination,context);const hit=await cached(hash,context);if(hit)return hit;
  const key=process.env.GOOGLE_MAPS_ROUTES_API_KEY;
  if(!key){const metrics=estimate(origin,destination);await recordUsage(context,'estimate',{request:true,fallback:true});await cache(hash,metrics);return metrics;}
  await recordUsage(context,'google_routes',{request:true,costMicrousd:googleCostMicrousd()});
