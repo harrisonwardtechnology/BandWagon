@@ -106,8 +106,8 @@ export async function addStudentToHousehold(input: {
        values ($1,$2,$3,true,true)`,
       [input.managerPersonId,studentId,input.relationshipLabel?.trim() || "Parent / Guardian"]
     );
-    -- Organization membership is intentionally NOT inherited from the parent.
-    -- A household manager explicitly chooses each organization for each student.
+    // Organization membership is intentionally NOT inherited from the parent.
+    // A household manager explicitly chooses each organization for each student.
     await client.query("COMMIT");
     return person.rows[0];
   } catch (error) {
