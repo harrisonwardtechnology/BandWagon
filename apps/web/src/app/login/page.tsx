@@ -2,10 +2,14 @@
 
 import { useState } from "react";
 
+const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
 export default function LoginPage() {
   const [identifier,setIdentifier] = useState("");
   const [displayName,setDisplayName] = useState("");
   const [householdName,setHouseholdName] = useState("");
+  const [birthMonth,setBirthMonth] = useState("");
+  const [birthYear,setBirthYear] = useState("");
   const [challengeId,setChallengeId] = useState("");
   const [code,setCode] = useState("");
   const [signupDetails,setSignupDetails] = useState(false);
@@ -16,11 +20,19 @@ export default function LoginPage() {
     setWorking(true); setMessage("");
     const r = await fetch("/api/auth/otp", {
       method:"POST", headers:{"content-type":"application/json"},
-      body:JSON.stringify({ action:"request",identifier,displayName:displayName||null,householdName:householdName||null })
+      body:JSON.stringify({
+        action:"request",identifier,displayName:displayName||null,householdName:householdName||null,
+        birthMonth:birthMonth||null,birthYear:birthYear||null,
+      })
     });
     const d = await r.json().catch(()=>({}));
     setWorking(false);
-    if (d.signupDetailsRequired) { setSignupDetails(true); setMessage("New here? Add your name, then request a code again."); return; }
+    if (d.underAge) { setSignupDetails(true); setMessage(d.message || "A parent or guardian must manage this profile."); return; }
+    if (d.signupDetailsRequired) {
+      setSignupDetails(true);
+      setMessage(d.ageDetailsRequired ? "Add your name and birth month/year to continue." : "New here? Add your account details, then request a code again.");
+      return;
+    }
     if (!r.ok || !d.ok) { setMessage(d.error || "Unable to send verification code"); return; }
     setChallengeId(d.challengeId);
     setMessage(`Verification code sent by ${d.destinationType === "phone" ? "text" : "email"}.` + (d.debugCode ? ` Debug code: ${d.debugCode}` : ""));
@@ -54,10 +66,18 @@ export default function LoginPage() {
           <div style={{fontWeight:800,marginBottom:10}}>Create your BandWagon account</div>
           <label style={{fontWeight:700}}>Your name</label>
           <input value={displayName} onChange={e=>setDisplayName(e.target.value)} placeholder="Harrison Ward" style={{...input,margin:"7px 0 14px"}} />
+          <label style={{fontWeight:700}}>Birth month and year</label>
+          <div style={{display:"grid",gridTemplateColumns:"1.4fr 1fr",gap:8,margin:"7px 0 14px"}}>
+            <select value={birthMonth} onChange={e=>setBirthMonth(e.target.value)} style={input}>
+              <option value="">Month</option>{months.map((m,i)=><option key={m} value={i+1}>{m}</option>)}
+            </select>
+            <input inputMode="numeric" maxLength={4} value={birthYear} onChange={e=>setBirthYear(e.target.value.replace(/\D/g,""))} placeholder="Year" style={input}/>
+          </div>
+          <p style={{fontSize:12,color:"#64748b",margin:"-5px 0 14px",lineHeight:1.5}}>Direct accounts are for ages 13+. We ask only for month and year. Younger students can be added by a parent or guardian as a managed profile.</p>
           <label style={{fontWeight:700}}>Household name <span style={{fontWeight:400,color:"#64748b"}}>(optional)</span></label>
           <input value={householdName} onChange={e=>setHouseholdName(e.target.value)} placeholder="Ward Family" style={{...input,marginTop:7}} />
         </div>}
-        <button disabled={working || !identifier || (signupDetails && !displayName)} onClick={requestCode} style={{...button,opacity:working ? .65 : 1}}>{working ? "Sending…" : "Send verification code"}</button>
+        <button disabled={working || !identifier || (signupDetails && (!displayName || !birthMonth || birthYear.length!==4))} onClick={requestCode} style={{...button,opacity:working ? .65 : 1}}>{working ? "Sending…" : "Send verification code"}</button>
       </> : <>
         <label style={{fontWeight:700}}>6-digit verification code</label>
         <input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,""))} placeholder="123456" style={{...input,margin:"7px 0 16px",fontSize:24,letterSpacing:6,textAlign:"center"}} />
