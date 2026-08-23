@@ -47,6 +47,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <nav aria-label="Footer" style={{display:"flex",gap:16,flexWrap:"wrap"}}>
               <a href="/help" style={linkStyle}>Help Center</a>
               <a href={statusUrl} target="_blank" rel="noreferrer" style={linkStyle}>Platform Status</a>
+              <a href="/security" style={linkStyle}>Security / Report a Bug</a>
               <a href="/support" style={linkStyle}>Support BandWagon</a>
               <a href="/privacy" style={linkStyle}>Privacy</a>
               <a href="/terms" style={linkStyle}>Terms</a>
