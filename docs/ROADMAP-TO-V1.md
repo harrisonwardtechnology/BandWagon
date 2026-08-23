@@ -35,6 +35,48 @@ This roadmap intentionally uses larger release packages: one release PR, one rev
 - notification preferences and delivery health
 - SMS/RCS cost controls and fallback metrics
 
+### Verified Pickup Handshake
+- rider / guardian scans a short-lived QR code presented by the assigned driver at pickup
+- server verifies that the driver, rider, ride, organization, and pickup window all match
+- both devices display the same memorable one-time phrase, such as `Blue Cow` or `Pink Spoon`
+- pair the phrase with a large visual treatment / icon; never rely on color alone for accessibility
+- optional short numeric fallback when QR scanning is unavailable
+- both sides explicitly confirm the match before pickup is marked verified
+- one-time challenge expires quickly and cannot be reused on another ride
+- record successful / failed / cancelled handshake events in the ride audit trail
+- configurable by organization as Optional / Recommended / Required
+- parent / guardian can require handshake for a specific minor even when the organization does not
+- failed mismatch should clearly say `Do Not Enter Vehicle` and offer Call Guardian / I Need Help
+- no personal secret questions, DOB, phone number, address, or reusable code words are exposed
+
+**Suggested flow:**
+
+```text
+Driver Arrives
+      |
+      v
+Driver opens Pickup QR
+      |
+      v
+Rider / Guardian scans
+      |
+      v
+BandWagon validates both participants + ride + pickup window
+      |
+      v
+DRIVER DEVICE              RIDER DEVICE
+BLUE COW                    BLUE COW
+[ Cow icon ]                [ Cow icon ]
+      |                           |
+      +------ both confirm -------+
+                  |
+                  v
+          PICKUP VERIFIED
+                  |
+                  v
+           Ride -> Picked Up
+```
+
 ### Calendar / event experience
 - polished upcoming-events UI
 - calendar sync health / last-sync status
@@ -55,7 +97,7 @@ This roadmap intentionally uses larger release packages: one release PR, one rev
 - cost coverage dashboard refinement
 - monthly support summaries
 
-**Exit:** A normal parent can join, add family, request/offer/complete a ride and receive the correct reminders without admin assistance.
+**Exit:** A normal parent can join, add family, request/offer/complete a ride, verify the correct driver/rider at pickup, and receive the correct reminders without admin assistance.
 
 ---
 
@@ -120,6 +162,7 @@ This roadmap intentionally uses larger release packages: one release PR, one rev
 - support contacts / procedures
 - parent + driver pilot group
 - safety drill / ride workflow dry run
+- verified pickup handshake dry run with parent, student, and driver scenarios
 
 ### Release validation
 - end-to-end regression test
@@ -127,6 +170,7 @@ This roadmap intentionally uses larger release packages: one release PR, one rev
 - household / multi-org test
 - credential / eligibility test
 - emergency notification test
+- verified pickup handshake / replay / mismatch test
 - location privacy test
 - backup restore test
 - accessibility / mobile test
@@ -190,6 +234,8 @@ This roadmap intentionally uses larger release packages: one release PR, one rev
 ### Ride experience
 - native driver / rider active-ride screen
 - arrival / pickup / drop-off actions
+- native camera QR scanning for Verified Pickup Handshake
+- optional NFC / proximity-assisted handshake investigation, while preserving QR + phrase fallback
 - maps / navigation handoff to Apple Maps, Google Maps, or preferred installed mapping app
 - calendar add / open actions
 - camera integration for driver credential capture
@@ -231,6 +277,7 @@ This roadmap intentionally uses larger release packages: one release PR, one rev
 - Live Activities / Dynamic Island on supported iPhones for an active ride, if privacy review supports it
 - Android equivalent ongoing ride notification
 - native QR organization join / event check-in
+- faster Verified Pickup Handshake using native camera and possibly proximity assistance
 - easier camera-based document capture
 - improved Emergency Assist UX
 - optional CarPlay / Android Auto investigation only if it can be done safely and within platform rules
@@ -238,7 +285,7 @@ This roadmap intentionally uses larger release packages: one release PR, one rev
 ### Native admin scope
 The initial native apps should prioritize parents, students, and drivers. Complex organization administration can remain web-first unless real usage shows a clear need for native admin screens.
 
-**Exit:** A user can install BandWagon from the Apple App Store or Google Play, sign in, switch organizations, manage household rides, receive native notifications, complete an active ride, use Emergency Assist, and upload driver credentials while all authoritative rules remain server-side.
+**Exit:** A user can install BandWagon from the Apple App Store or Google Play, sign in, switch organizations, manage household rides, receive native notifications, complete an active ride, use Emergency Assist, complete the Verified Pickup Handshake, and upload driver credentials while all authoritative rules remain server-side.
 
 ---
 
