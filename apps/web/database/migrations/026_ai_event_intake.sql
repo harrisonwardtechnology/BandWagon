@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS event_intake_drafts (
   organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   created_by_person_id uuid NOT NULL REFERENCES people(id) ON DELETE CASCADE,
   source_type text NOT NULL DEFAULT 'pasted_text' CHECK (source_type IN ('pasted_text','email','image','other')),
-  source_text text,
+  source_text_ciphertext text,
   ai_job_id uuid REFERENCES ai_jobs(id) ON DELETE SET NULL,
   proposed_event jsonb NOT NULL DEFAULT '{}'::jsonb,
   status text NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','ready_for_review','published','rejected','failed')),
