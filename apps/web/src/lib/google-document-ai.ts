@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { getDb } from "@/lib/db";
 import { getPrivateObjectBytes } from "@/lib/object-storage";
+import { assertOrgAiFeatureEnabled } from "@/lib/org-ai";
 
 function dbRequired(){const db=getDb();if(!db)throw new Error("Database is not configured");return db;}
 function env(name:string){const value=process.env[name];if(!value)throw new Error(`${name} is not configured`);return value;}
@@ -30,6 +31,7 @@ function safeEntity(entity:any){
 }
 
 export async function analyzeDriverLicenseDocument(input:{documentId:string;organizationId?:string|null;personId:string;storageKey:string;contentType:string}){
+  if(input.organizationId)await assertOrgAiFeatureEnabled(input.organizationId,"document_review");
   const db=dbRequired();const processorName=env("GOOGLE_DOCUMENT_AI_PROCESSOR_NAME");
   const job=await db.query(
     `insert into ai_jobs (organization_id,person_id,document_id,purpose,provider_path,model_alias,status,prompt_version,started_at)
