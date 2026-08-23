@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { processCredentialExpirations } from "@/lib/credential-expiration";
+import { runCronWithHeartbeat } from "@/lib/cron-health";
 
 export const runtime="nodejs";
 export const maxDuration=60;
@@ -12,6 +13,6 @@ function valid(request:Request){
 
 export async function POST(request:Request){
   if(!valid(request))return new Response("Unauthorized",{status:401});
-  try{return Response.json({ok:true,...await processCredentialExpirations()});}
+  try{return Response.json({ok:true,...await runCronWithHeartbeat({key:'safety-maintenance',expectedMaxAgeMinutes:2160,run:processCredentialExpirations})});}
   catch(error){return Response.json({ok:false,error:error instanceof Error?error.message:"Safety maintenance failed"},{status:500});}
 }
