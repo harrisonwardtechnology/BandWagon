@@ -1,5 +1,7 @@
+import crypto from "node:crypto";
 import { getDb } from "@/lib/db";
 import { routeNotification } from "@/lib/notification-router";
+import { lookupHash } from "@/lib/data-security";
 
 async function count(db:any,sql:string,params:any[]){
   try{const r=await db.query(sql,params);return Number(r.rows?.[0]?.count||0);}catch{return 0;}
@@ -25,6 +27,48 @@ export async function previewOrganizationDecommission(organizationId:string){
   if(activeRideCount>0)blockers.push({key:"active_rides",count:activeRideCount,message:"Active rides must be resolved before standard decommission."});
   if(pendingRideRequestCount>0)blockers.push({key:"open_requests",count:pendingRideRequestCount,message:"Open or matched ride requests will be closed during decommission."});
   return{organization,counts:{activeRideCount,memberCount,customDomainCount,pendingRideRequestCount},domains:domains.rows,members:members.rows.map((m:any)=>({...m,disposition:Number(m.other_active_org_count)>0?"remove_org_data_keep_account":"remove_account_after_retention"})),blockers};
+}
+
+export async function createOrganizationDecommissionConfirmation(input:{organizationId:string;confirmation:string;reason:string;emergency?:boolean;requestedByPersonId:string;requestedByPlatformRole?:string|null}){
+  const db=getDb();if(!db)throw new Error("Database is not configured");
+  const preview=await previewOrganizationDecommission(input.organizationId);
+  if(String(input.confirmation||"").trim().toLowerCase()!==String(preview.organization.slug||"").trim().toLowerCase())throw new Error(`Type ${preview.organization.slug} to confirm decommission`);
+  if(!input.reason?.trim())throw new Error("A decommission reason is required");
+  if(preview.counts.activeRideCount>0&&!input.emergency)throw new Error("Active rides block standard decommission. Resolve them first or use the Platform Owner emergency process.");
+  const token=crypto.randomBytes(32).toString("base64url");
+  const code=String(crypto.randomInt(0,1000000)).padStart(6,"0");
+  const expiresAt=new Date(Date.now()+15*60*1000);
+  await db.query(`update organization_decommission_confirmations set status='cancelled',updated_at=now() where organization_id=$1 and requested_by_person_id=$2 and status='pending'`,[input.organizationId,input.requestedByPersonId]);
+  const row=(await db.query(`insert into organization_decommission_confirmations
+    (organization_id,requested_by_person_id,requested_by_platform_role,reason,emergency,typed_confirmation,token_hash,code_hash,expires_at)
+    values($1,$2,$3,$4,$5,$6,$7,$8,$9) returning id,organization_id,status,expires_at`,[
+    input.organizationId,input.requestedByPersonId,input.requestedByPlatformRole||null,input.reason.trim(),Boolean(input.emergency),input.confirmation.trim(),lookupHash(token),lookupHash(code),expiresAt
+  ])).rows[0];
+  const organizationName=preview.organization.display_name||preview.organization.name;
+  const base=(process.env.PUBLIC_APP_URL||process.env.NEXT_PUBLIC_APP_URL||"https://bandwagon.harrisonward.net").replace(/\/$/,"");
+  const confirmationUrl=`${base}/organization-decommission/confirm?token=${encodeURIComponent(token)}`;
+  const delivery=await routeNotification({notificationType:"organization_decommission_confirmation",title:`Confirm removal of ${organizationName}`,body:`A request was made to remove ${organizationName} from BandWagon. Confirmation code: ${code}. Or confirm using this secure link: ${confirmationUrl}. This expires in 15 minutes. If you did not request this, do not confirm it and contact BandWagon Support.`,url:confirmationUrl,personId:input.requestedByPersonId,organizationId:input.organizationId,forceUrgency:"critical"});
+  await db.query(`update organization_decommission_confirmations set delivery_result=$2::jsonb,updated_at=now() where id=$1`,[row.id,JSON.stringify(delivery)]);
+  await db.query(`insert into audit_events(organization_id,actor_person_id,action,target_type,target_id,metadata) values($1,$2,'organization.decommission.confirmation_sent','organization',$1,$3::jsonb)`,[input.organizationId,input.requestedByPersonId,JSON.stringify({confirmationId:row.id,expiresAt:expiresAt.toISOString()})]);
+  return{confirmationId:row.id,expiresAt:expiresAt.toISOString(),delivery:{push:Boolean(delivery.push?.accepted),email:Boolean(delivery.email?.accepted),messaging:Boolean(delivery.messaging?.accepted)}};
+}
+
+export async function confirmOrganizationDecommission(input:{token?:string;code?:string;organizationId?:string;personId?:string;channel:"email_link"|"code"}){
+  const db=getDb();if(!db)throw new Error("Database is not configured");
+  let result;
+  if(input.token){result=await db.query(`select * from organization_decommission_confirmations where token_hash=$1 and status='pending' and expires_at>now() limit 1`,[lookupHash(input.token)]);}
+  else if(input.code&&input.organizationId&&input.personId){result=await db.query(`select * from organization_decommission_confirmations where organization_id=$1 and requested_by_person_id=$2 and code_hash=$3 and status='pending' and expires_at>now() order by created_at desc limit 1`,[input.organizationId,input.personId,lookupHash(input.code)]);}
+  else throw new Error("Confirmation token or code is required");
+  const challenge=result.rows[0];if(!challenge)throw new Error("Confirmation is invalid or expired");
+  await db.query(`update organization_decommission_confirmations set status='confirmed',confirmed_at=now(),confirmation_channel=$2,updated_at=now() where id=$1`,[challenge.id,input.channel]);
+  try{
+    const started=await requestOrganizationDecommission({organizationId:challenge.organization_id,confirmation:challenge.typed_confirmation,reason:challenge.reason,emergency:Boolean(challenge.emergency),requestedByPersonId:challenge.requested_by_person_id,requestedByPlatformRole:challenge.requested_by_platform_role});
+    await db.query(`update organization_decommission_confirmations set status='used',used_at=now(),updated_at=now() where id=$1`,[challenge.id]);
+    return started;
+  }catch(error){
+    await db.query(`update organization_decommission_confirmations set status='pending',confirmed_at=null,confirmation_channel=null,updated_at=now() where id=$1 and expires_at>now()`,[challenge.id]).catch(()=>{});
+    throw error;
+  }
 }
 
 export async function requestOrganizationDecommission(input:{organizationId:string;confirmation:string;reason:string;emergency?:boolean;requestedByPersonId?:string|null;requestedByPlatformRole?:string|null}){
