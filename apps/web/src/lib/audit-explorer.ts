@@ -1,6 +1,14 @@
 import { getDb } from "@/lib/db";
 
 function clean(value:unknown,max=200){return String(value||'').trim().slice(0,max);}
+const SENSITIVE_KEY=/(password|passwd|secret|token|authorization|cookie|api.?key|private.?key|cipher|otp|code_hash|token_hash|access.?key|refresh.?token)/i;
+function redact(value:any,depth=0):any{
+  if(depth>8)return '[TRUNCATED]';
+  if(Array.isArray(value))return value.slice(0,100).map(v=>redact(v,depth+1));
+  if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,SENSITIVE_KEY.test(k)?'[REDACTED]':redact(v,depth+1)]));
+  if(typeof value==='string'&&value.length>4000)return `${value.slice(0,4000)}…`;
+  return value;
+}
 
 export async function queryAuditEvents(input:{organizationId?:string|null;action?:string|null;actor?:string|null;targetType?:string|null;outcome?:string|null;days?:number;limit?:number;offset?:number}){
   const db=getDb();if(!db)throw new Error('Database is not configured');
@@ -19,7 +27,7 @@ export async function queryAuditEvents(input:{organizationId?:string|null;action
     left join people p on p.id=ae.actor_person_id
     left join lateral (select normalized_email from emails x where x.person_id=ae.actor_person_id order by verified_at desc nulls last limit 1) e on true
     where ${where.join(' and ')} order by ae.occurred_at desc limit $${params.length-1} offset $${params.length}`,params);
-  return result.rows;
+  return result.rows.map((row:any)=>({...row,metadata:redact(row.metadata||{})}));
 }
 
 export async function auditExplorerFacets(){
