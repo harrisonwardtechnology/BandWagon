@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requirePlatformRole } from "@/lib/auth";
 import { getPlatformHealth } from "@/lib/platform-health";
 import { getCustomDomainHealth } from "@/lib/domain-health";
+import { resolveApplicationError } from "@/lib/error-monitoring";
 
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
@@ -23,4 +24,9 @@ export async function GET(){
     const message=error instanceof Error?error.message:'Platform health access is required';
     return NextResponse.json({error:message},{status:message.includes('administrator')?403:500});
   }
+}
+
+export async function POST(request:Request){
+  try{const identity=await requirePlatformRole(['owner','support']);const body=await request.json().catch(()=>({}));if(body.action!=="resolve_error")return NextResponse.json({error:"Unknown action"},{status:400});return NextResponse.json({ok:true,result:await resolveApplicationError(String(body.id||""),identity.personId)});}
+  catch(error){const message=error instanceof Error?error.message:'Platform health access is required';return NextResponse.json({error:message},{status:message.includes('administrator')?403:400});}
 }

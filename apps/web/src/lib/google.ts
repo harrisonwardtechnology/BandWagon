@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { getDb } from "@/lib/db";
+import { decryptSensitive,encryptSensitive } from "@/lib/data-security";
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -11,24 +12,12 @@ function required(name: string) {
   return value;
 }
 
-function encryptionKey() {
-  return crypto.createHash("sha256").update(required("DATA_ENCRYPTION_KEY")).digest();
-}
-
 export function encryptSecret(value: string) {
-  const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv("aes-256-gcm", encryptionKey(), iv);
-  const encrypted = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
-  const tag = cipher.getAuthTag();
-  return [iv, tag, encrypted].map((b) => b.toString("base64url")).join(".");
+  return encryptSensitive(value);
 }
 
 export function decryptSecret(value: string) {
-  const [ivPart, tagPart, encryptedPart] = value.split(".");
-  if (!ivPart || !tagPart || !encryptedPart) throw new Error("Invalid encrypted secret");
-  const decipher = crypto.createDecipheriv("aes-256-gcm", encryptionKey(), Buffer.from(ivPart, "base64url"));
-  decipher.setAuthTag(Buffer.from(tagPart, "base64url"));
-  return Buffer.concat([decipher.update(Buffer.from(encryptedPart, "base64url")), decipher.final()]).toString("utf8");
+  return decryptSensitive(value);
 }
 
 function stateKey() {

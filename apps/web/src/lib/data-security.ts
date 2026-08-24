@@ -6,8 +6,17 @@ function required(name: string) {
   return value;
 }
 
+function deriveKey(value:string) {
+  return crypto.createHash("sha256").update(value).digest();
+}
+
 function encryptionKey() {
-  return crypto.createHash("sha256").update(required("DATA_ENCRYPTION_KEY")).digest();
+  return deriveKey(required("DATA_ENCRYPTION_KEY"));
+}
+
+function decryptionKeys() {
+  const previous=String(process.env.DATA_ENCRYPTION_KEY_PREVIOUS||"").split(",").map(value=>value.trim()).filter(Boolean);
+  return [required("DATA_ENCRYPTION_KEY"),...previous].map(deriveKey);
 }
 
 export function encryptSensitive(value: string) {
@@ -21,21 +30,19 @@ export function encryptSensitive(value: string) {
 export function decryptSensitive(value: string) {
   const [ivPart, tagPart, encryptedPart] = value.split(".");
   if (!ivPart || !tagPart || !encryptedPart) throw new Error("Invalid encrypted value");
-  const decipher = crypto.createDecipheriv(
-    "aes-256-gcm",
-    encryptionKey(),
-    Buffer.from(ivPart, "base64url")
-  );
-  decipher.setAuthTag(Buffer.from(tagPart, "base64url"));
-  return Buffer.concat([
-    decipher.update(Buffer.from(encryptedPart, "base64url")),
-    decipher.final(),
-  ]).toString("utf8");
+  for(const key of decryptionKeys()){
+    try{
+      const decipher=crypto.createDecipheriv("aes-256-gcm",key,Buffer.from(ivPart,"base64url"));
+      decipher.setAuthTag(Buffer.from(tagPart,"base64url"));
+      return Buffer.concat([decipher.update(Buffer.from(encryptedPart,"base64url")),decipher.final()]).toString("utf8");
+    }catch{}
+  }
+  throw new Error("Encrypted value cannot be opened with the configured data keys");
 }
 
 export function lookupHash(value: string) {
   return crypto
-    .createHmac("sha256", encryptionKey())
+    .createHmac("sha256", deriveKey(process.env.LOOKUP_HASH_KEY || required("DATA_ENCRYPTION_KEY")))
     .update(value.trim().toLowerCase())
     .digest("hex");
 }

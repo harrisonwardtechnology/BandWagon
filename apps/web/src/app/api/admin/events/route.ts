@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
     if (body.action === "create-manual") {
       if (!body.organizationId) return Response.json({ error: "organizationId is required" }, { status: 400 });
-      await requireOrganizationAdmin(String(body.organizationId));
+      const access=await requireOrganizationAdmin(String(body.organizationId));
       const event = await createManualEvent({
         organizationId: String(body.organizationId),
         title: String(body.title || ""),
@@ -62,6 +62,7 @@ export async function POST(request: Request) {
         allDay: Boolean(body.allDay),
         visibility: ["organization","group","private"].includes(body.visibility) ? body.visibility : "organization",
         rideCoordinationEnabled: body.rideCoordinationEnabled !== false,
+        createdByPersonId:access.identity.personId,
       });
       return Response.json({ ok: true, event });
     }

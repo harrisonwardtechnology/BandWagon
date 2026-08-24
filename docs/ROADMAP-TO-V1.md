@@ -116,6 +116,8 @@ BLUE COW                    BLUE COW
 - [x] Microsoft Calendar integration
 - [x] Google / Microsoft sync controls per organization
 - [x] duplicate / conflict handling
+- [x] organizer-created manual events
+- [ ] decide whether organizations may opt into member-created event proposals after v1
 
 ### Privacy / family controls
 - [x] user data export
@@ -131,9 +133,9 @@ BLUE COW                    BLUE COW
 - [x] account-enumeration hardening
 - [x] session / cookie hardening review
 - [x] admin audit export
-- secret / key rotation procedure
-- backup / restore verification
-- centralized error / health monitoring
+- [x] secret / key rotation procedure and data re-encryption tooling
+- [ ] production backup / isolated restore verification (tooling ready)
+- [x] centralized error / health monitoring
 - accessibility and keyboard review
 - mobile/PWA install and offline-state polish
 - performance / load testing

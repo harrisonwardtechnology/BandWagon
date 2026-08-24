@@ -141,6 +141,11 @@ export async function createManualEvent(input: {
   if (!db) throw new Error("Database is not configured");
   const title = input.title.trim();
   if (!title) throw new Error("Event title is required");
+  if(!input.startsAt)throw new Error("Event start time is required");
+  const startsAt=new Date(input.startsAt);
+  const endsAt=input.endsAt?new Date(input.endsAt):null;
+  if(!Number.isFinite(startsAt.getTime())||(endsAt&&!Number.isFinite(endsAt.getTime())))throw new Error("Enter valid event dates");
+  if(endsAt&&endsAt<=startsAt)throw new Error("Event end time must be after its start time");
 
   const result = await db.query(
     `insert into events
@@ -154,13 +159,18 @@ export async function createManualEvent(input: {
       input.description || null,
       input.locationName || null,
       input.locationAddress || null,
-      input.startsAt ? new Date(input.startsAt) : null,
-      input.endsAt ? new Date(input.endsAt) : null,
+      startsAt,
+      endsAt,
       Boolean(input.allDay),
       input.visibility || "organization",
       input.rideCoordinationEnabled !== false,
       input.createdByPersonId || null,
     ]
+  );
+  await db.query(
+    `insert into audit_events(organization_id,actor_person_id,action,target_type,target_id,metadata)
+     values($1,$2,'organization.manual_event_created','event',$3,$4::jsonb)`,
+    [input.organizationId,input.createdByPersonId||null,result.rows[0].id,JSON.stringify({visibility:input.visibility||"organization",rideCoordinationEnabled:input.rideCoordinationEnabled!==false,allDay:Boolean(input.allDay)})]
   );
   return result.rows[0];
 }
