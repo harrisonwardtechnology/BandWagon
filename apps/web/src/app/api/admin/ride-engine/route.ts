@@ -1,4 +1,4 @@
-import { requireAdminTestToken } from "@/lib/admin-test";
+import { requirePlatformRole } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { addDriverZone, addRecurringAvailability, listDriverProfiles, setAvailabilityException, upsertDriverProfile } from "@/lib/drivers";
 import { attachRequestToRide, getRideManifest, listPoolableRides, removeRequestFromRide } from "@/lib/carpool";
@@ -9,7 +9,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const denied = requireAdminTestToken(request); if (denied) return denied;
+  try { await requirePlatformRole(["owner"]); }
+  catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Platform owner access is required" }, { status: 403 }); }
   const db = getDb(); if (!db) return Response.json({ error:"Database is not configured" }, { status:500 });
   const url = new URL(request.url);
   const organizationId = url.searchParams.get("organizationId");
@@ -30,7 +31,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const denied = requireAdminTestToken(request); if (denied) return denied;
+  try { await requirePlatformRole(["owner"]); }
+  catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Platform owner access is required" }, { status: 403 }); }
   const body = await request.json().catch(()=>({}));
   try {
     let result: unknown;

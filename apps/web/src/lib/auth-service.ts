@@ -4,9 +4,13 @@ import { decryptSensitive, encryptSensitive, lookupHash } from "@/lib/data-secur
 import { sendEmailNotification } from "@/lib/email-send";
 import { sendTwilioNotification } from "@/lib/twilio-send";
 import { normalizePhone } from "@/lib/accounts";
+import { sessionLifetimeDays } from "@/lib/auth-policy";
 
 const OTP_TTL_MINUTES = 10;
-const SESSION_DAYS = 30;
+const SESSION_DAYS = sessionLifetimeDays(process.env.SESSION_TTL_DAYS);
+const OTP_IDENTIFIER_LIMIT = 5;
+const OTP_IP_LIMIT = 20;
+const OTP_RATE_WINDOW_MINUTES = 15;
 
 function dbRequired() {
   const db = getDb();
@@ -62,15 +66,45 @@ async function findExistingAccount(type: "email" | "phone", lookup: string) {
     ? await db.query(
         `select p.id as person_id,ua.id as user_account_id,e.verified_at is not null as contact_verified
          from emails e join people p on p.id=e.person_id join user_accounts ua on ua.person_id=p.id
-         where e.normalized_email=$1 and p.status='active' and ua.status='active' limit 1`,
+         where e.normalized_email=$1 and p.status='active' and ua.status='active'
+           and (
+             p.person_type<>'minor'
+             or not exists(select 1 from managed_student_account_access msa where msa.person_id=p.id)
+             or exists(
+               select 1 from managed_student_account_access msa
+                where msa.person_id=p.id and msa.login_email_id=e.id and msa.enabled=true
+                  and exists(select 1 from guardian_consents gc
+                              where gc.minor_person_id=p.id and gc.consent_type='platform_minor_use' and gc.status='active')
+             )
+           )
+         limit 1`,
         [lookup]
       )
     : await db.query(
         `select p.id as person_id,ua.id as user_account_id,ph.verified_at is not null as contact_verified
          from phones ph join people p on p.id=ph.person_id join user_accounts ua on ua.person_id=p.id
-         where ph.lookup_hash=$1 and p.status='active' and ua.status='active' limit 1`,
+         where ph.lookup_hash=$1 and p.status='active' and ua.status='active'
+           and (p.person_type<>'minor' or not exists(select 1 from managed_student_account_access msa where msa.person_id=p.id))
+         limit 1`,
         [lookup]
       );
+  return result.rows[0] || null;
+}
+
+async function findManagedStudentClaim(normalizedEmail: string) {
+  const db = dbRequired();
+  const result = await db.query(
+    `select p.id as person_id,e.id as email_id
+       from managed_student_account_access msa
+       join people p on p.id=msa.person_id and p.person_type='minor' and p.status='active'
+       join emails e on e.id=msa.login_email_id and e.person_id=p.id
+       left join user_accounts ua on ua.person_id=p.id
+      where e.normalized_email=$1 and msa.enabled=true and ua.id is null
+        and exists(select 1 from guardian_consents gc
+                    where gc.minor_person_id=p.id and gc.consent_type='platform_minor_use' and gc.status='active')
+      limit 1`,
+    [normalizedEmail]
+  );
   return result.rows[0] || null;
 }
 
@@ -80,23 +114,22 @@ export async function requestOtp(input: {
   householdName?: string | null;
   birthMonth?: number | null;
   birthYear?: number | null;
+  signupIntent?: boolean;
   requestIp?: string | null;
 }) {
+  const startedAt = Date.now();
   const db = dbRequired();
   const normalized = normalizeIdentifier(input.identifier);
-  const existing = await findExistingAccount(normalized.type, normalized.lookup);
+  const signupIntent = input.signupIntent === true;
   const displayName = input.displayName?.trim() || null;
-  if (!existing && !displayName) {
-    return { ok: false as const, signupDetailsRequired: true as const };
-  }
 
-  let signupAgeBand: "under_13" | "13_17" | "adult" | null = null;
-  if (!existing) {
+  if (signupIntent) {
+    if (!displayName) throw new Error("Enter your name to create an account");
     if (input.birthMonth == null || input.birthYear == null) {
-      return { ok: false as const, signupDetailsRequired: true as const, ageDetailsRequired: true as const };
+      throw new Error("Enter your birth month and year to create an account");
     }
     const age = screenedAge(Number(input.birthMonth), Number(input.birthYear));
-    signupAgeBand = ageBand(age);
+    const signupAgeBand = ageBand(age);
     if (signupAgeBand === "under_13") {
       return {
         ok: false as const,
@@ -106,17 +139,36 @@ export async function requestOtp(input: {
     }
   }
 
-  const recent = await db.query(
-    `select count(*)::int as count from auth_otp_challenges
-     where identifier_lookup=$1 and created_at > now() - interval '15 minutes'`,
-    [normalized.lookup]
-  );
-  if (Number(recent.rows[0]?.count || 0) >= 5) throw new Error("Too many verification requests. Try again shortly.");
+  const ipHash = input.requestIp ? digest(`ip:${input.requestIp}`) : null;
+  const [identifierRate,ipRate] = await Promise.all([
+    db.query(
+      `select count(*)::int as count from auth_otp_challenges
+        where identifier_lookup=$1 and created_at > now()-($2||' minutes')::interval`,
+      [normalized.lookup,String(OTP_RATE_WINDOW_MINUTES)]
+    ),
+    ipHash
+      ? db.query(
+          `select count(*)::int as count from auth_otp_challenges
+            where request_ip_hash=$1 and created_at > now()-($2||' minutes')::interval`,
+          [ipHash,String(OTP_RATE_WINDOW_MINUTES)]
+        )
+      : Promise.resolve({ rows: [{ count: 0 }] }),
+  ]);
+  if (Number(identifierRate.rows[0]?.count || 0) >= OTP_IDENTIFIER_LIMIT || Number(ipRate.rows[0]?.count || 0) >= OTP_IP_LIMIT) {
+    throw new Error("Too many verification requests. Try again shortly.");
+  }
+
+  const existing = await findExistingAccount(normalized.type, normalized.lookup);
+  const managedClaim = !existing && normalized.type === "email"
+    ? await findManagedStudentClaim(normalized.destination)
+    : null;
+  const createNewAccount = signupIntent && !existing && !managedClaim;
+  const deliverCode = Boolean(existing || managedClaim || createNewAccount);
 
   const id = crypto.randomUUID();
   const code = String(crypto.randomInt(100000, 1000000));
   const codeHash = digest(`${id}:${code}`);
-  const purpose = existing ? "sign_in" : "sign_up";
+  const purpose = managedClaim ? "managed_student_claim" : createNewAccount ? "sign_up" : "sign_in";
   await db.query(
     `insert into auth_otp_challenges
       (id,purpose,destination_type,identifier_lookup,destination_ciphertext,person_id,user_account_id,
@@ -124,13 +176,16 @@ export async function requestOtp(input: {
      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,now()+($14 || ' minutes')::interval)`,
     [
       id,purpose,normalized.type,normalized.lookup,encryptSensitive(normalized.destination),
-      existing?.person_id || null,existing?.user_account_id || null,codeHash,displayName,
-      input.householdName?.trim() || null,input.birthMonth || null,input.birthYear || null,
-      input.requestIp ? digest(`ip:${input.requestIp}`) : null,String(OTP_TTL_MINUTES),
+      existing?.person_id || managedClaim?.person_id || null,existing?.user_account_id || null,codeHash,createNewAccount ? displayName : null,
+      createNewAccount ? input.householdName?.trim() || null : null,
+      createNewAccount ? input.birthMonth || null : null,createNewAccount ? input.birthYear || null : null,
+      ipHash,String(OTP_TTL_MINUTES),
     ]
   );
 
+  let deliveryAccepted = false;
   try {
+    if (!deliverCode) throw new Error("Decoy challenge");
     if (normalized.type === "email") {
       const delivery = await sendEmailNotification({
         to: normalized.destination,
@@ -138,7 +193,8 @@ export async function requestOtp(input: {
         body: `Your BandWagon verification code is ${code}. It expires in ${OTP_TTL_MINUTES} minutes.`,
         notificationType: "otp",
         urgency: "critical",
-        personId: existing?.person_id || null,
+        personId: existing?.person_id || managedClaim?.person_id || null,
+        correlationId: id,
       });
       if (!delivery.ok) throw new Error(delivery.reason || "Email verification delivery failed");
     } else {
@@ -149,20 +205,26 @@ export async function requestOtp(input: {
         notificationType: "otp",
         urgency: "critical",
         personId: existing?.person_id || null,
+        correlationId: id,
       });
     }
-  } catch (error) {
+    deliveryAccepted = true;
+  } catch {}
+
+  const minimumResponseMs = 500;
+  if (Date.now()-startedAt < minimumResponseMs) {
+    await new Promise((resolve) => setTimeout(resolve,minimumResponseMs-(Date.now()-startedAt)));
+  }
+
+  if (deliverCode && !deliveryAccepted) {
     await db.query(`update auth_otp_challenges set consumed_at=now() where id=$1`, [id]);
-    throw error;
   }
 
   return {
     ok: true as const,
     challengeId: id,
     destinationType: normalized.type,
-    signup: !existing,
-    signupAgeBand,
-    ...(process.env.AUTH_DEBUG_OTP === "true" ? { debugCode: code } : {}),
+    ...(process.env.NODE_ENV !== "production" && process.env.AUTH_DEBUG_OTP === "true" && deliveryAccepted ? { debugCode: code } : {}),
   };
 }
 
@@ -192,6 +254,18 @@ export async function verifyOtp(input: {
   userAgent?: string | null;
 }) {
   const db = dbRequired();
+  const verificationIpHash = input.requestIp ? digest(`ip:${input.requestIp}`) : null;
+  if (verificationIpHash) {
+    const recentFailures = await db.query(
+      `select coalesce(sum(attempts),0)::int as attempts
+         from auth_otp_challenges
+        where request_ip_hash=$1 and created_at>now()-($2||' minutes')::interval`,
+      [verificationIpHash,String(OTP_RATE_WINDOW_MINUTES)]
+    );
+    if (Number(recentFailures.rows[0]?.attempts || 0) >= 30) {
+      throw new Error("Too many verification attempts. Try again shortly.");
+    }
+  }
   const client = await db.connect();
   try {
     await client.query("BEGIN");
@@ -206,6 +280,11 @@ export async function verifyOtp(input: {
     const valid = crypto.timingSafeEqual(Buffer.from(suppliedHash), Buffer.from(challenge.code_hash));
     if (!valid) {
       await client.query(`update auth_otp_challenges set attempts=attempts+1 where id=$1`, [challenge.id]);
+      await client.query(
+        `insert into auth_events(user_account_id,person_id,event_type,outcome,metadata)
+         values($1,$2,'otp_verify_failed','failed',$3::jsonb)`,
+        [challenge.user_account_id || null,challenge.person_id || null,JSON.stringify({ destinationType:challenge.destination_type,requestIpHash:verificationIpHash })]
+      );
       await client.query("COMMIT");
       throw new Error("Incorrect verification code");
     }
@@ -214,7 +293,37 @@ export async function verifyOtp(input: {
     let userAccountId = challenge.user_account_id as string | null;
     const destination = decryptSensitive(challenge.destination_ciphertext);
 
-    if (challenge.purpose === "sign_up") {
+    if (challenge.purpose === "managed_student_claim") {
+      const eligible = await client.query(
+        `select msa.login_email_id
+           from managed_student_account_access msa
+           join emails e on e.id=msa.login_email_id and e.person_id=msa.person_id
+           join people p on p.id=msa.person_id and p.person_type='minor' and p.status='active'
+          where msa.person_id=$1 and msa.enabled=true and e.normalized_email=$2
+            and exists(select 1 from guardian_consents gc
+                        where gc.minor_person_id=msa.person_id and gc.consent_type='platform_minor_use' and gc.status='active')
+          for update`,
+        [personId,normalizeEmail(destination)]
+      );
+      if (!eligible.rowCount || !personId) throw new Error("Student account invitation is no longer active");
+      const existingAccount = await client.query(`select id from user_accounts where person_id=$1 for update`,[personId]);
+      if (existingAccount.rowCount) {
+        userAccountId = existingAccount.rows[0].id;
+      } else {
+        const account = await client.query(
+          `insert into user_accounts (person_id,status,created_at,updated_at,onboarding_completed_at)
+           values ($1,'active',now(),now(),now()) returning id`,
+          [personId]
+        );
+        userAccountId = account.rows[0].id;
+      }
+      await client.query(`update emails set verified_at=coalesce(verified_at,now()) where id=$1`,[eligible.rows[0].login_email_id]);
+      await client.query(
+        `insert into audit_events(actor_person_id,action,target_type,target_id,metadata)
+         values($1,'guardian.student_account_claimed','person',$1,$2::jsonb)`,
+        [personId,JSON.stringify({ destinationType:"email" })]
+      );
+    } else if (challenge.purpose === "sign_up") {
       const age = screenedAge(Number(challenge.signup_birth_month), Number(challenge.signup_birth_year));
       const band = ageBand(age);
       if (band === "under_13") throw new Error("Direct BandWagon accounts are limited to ages 13+");
@@ -265,16 +374,21 @@ export async function verifyOtp(input: {
     }
 
     if (!personId || !userAccountId) throw new Error("Account is unavailable");
+    await client.query(
+      `update notification_deliveries set person_id=$1
+        where correlation_id=$2 and notification_type='otp' and person_id is null`,
+      [personId,challenge.id]
+    );
     await client.query(`update auth_otp_challenges set consumed_at=now(),attempts=attempts+1 where id=$1`, [challenge.id]);
     await client.query(`update user_accounts set last_login_at=now(),updated_at=now() where id=$1`, [userAccountId]);
     await client.query(
       `insert into auth_events (user_account_id,person_id,event_type,outcome,metadata)
        values ($1,$2,$3,'success',$4::jsonb)`,
-      [userAccountId,personId,challenge.purpose === "sign_up" ? "account_created" : "otp_sign_in",JSON.stringify({ destinationType:challenge.destination_type })]
+      [userAccountId,personId,challenge.purpose === "sign_up" ? "account_created" : challenge.purpose === "managed_student_claim" ? "managed_student_account_claimed" : "otp_sign_in",JSON.stringify({ destinationType:challenge.destination_type,requestIpHash:verificationIpHash })]
     );
     const session = await createSession(client,userAccountId,input.requestIp,input.userAgent);
     await client.query("COMMIT");
-    return { ...session, personId, userAccountId, createdAccount: challenge.purpose === "sign_up" };
+    return { ...session, personId, userAccountId, createdAccount: challenge.purpose === "sign_up" || challenge.purpose === "managed_student_claim" };
   } catch (error) {
     await client.query("ROLLBACK").catch(() => {});
     throw error;

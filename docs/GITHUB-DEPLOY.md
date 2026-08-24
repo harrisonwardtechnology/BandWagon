@@ -158,7 +158,16 @@ Create OAuth credentials and use read-only calendar scopes. Set the callback URL
 
 ## 13. Microsoft Calendar
 
-Create the Microsoft Entra application registration and Graph calendar permissions using read-only access. Set the production redirect URI exactly.
+Create the Microsoft Entra application registration and add delegated Microsoft Graph permissions for `User.Read` and `Calendars.Read`. BandWagon also requests standard OpenID Connect identity scopes and `offline_access` so scheduled read-only sync can continue.
+
+Configure:
+
+- `MICROSOFT_CLIENT_ID`
+- `MICROSOFT_CLIENT_SECRET`
+- `MICROSOFT_REDIRECT_URI` - exactly `https://<your-app>/api/integrations/microsoft/callback`
+- `MICROSOFT_TENANT_ID` - use your tenant ID for single-tenant deployments or `organizations` for work/school multi-tenant sign-in
+
+The Entra redirect URI must be registered as a Web platform redirect. Keep the client secret in server-side secret storage. After connecting from `/admin/integrations/microsoft`, select calendars and run a manual sync. Schedule `POST /api/cron/microsoft-calendar-sync` with the existing `CALENDAR_SYNC_CRON_SECRET` authorization.
 
 ## 14. Custom-domain automation
 

@@ -22,11 +22,12 @@ export default async function Home() {
 
       <section className="grid">
         <article className="card primary">
-          <div className="eyebrow">Production Scaffold</div>
-          <h2>BandWagon is online.</h2>
-          <p>This is the production application shell. The next build stages add verified-email authentication, organizations, households, rides, calendars, messaging, privacy workflows and custom domains.</p>
+          <div className="eyebrow">Community ride coordination</div>
+          <h2>Plan the ride. Protect the people.</h2>
+          <p>Join your organization, manage your household, coordinate event rides, and verify the right driver and rider at pickup—all with privacy and guardian controls built in.</p>
           <div className="actions">
-            <a className="button" href="/api/health">View Health</a>
+            <Link className="button" href="/login">Sign in</Link>
+            <Link className="button ghost" href="/help">Get help</Link>
             <a className="button ghost" href="https://github.com/harrisonwardtechnology/BandWagon">GitHub</a>
           </div>
         </article>
@@ -39,7 +40,7 @@ export default async function Home() {
         <article className="card">
           <div className="eyebrow">First Community</div>
           <h3>FloMoGo</h3>
-          <p>Flower Mound Band Community. Custom-domain target: <strong>flomogo.app</strong>.</p>
+          <p>Ride coordination for the Flower Mound band community at <strong>flomogo.app</strong>.</p>
         </article>
       </section>
 

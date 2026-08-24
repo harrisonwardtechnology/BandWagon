@@ -1,4 +1,4 @@
-# BandWagon Roadmap To v2
+# BandWagon Roadmap Through v2
 
 This roadmap intentionally uses larger release packages: one release PR, one review/merge, one deployment, and one migration run per release.
 
@@ -113,37 +113,40 @@ BLUE COW                    BLUE COW
 - configurable join codes and policies
 
 ### Calendar expansion
-- Microsoft Calendar integration
-- Google / Microsoft sync controls per organization
-- duplicate / conflict handling
+- [x] Microsoft Calendar integration
+- [x] Google / Microsoft sync controls per organization
+- [x] duplicate / conflict handling
+- [x] organizer-created manual events
+- [ ] decide whether organizations may opt into member-created event proposals after v1
 
 ### Privacy / family controls
-- user data export
-- right-to-be-forgotten workflow
-- document deletion / retention lifecycle
-- guardian consent management
-- student account / household management polish
-- organization privacy / terms acknowledgement
-- exact-location retention cleanup
+- [x] user data export
+- [x] right-to-be-forgotten workflow
+- [x] document deletion / retention lifecycle
+- [x] guardian consent management polish
+- [x] student account / household management polish
+- [x] organization privacy / terms acknowledgement
+- [x] exact-location retention cleanup
 
 ### Security / reliability
-- stronger auth/IP throttling
-- account-enumeration hardening
-- session / cookie hardening review
-- admin audit export
-- secret / key rotation procedure
-- backup / restore verification
-- centralized error / health monitoring
-- accessibility and keyboard review
-- mobile/PWA install and offline-state polish
-- performance / load testing
+- [x] stronger auth/IP throttling
+- [x] account-enumeration hardening
+- [x] session / cookie hardening review
+- [x] admin audit export
+- [x] secret / key rotation procedure and data re-encryption tooling
+- [ ] production backup / isolated restore verification (tooling ready)
+- [x] centralized error / health monitoring
+- [x] shared-shell accessibility and keyboard safeguards (production assistive-technology matrix remains)
+- [x] mobile/PWA install and privacy-safe offline-state polish
+- [x] repeatable performance / load smoke gate (staging authenticated load test remains)
 
 ### AI governance
-- LiteLLM production virtual keys / budgets
-- prompt/body logging disabled for sensitive workflows
-- provider retention configuration review
-- AI cost alerts
-- AI failure / fallback behavior
+- [x] BandWagon hard caps, in-flight reservations, and approved model aliases
+- [x] fail-closed runtime switch, input bounds, and provider timeouts
+- [x] policy decision / manual fallback audit history
+- [ ] production LiteLLM virtual key and matching gateway budget
+- [ ] provider retention / training / region configuration evidence
+- [ ] verify prompt/body logging disabled in production gateway and providers
 
 **Exit:** A second organization can be onboarded without code changes; privacy deletion/export and disaster recovery are tested; production security checklist is complete.
 
@@ -151,6 +154,8 @@ BLUE COW                    BLUE COW
 
 ## 1.0 - FloMoGo Production + General Availability
 **Goal:** Ship the first production tenant and freeze the v1 contract.
+
+The executable go/no-go criteria live in [`operations/V1-LAUNCH-CHECKLIST.md`](operations/V1-LAUNCH-CHECKLIST.md). Twilio and Google approval may proceed in parallel, but both remain launch blockers for the FloMoGo profile.
 
 ### FloMoGo launch
 - production tenant/domain configuration

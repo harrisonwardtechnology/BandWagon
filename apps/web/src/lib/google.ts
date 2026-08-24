@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { getDb } from "@/lib/db";
+import { decryptSensitive,encryptSensitive } from "@/lib/data-security";
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -11,24 +12,12 @@ function required(name: string) {
   return value;
 }
 
-function encryptionKey() {
-  return crypto.createHash("sha256").update(required("DATA_ENCRYPTION_KEY")).digest();
-}
-
 export function encryptSecret(value: string) {
-  const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv("aes-256-gcm", encryptionKey(), iv);
-  const encrypted = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
-  const tag = cipher.getAuthTag();
-  return [iv, tag, encrypted].map((b) => b.toString("base64url")).join(".");
+  return encryptSensitive(value);
 }
 
 export function decryptSecret(value: string) {
-  const [ivPart, tagPart, encryptedPart] = value.split(".");
-  if (!ivPart || !tagPart || !encryptedPart) throw new Error("Invalid encrypted secret");
-  const decipher = crypto.createDecipheriv("aes-256-gcm", encryptionKey(), Buffer.from(ivPart, "base64url"));
-  decipher.setAuthTag(Buffer.from(tagPart, "base64url"));
-  return Buffer.concat([decipher.update(Buffer.from(encryptedPart, "base64url")), decipher.final()]).toString("utf8");
+  return decryptSensitive(value);
 }
 
 function stateKey() {
@@ -151,6 +140,7 @@ function eventTime(event: any, field: "start" | "end") {
 export async function syncSelectedGoogleCalendars() {
   const db = getDb(); if (!db) throw new Error("Database is not configured");
   const conn = await getActiveGoogleConnection(); if (!conn) throw new Error("No active Google connection");
+  if(conn.organization_id){const controls=await db.query(`select google_sync_enabled from organization_calendar_settings where organization_id=$1`,[conn.organization_id]);if(controls.rows[0]?.google_sync_enabled===false)return{calendars:0,events:0,disabled:true};}
   const selected = await db.query(`select * from google_calendars where connection_id=$1 and selected=true order by summary`, [conn.id]);
   const timeMin = new Date(Date.now() - Number(process.env.CALENDAR_LOOKBACK_DAYS || 30) * 86400000).toISOString();
   const timeMax = new Date(Date.now() + Number(process.env.CALENDAR_LOOKAHEAD_DAYS || 180) * 86400000).toISOString();

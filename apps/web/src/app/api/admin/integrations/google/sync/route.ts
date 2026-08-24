@@ -1,4 +1,4 @@
-import { requireAdminTestToken } from "@/lib/admin-test";
+import { requirePlatformRole } from "@/lib/auth";
 import { syncSelectedGoogleCalendars } from "@/lib/google";
 import { normalizeImportedCalendarEvents } from "@/lib/events";
 
@@ -6,8 +6,8 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
-  const denied = requireAdminTestToken(request);
-  if (denied) return denied;
+  try { await requirePlatformRole(["owner"]); }
+  catch (error) { return Response.json({error:error instanceof Error?error.message:"Platform owner access is required"},{status:403}); }
   try {
     const sync = await syncSelectedGoogleCalendars();
     const normalized = await normalizeImportedCalendarEvents();

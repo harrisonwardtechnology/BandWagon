@@ -1,42 +1,56 @@
-import { requireAdminTestToken } from "@/lib/admin-test";
+import { requirePlatformRole } from "@/lib/auth";
+import { requireSessionIdentity } from "@/lib/auth";
+import { listOrganizationsForAdministrator, requireOrganizationAdmin } from "@/lib/admin-access";
 import {
   assignActiveGoogleConnectionToOrganization,
   createManualEvent,
+  getOrganizationCalendarControls,
   listOrganizationEvents,
-  listOrganizationsForEventAdmin,
   normalizeImportedCalendarEvents,
+  updateOrganizationCalendarControls,
 } from "@/lib/events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const denied = requireAdminTestToken(request);
-  if (denied) return denied;
-  const url = new URL(request.url);
-  const organizationId = url.searchParams.get("organizationId");
-  const organizations = await listOrganizationsForEventAdmin();
-  const events = organizationId ? await listOrganizationEvents(organizationId) : [];
-  return Response.json({ organizations, events });
+  try {
+    const url = new URL(request.url);
+    const organizationId = url.searchParams.get("organizationId");
+    const organizations = await listOrganizationsForAdministrator();
+    if (organizationId) await requireOrganizationAdmin(organizationId, { write: false });
+    const events = organizationId ? await listOrganizationEvents(organizationId) : [];
+    const calendarControls=organizationId?await getOrganizationCalendarControls(organizationId):null;
+    return Response.json({ organizations, events, calendarControls });
+  } catch (error) {
+    return Response.json({ error: error instanceof Error ? error.message : "Event administrator access is required" }, { status: 403 });
+  }
 }
 
 export async function POST(request: Request) {
-  const denied = requireAdminTestToken(request);
-  if (denied) return denied;
   const body = await request.json().catch(() => ({}));
 
   try {
     if (body.action === "bind-google") {
       if (!body.organizationId) return Response.json({ error: "organizationId is required" }, { status: 400 });
+      await requireOrganizationAdmin(String(body.organizationId));
       return Response.json({ ok: true, connection: await assignActiveGoogleConnectionToOrganization(String(body.organizationId)) });
     }
 
     if (body.action === "normalize") {
+      await requirePlatformRole(["owner"]);
       return Response.json({ ok: true, ...(await normalizeImportedCalendarEvents()) });
+    }
+
+    if(body.action==="update-calendar-controls"){
+      if(!body.organizationId)return Response.json({error:"organizationId is required"},{status:400});
+      const identity=await requireSessionIdentity();await requireOrganizationAdmin(String(body.organizationId));
+      return Response.json({ok:true,calendarControls:await updateOrganizationCalendarControls({organizationId:String(body.organizationId),googleSyncEnabled:body.googleSyncEnabled!==false,microsoftSyncEnabled:body.microsoftSyncEnabled!==false,conflictMode:body.conflictMode,actorPersonId:identity.personId})});
     }
 
     if (body.action === "create-manual") {
       if (!body.organizationId) return Response.json({ error: "organizationId is required" }, { status: 400 });
+      const access=await requireOrganizationAdmin(String(body.organizationId));
       const event = await createManualEvent({
         organizationId: String(body.organizationId),
         title: String(body.title || ""),
@@ -48,12 +62,13 @@ export async function POST(request: Request) {
         allDay: Boolean(body.allDay),
         visibility: ["organization","group","private"].includes(body.visibility) ? body.visibility : "organization",
         rideCoordinationEnabled: body.rideCoordinationEnabled !== false,
+        createdByPersonId:access.identity.personId,
       });
       return Response.json({ ok: true, event });
     }
 
     return Response.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
-    return Response.json({ error: error instanceof Error ? error.message : "Event operation failed" }, { status: 500 });
+    return Response.json({ error: error instanceof Error ? error.message : "Event operation failed" }, { status: 403 });
   }
 }

@@ -20,7 +20,7 @@ The service rounds coordinates to two decimal places for the generalized map poi
 
 ## Admin/API development flow
 
-`POST /api/admin/location-privacy` using `ADMIN_TEST_TOKEN` supports:
+`POST /api/admin/location-privacy` requires a signed-in platform owner and supports:
 
 - `action=create` to create an encrypted private location.
 - `action=attach` to attach pickup/drop-off locations to a ride request.

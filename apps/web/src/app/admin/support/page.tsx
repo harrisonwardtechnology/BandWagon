@@ -1,95 +1,11 @@
 "use client";
 
 import { useState } from "react";
-
-function money(cents:number){ return new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format((cents||0)/100); }
-
-export default function SupportAdmin() {
-  const [token,setToken]=useState("");
-  const [organizationId,setOrganizationId]=useState("");
-  const [data,setData]=useState<any>(null);
-  const [message,setMessage]=useState("");
-  const [amount,setAmount]=useState(100);
-  const [sponsorName,setSponsorName]=useState("");
-  const [sponsorWebsite,setSponsorWebsite]=useState("");
-
-  async function load(){
-    setMessage("");
-    const qs=organizationId?`?organizationId=${encodeURIComponent(organizationId)}`:"";
-    const r=await fetch(`/api/admin/support${qs}`,{headers:{"x-bandwagon-admin-token":token}});
-    const d=await r.json().catch(()=>({error:"Invalid response"}));
-    if(!r.ok) return setMessage(d.error||"Unable to load support dashboard");
-    setData(d);
-  }
-
-  async function createCheckout(type:"individual"|"sponsor"){
-    const r=await fetch("/api/support/checkout",{
-      method:"POST",
-      headers:{"content-type":"application/json"},
-      body:JSON.stringify({
-        organizationId:organizationId||null,
-        type,
-        amountCents:amount,
-        sponsorName:type==="sponsor"?sponsorName:null,
-        sponsorWebsite:type==="sponsor"?sponsorWebsite:null,
-        sponsorDisplayPublicly:type==="sponsor",
-      })
-    });
-    const d=await r.json();
-    if(!r.ok) return setMessage(d.error||"Unable to create checkout");
-    window.open(d.checkoutUrl,"_blank","noopener,noreferrer");
-  }
-
-  return <main style={{maxWidth:1000,margin:"40px auto",padding:"0 20px",fontFamily:"system-ui,sans-serif"}}>
-    <section style={{background:"#101b33",color:"#fff",padding:28,borderRadius:22}}>
-      <div style={{fontSize:13,fontWeight:800,letterSpacing:1}}>PLATFORM ADMIN</div>
-      <h1 style={{fontSize:38,margin:"6px 0"}}>Community Support</h1>
-      <p style={{margin:0,opacity:.9}}>Contributions, sponsorships, and monthly technology-cost coverage.</p>
-    </section>
-
-    <section style={{marginTop:20,padding:20,border:"1px solid #dbe3ef",borderRadius:16}}>
-      <label><strong>Admin Test Token</strong></label>
-      <input type="password" value={token} onChange={e=>setToken(e.target.value)}
-        style={{display:"block",width:"100%",padding:12,margin:"8px 0 14px"}} />
-      <label><strong>Organization ID (optional for platform totals)</strong></label>
-      <input value={organizationId} onChange={e=>setOrganizationId(e.target.value)}
-        placeholder="FloMoGo organization UUID"
-        style={{display:"block",width:"100%",padding:12,margin:"8px 0 14px"}} />
-      <button onClick={load}>Refresh Dashboard</button>
-    </section>
-
-    {message&&<p style={{padding:14,background:"#f8fafc",borderRadius:10}}>{message}</p>}
-
-    {data&&<section style={{marginTop:20,padding:20,border:"1px solid #dbe3ef",borderRadius:16}}>
-      <h2>{data.organization?.name || "BandWagon"} Community Support</h2>
-      <table style={{width:"100%",borderCollapse:"collapse"}}>
-        <tbody>
-          <tr><td>Rides / events this month</td><td style={{textAlign:"right"}}><strong>{data.rideCount}</strong></td></tr>
-          <tr><td>Estimated technology cost @ {money(data.estimatedCostPerRideCents)} each</td><td style={{textAlign:"right"}}><strong>{money(data.estimatedTechnologyCostCents)}</strong></td></tr>
-          <tr><td>Individual contributions</td><td style={{textAlign:"right"}}>{money(data.individualSupportCents)}</td></tr>
-          <tr><td>Sponsor contributions</td><td style={{textAlign:"right"}}>{money(data.sponsorSupportCents)}</td></tr>
-          <tr><td>Total community support</td><td style={{textAlign:"right"}}><strong>{money(data.totalSupportCents)}</strong></td></tr>
-          <tr><td>Coverage</td><td style={{textAlign:"right"}}><strong>{data.coveragePercent}%</strong></td></tr>
-        </tbody>
-      </table>
-      {data.coveragePercent>=100&&<p><strong>Fully supported this month!</strong> Additional support helps keep BandWagon available free to this community and others.</p>}
-      {data.sponsors?.length>0&&<><h3>Active Sponsors</h3><ul>{data.sponsors.map((s:any,i:number)=><li key={i}><strong>{s.sponsor_name}</strong>{s.sponsor_website?` — ${s.sponsor_website}`:""}</li>)}</ul></>}
-    </section>}
-
-    <section style={{marginTop:20,padding:20,border:"1px solid #dbe3ef",borderRadius:16}}>
-      <h2>Test Checkout</h2>
-      <p>BandWagon is provided free to your organization. A typical ride costs about <strong>$0.25</strong> in technology, messaging, maps, and other operating services.</p>
-      <label>Amount (cents, minimum 100)</label>
-      <input type="number" min={100} value={amount} onChange={e=>setAmount(Number(e.target.value))}
-        style={{display:"block",width:"100%",padding:12,margin:"8px 0 14px"}} />
-      <button onClick={()=>createCheckout("individual")}>Open Individual Support Checkout</button>
-
-      <h3 style={{marginTop:28}}>Sponsor Test</h3>
-      <input value={sponsorName} onChange={e=>setSponsorName(e.target.value)} placeholder="Sponsor name"
-        style={{display:"block",width:"100%",padding:12,margin:"8px 0"}} />
-      <input value={sponsorWebsite} onChange={e=>setSponsorWebsite(e.target.value)} placeholder="https://example.com"
-        style={{display:"block",width:"100%",padding:12,margin:"8px 0 14px"}} />
-      <button onClick={()=>createCheckout("sponsor")}>Open Sponsor Checkout</button>
-    </section>
-  </main>;
+function money(cents:number){return new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format((cents||0)/100);}
+export default function SupportAdmin(){
+ const[organizationId,setOrganizationId]=useState(""),[data,setData]=useState<any>(null),[message,setMessage]=useState(""),[amount,setAmount]=useState(100),[sponsorName,setSponsorName]=useState(""),[sponsorWebsite,setSponsorWebsite]=useState("");
+ async function load(){setMessage("");const qs=organizationId?`?organizationId=${encodeURIComponent(organizationId)}`:"",r=await fetch(`/api/admin/support${qs}`),d=await r.json().catch(()=>({error:"Invalid response"}));if(!r.ok)return setMessage(d.error||"Unable to load support dashboard");setData(d);}
+ async function createCheckout(type:"individual"|"sponsor"){const r=await fetch("/api/support/checkout",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({organizationId:organizationId||null,type,amountCents:amount,sponsorName:type==="sponsor"?sponsorName:null,sponsorWebsite:type==="sponsor"?sponsorWebsite:null,sponsorDisplayPublicly:type==="sponsor"})}),d=await r.json();if(!r.ok)return setMessage(d.error||"Unable to create checkout");window.open(d.checkoutUrl,"_blank","noopener,noreferrer");}
+ const card={marginTop:20,padding:20,border:"1px solid #dbe3ef",borderRadius:16} as const,input={display:"block",width:"100%",padding:12,margin:"8px 0 14px",boxSizing:"border-box" as const};
+ return <main style={{maxWidth:1000,margin:"40px auto",padding:"0 20px",fontFamily:"system-ui,sans-serif"}}><section style={{background:"#101b33",color:"#fff",padding:28,borderRadius:22}}><div style={{fontSize:13,fontWeight:800,letterSpacing:1}}>PLATFORM ADMIN</div><h1 style={{fontSize:38,margin:"6px 0"}}>Community Support</h1><p style={{margin:0,opacity:.9}}>Contributions, sponsorships, and transparent operating-cost coverage.</p></section><section style={card}><p><strong>Signed-in administrator access required.</strong></p><label><strong>Organization ID (optional for platform totals)</strong></label><input value={organizationId} onChange={e=>setOrganizationId(e.target.value)} placeholder="FloMoGo organization UUID" style={input}/><button onClick={load}>Refresh Dashboard</button></section>{message&&<p style={{padding:14,background:"#f8fafc",borderRadius:10}}>{message}</p>}{data&&<section style={card}><h2>{data.organization?.name||"BandWagon"} Community Support</h2><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:10,marginBottom:18}}><div style={{padding:14,background:"#f8fafc",borderRadius:12}}><b>$1</b><div>≈ 4 rides</div><div>or 2 driver validations</div></div><div style={{padding:14,background:"#f8fafc",borderRadius:12}}><b>$5</b><div>≈ 20 rides</div><div>or 10 driver validations</div></div><div style={{padding:14,background:"#f8fafc",borderRadius:12}}><b>$25</b><div>≈ 100 rides</div><div>or 50 driver validations</div></div></div><table style={{width:"100%",borderCollapse:"collapse"}}><tbody><tr><td>Rides / events this month</td><td style={{textAlign:"right"}}><strong>{data.rideCount}</strong></td></tr><tr><td>Estimated ride technology cost @ {money(data.estimatedCostPerRideCents)} each</td><td style={{textAlign:"right"}}><strong>{money(data.estimatedTechnologyCostCents)}</strong></td></tr><tr><td>Individual contributions</td><td style={{textAlign:"right"}}>{money(data.individualSupportCents)}</td></tr><tr><td>Sponsor contributions</td><td style={{textAlign:"right"}}>{money(data.sponsorSupportCents)}</td></tr><tr><td>Total community support</td><td style={{textAlign:"right"}}><strong>{money(data.totalSupportCents)}</strong></td></tr><tr><td>Coverage</td><td style={{textAlign:"right"}}><strong>{data.coveragePercent}%</strong></td></tr></tbody></table><p style={{fontSize:13,color:"#64748b"}}>Planning impact: a typical ride costs about <strong>$0.25</strong> to coordinate, and a driver validation costs about <strong>$0.50</strong> in document processing, secure storage, and verification services.</p>{data.coveragePercent>=100&&<p><strong>Fully supported this month!</strong> Additional support helps keep BandWagon available free to this community and others.</p>}{data.sponsors?.length>0&&<><h3>Active Sponsors</h3><ul>{data.sponsors.map((s:any,i:number)=><li key={i}><strong>{s.sponsor_name}</strong>{s.sponsor_website?` — ${s.sponsor_website}`:""}</li>)}</ul></>}</section>}<section style={card}><h2>Test Checkout</h2><p>BandWagon is provided free to your organization. Community support helps cover rides, driver validation, messaging, maps/routing, AI processing, and storage.</p><label>Amount (cents, minimum 100)</label><input type="number" min={100} value={amount} onChange={e=>setAmount(Number(e.target.value))} style={input}/><button onClick={()=>createCheckout("individual")}>Open Individual Support Checkout</button><h3 style={{marginTop:28}}>Sponsor Test</h3><input value={sponsorName} onChange={e=>setSponsorName(e.target.value)} placeholder="Sponsor name" style={input}/><input value={sponsorWebsite} onChange={e=>setSponsorWebsite(e.target.value)} placeholder="https://example.com" style={input}/><button onClick={()=>createCheckout("sponsor")}>Open Sponsor Checkout</button></section></main>;
 }

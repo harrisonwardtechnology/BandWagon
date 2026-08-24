@@ -8,6 +8,7 @@ export function AppNav({active}:{active?:string}) {
     ["Driver","/app/driver"],
     ["Credentials","/app/driver/credentials"],
     ["Safety","/app/safety"],
+    ["Settings","/app/settings/notifications"],
   ];
   async function signOut() {
     await fetch("/api/auth/session",{method:"DELETE"}).catch(()=>{});
@@ -15,8 +16,8 @@ export function AppNav({active}:{active?:string}) {
   }
   return <header style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:18,flexWrap:"wrap",marginBottom:24}}>
     <div><div style={{fontWeight:950,fontSize:22}}>BandWagon</div><div style={{fontSize:12,color:"#64748b"}}>Community rides, without the logistics web.</div></div>
-    <nav style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-      {links.map(([label,href])=><a key={href} href={href} style={{textDecoration:"none",padding:"9px 12px",borderRadius:10,color:active===label?"white":"#334155",background:active===label?"#101b33":"#f1f5f9",fontWeight:750}}>{label}</a>)}
+    <nav aria-label="Application" style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+      {links.map(([label,href])=><a key={href} href={href} aria-current={active===label?"page":undefined} style={{textDecoration:"none",padding:"9px 12px",borderRadius:10,color:active===label?"white":"#334155",background:active===label?"#101b33":"#f1f5f9",fontWeight:750}}>{label}</a>)}
       <button onClick={signOut} style={{padding:"9px 12px",border:"1px solid #cbd5e1",borderRadius:10,background:"white",cursor:"pointer"}}>Sign out</button>
     </nav>
   </header>;

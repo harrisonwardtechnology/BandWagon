@@ -2,6 +2,7 @@ import { getDb } from "@/lib/db";
 import type { SessionIdentity } from "@/lib/auth";
 import { analyzeInsuranceDocument } from "@/lib/ai-gateway";
 import { analyzeDriverLicenseDocument } from "@/lib/google-document-ai";
+import { assertOrgAiFeatureEnabled } from "@/lib/org-ai";
 
 function dbRequired(){const db=getDb();if(!db)throw new Error("Database is not configured");return db;}
 
@@ -31,6 +32,7 @@ export async function processMyCredential(identity:SessionIdentity,input:{docume
   if(input.organizationId){
     const membership=await db.query(`select 1 from memberships where organization_id=$1 and person_id=$2 and group_id is null and status='active' limit 1`,[input.organizationId,identity.personId]);
     if(!membership.rowCount)throw new Error("You are not a member of that organization");
+    if(document.document_type==="driver_license"||document.document_type==="insurance")await assertOrgAiFeatureEnabled(input.organizationId,"document_review");
   }
   await db.query(`update person_documents set status='processing',updated_at=now() where id=$1`,[document.id]);
   await db.query(`insert into document_access_events (document_id,actor_person_id,organization_id,access_type,purpose) values ($1,$2,$3,'ai_process','credential_fact_extraction')`,[document.id,identity.personId,input.organizationId||null]);

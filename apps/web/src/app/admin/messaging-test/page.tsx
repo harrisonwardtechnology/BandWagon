@@ -14,7 +14,6 @@ type SendResult = {
 };
 
 export default function MessagingTestPage() {
-  const [token, setToken] = useState("");
   const [to, setTo] = useState("");
   const [body, setBody] = useState(
     "BandWagon platform test: Messaging is working. Reply HELP for help or STOP to opt out."
@@ -31,10 +30,7 @@ export default function MessagingTestPage() {
     try {
       const response = await fetch("/api/admin/messaging-test", {
         method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-bandwagon-admin-token": token,
-        },
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({ to, body, mode }),
       });
 
@@ -56,21 +52,11 @@ export default function MessagingTestPage() {
       </div>
 
       <div style={{background:"#fff7ed", border:"1px solid #fed7aa", borderRadius:16, padding:18, marginBottom:24}}>
-        <strong>Admin-only test tool.</strong> This page requires the server-side ADMIN_TEST_TOKEN.
+        <strong>Platform-owner test tool.</strong> This page uses your signed-in BandWagon session.
         If ADMIN_TEST_PHONE is configured, messages can only be sent to that number.
       </div>
 
       <form onSubmit={submit} style={{background:"#fff", border:"1px solid #dbe3ef", borderRadius:18, padding:24}}>
-        <label style={{display:"block", fontWeight:700, marginBottom:6}}>Admin Test Token</label>
-        <input
-          type="password"
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          required
-          autoComplete="off"
-          style={{width:"100%", padding:12, border:"1px solid #cbd5e1", borderRadius:8, marginBottom:18}}
-        />
-
         <label style={{display:"block", fontWeight:700, marginBottom:6}}>Recipient</label>
         <input
           type="tel"

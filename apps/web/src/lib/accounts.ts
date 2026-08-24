@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { getDb } from "@/lib/db";
 import { decryptSensitive, encryptSensitive, lookupHash, randomPublicRef } from "@/lib/data-security";
+import { requireNormalizedPhone } from "@/lib/phone-format";
 
 export type HouseholdRole = "manager" | "adult" | "student" | "dependent";
 
@@ -11,9 +12,7 @@ function normalizeEmail(value: string) {
 }
 
 export function normalizePhone(value: string) {
-  const phone = value.trim();
-  if (!/^\+[1-9]\d{7,14}$/.test(phone)) throw new Error("Phone must use E.164 format");
-  return phone;
+  return requireNormalizedPhone(value, "US");
 }
 
 export async function createHousehold(input: { name?: string | null }) {
@@ -120,45 +119,67 @@ export async function upsertVerifiedEmail(personId: string, emailValue: string) 
 export async function upsertVerifiedPhone(personId: string, phoneValue: string) {
   const db = getDb();
   if (!db) throw new Error("Database is not configured");
-  const phone = normalizePhone(phoneValue);
-  const hash = lookupHash(phone);
-  const ciphertext = encryptSensitive(phone);
+  const e164 = normalizePhone(phoneValue);
+  const encrypted = encryptSensitive(e164);
+  const hash = lookupHash(e164);
   const result = await db.query(
-    `insert into phones
-      (person_id,e164_ciphertext,lookup_hash,verified_at,visibility,messaging_consent_status)
+    `insert into phones (person_id,e164_ciphertext,lookup_hash,verified_at,visibility,messaging_consent_status)
      values ($1,$2,$3,now(),'hidden','opted_in')
      on conflict (lookup_hash) do update set
        person_id=excluded.person_id,
        e164_ciphertext=excluded.e164_ciphertext,
        verified_at=now(),
-       messaging_consent_status='opted_in'
-     returning id,person_id,lookup_hash,verified_at,messaging_consent_status`,
-    [personId, ciphertext, hash]
+       messaging_consent_status=case when phones.messaging_consent_status='opted_out' then 'opted_out' else 'opted_in' end
+     returning *`,
+    [personId, encrypted, hash]
   );
   return result.rows[0];
 }
 
 export async function getVerifiedPhone(personId: string) {
   const db = getDb();
-  if (!db) throw new Error("Database is not configured");
+  if (!db) return null;
   const result = await db.query(
-    `select e164_ciphertext from phones
-     where person_id=$1 and verified_at is not null and messaging_consent_status <> 'opted_out'
-     order by verified_at desc limit 1`,
+    `select e164_ciphertext from phones where person_id=$1 and verified_at is not null order by verified_at desc limit 1`,
     [personId]
   );
-  return result.rows[0]?.e164_ciphertext ? decryptSensitive(result.rows[0].e164_ciphertext) : null;
+  if (!result.rowCount) return null;
+  return decryptSensitive(result.rows[0].e164_ciphertext);
 }
 
-export async function ensureUserAccount(personId: string) {
+export async function createUserAccount(personId: string) {
   const db = getDb();
   if (!db) throw new Error("Database is not configured");
   const result = await db.query(
     `insert into user_accounts (person_id,status,created_at)
      values ($1,'active',now())
-     on conflict (person_id) do update set status='active'
+     on conflict (person_id) do update set
+       status=case when user_accounts.status='deleting' then user_accounts.status else 'active' end
      returning *`,
     [personId]
+  );
+  if (result.rows[0]?.status === "deleting") throw new Error("Account deletion is already processing");
+  return result.rows[0];
+}
+
+export async function ensureUserAccount(personId: string) {
+  return createUserAccount(personId);
+}
+
+export async function addMembership(input: {
+  organizationId: string;
+  personId: string;
+  role?: string;
+  groupId?: string | null;
+  status?: string;
+}) {
+  const db = getDb();
+  if (!db) throw new Error("Database is not configured");
+  const result = await db.query(
+    `insert into memberships (organization_id,group_id,person_id,role,status)
+     values ($1,$2,$3,$4,$5)
+     returning *`,
+    [input.organizationId, input.groupId || null, input.personId, input.role || "member", input.status || "active"]
   );
   return result.rows[0];
 }
@@ -172,7 +193,9 @@ export async function ensureOrganizationMembership(input: {
   const db = getDb();
   if (!db) throw new Error("Database is not configured");
   const existing = await db.query(
-    `select id from memberships where organization_id=$1 and person_id=$2 and group_id is null limit 1`,
+    `select id from memberships
+     where organization_id=$1 and person_id=$2 and group_id is null
+     limit 1`,
     [input.organizationId, input.personId]
   );
   if (existing.rows[0]) {
@@ -182,12 +205,7 @@ export async function ensureOrganizationMembership(input: {
     );
     return updated.rows[0];
   }
-  const result = await db.query(
-    `insert into memberships (organization_id,person_id,role,status)
-     values ($1,$2,$3,$4) returning *`,
-    [input.organizationId, input.personId, input.role || "member", input.status || "active"]
-  );
-  return result.rows[0];
+  return addMembership(input);
 }
 
 export async function createJoinCode(input: {
@@ -205,9 +223,38 @@ export async function createJoinCode(input: {
     `insert into organization_join_codes
       (organization_id,code_hash,label,default_role,max_uses,expires_at,status)
      values ($1,$2,$3,$4,$5,$6,'active')`,
-    [input.organizationId, codeHash, input.label?.trim() || null, input.defaultRole || "member", input.maxUses || null, input.expiresAt || null]
+    [
+      input.organizationId,
+      codeHash,
+      input.label?.trim() || null,
+      input.defaultRole || "member",
+      input.maxUses || null,
+      input.expiresAt || null,
+    ]
   );
   return { code };
+}
+
+export async function getPerson(personId: string) {
+  const db = getDb();
+  if (!db) return null;
+  const result = await db.query(`select * from people where id=$1 limit 1`, [personId]);
+  return result.rows[0] || null;
+}
+
+export async function getHousehold(householdId: string) {
+  const db = getDb();
+  if (!db) return null;
+  const household = (await db.query(`select * from households where id=$1 limit 1`, [householdId])).rows[0] || null;
+  if (!household) return null;
+  const members = await db.query(
+    `select hm.household_role,hm.can_manage_household,p.*
+     from household_members hm join people p on p.id=hm.person_id
+     where hm.household_id=$1 and p.status='active'
+     order by case hm.household_role when 'manager' then 0 when 'adult' then 1 else 2 end,p.display_name`,
+    [householdId]
+  );
+  return { ...household, members: members.rows };
 }
 
 export async function householdSummary(householdId: string) {
@@ -222,12 +269,52 @@ export async function householdSummary(householdId: string) {
      where hm.household_id=$1 order by hm.created_at`,
     [householdId]
   );
-  const guardians = await db.query(
-    `select gr.guardian_person_id,gr.minor_person_id,gr.relationship_label,
-            gr.can_approve_rides,gr.can_manage_profile
-     from guardian_relationships gr
-     where gr.guardian_person_id=any($1::uuid[]) or gr.minor_person_id=any($1::uuid[])`,
-    [members.rows.map((row) => row.id)]
-  );
+  const memberIds = members.rows.map((row) => row.id);
+  const guardians = memberIds.length
+    ? await db.query(
+        `select gr.guardian_person_id,gr.minor_person_id,gr.relationship_label,
+                gr.can_approve_rides,gr.can_manage_profile
+         from guardian_relationships gr
+         where gr.guardian_person_id=any($1::uuid[]) or gr.minor_person_id=any($1::uuid[])`,
+        [memberIds]
+      )
+    : { rows: [] };
   return { ...household.rows[0], members: members.rows, guardians: guardians.rows };
+}
+
+export async function recordAccountAudit(input: {
+  personId?: string | null;
+  organizationId?: string | null;
+  action: string;
+  targetType?: string | null;
+  targetId?: string | null;
+  metadata?: Record<string, unknown>;
+}) {
+  const db = getDb();
+  if (!db) return;
+  await db.query(
+    `insert into audit_events (organization_id,actor_person_id,action,target_type,target_id,metadata)
+     values ($1,$2,$3,$4,$5,$6::jsonb)`,
+    [
+      input.organizationId || null,
+      input.personId || null,
+      input.action,
+      input.targetType || null,
+      input.targetId || null,
+      JSON.stringify(input.metadata || {}),
+    ]
+  );
+}
+
+export async function issuePublicAccountReference(personId: string) {
+  const db = getDb();
+  if (!db) throw new Error("Database is not configured");
+  const ref = randomPublicRef("person");
+  await db.query(`update people set public_ref=coalesce(public_ref,$1),updated_at=now() where id=$2`, [ref, personId]);
+  const result = await db.query(`select public_ref from people where id=$1`, [personId]);
+  return result.rows[0]?.public_ref || ref;
+}
+
+export function generateOtpCode() {
+  return String(crypto.randomInt(0, 1_000_000)).padStart(6, "0");
 }

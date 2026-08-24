@@ -18,6 +18,29 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_DB: bandwagon_test
+          POSTGRES_USER: bandwagon
+          POSTGRES_PASSWORD: bandwagon-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U bandwagon -d bandwagon_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
     defaults:
       run:
         working-directory: apps/web
@@ -31,13 +54,60 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: apps/web/package.json
+          cache-dependency-path: apps/web/package-lock.json
 
       - name: Install dependencies
-        run: npm install --omit=dev=false
+        run: npm ci
+
+      - name: Apply database migrations
+        env:
+          DATABASE_URL: postgresql://bandwagon:bandwagon-test-only@localhost:5432/bandwagon_test
+          DATABASE_SSL: "false"
+        run: npm run db:migrate
+
+      - name: Verify database schema
+        env:
+          DATABASE_URL: postgresql://bandwagon:bandwagon-test-only@localhost:5432/bandwagon_test
+          DATABASE_SSL: "false"
+        run: npm run db:verify
+
+      - name: Verify migrations are repeatable
+        env:
+          DATABASE_URL: postgresql://bandwagon:bandwagon-test-only@localhost:5432/bandwagon_test
+          DATABASE_SSL: "false"
+        run: npm run db:migrate
+
+      - name: Unit tests
+        run: npm test
 
       - name: TypeScript check
         run: npm run typecheck
 
       - name: Production build
         run: npm run build
+
+      - name: Production load smoke
+        env:
+          DATABASE_URL: postgresql://bandwagon:bandwagon-test-only@localhost:5432/bandwagon_test
+          DATABASE_SSL: "false"
+          DATA_ENCRYPTION_KEY: ci-only-data-encryption-key-with-at-least-32-characters
+          AUTH_SECRET: ci-only-auth-secret-with-at-least-32-characters
+          APP_URL: http://127.0.0.1:3000
+          LOAD_BASE_URL: http://127.0.0.1:3000
+          LOAD_REQUESTS: "300"
+          LOAD_CONCURRENCY: "20"
+          LOAD_P95_LIMIT_MS: "1000"
+          LOAD_ERROR_RATE_LIMIT: "0"
+        run: |
+          cp -a public .next/standalone/public
+          mkdir -p .next/standalone/.next
+          cp -a .next/static .next/standalone/.next/static
+          node .next/standalone/server.js > "$RUNNER_TEMP/bandwagon-server.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3000/api/health/live > /dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:3000/api/health/live > /dev/null || { cat "$RUNNER_TEMP/bandwagon-server.log"; exit 1; }
+          npm run perf:smoke

@@ -1,4 +1,5 @@
-import { requireAdminTestToken } from "@/lib/admin-test";
+import { requirePlatformRole } from "@/lib/auth";
+import { requireOrganizationAdmin } from "@/lib/admin-access";
 import { supportDashboard } from "@/lib/stripe-support";
 import { getDb } from "@/lib/db";
 
@@ -6,21 +7,26 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const denied = requireAdminTestToken(request);
-  if (denied) return denied;
-
-  const url = new URL(request.url);
-  const organizationId = url.searchParams.get("organizationId");
-  return Response.json(await supportDashboard(organizationId));
+  try {
+    const url = new URL(request.url);
+    const organizationId = url.searchParams.get("organizationId");
+    if (organizationId) {
+      await requireOrganizationAdmin(organizationId, { write: false, allowPlatformRoles: ["owner", "finance"] });
+    } else {
+      await requirePlatformRole(["owner", "finance"]);
+    }
+    return Response.json(await supportDashboard(organizationId));
+  } catch (error) {
+    return Response.json({ error: error instanceof Error ? error.message : "Support reporting access is required" }, { status: 403 });
+  }
 }
 
 export async function POST(request: Request) {
-  const denied = requireAdminTestToken(request);
-  if (denied) return denied;
-
   const body = await request.json().catch(() => ({}));
   const organizationId = typeof body.organizationId === "string" ? body.organizationId : "";
   if (!organizationId) return Response.json({ error: "organizationId is required" }, { status: 400 });
+  try { await requireOrganizationAdmin(organizationId); }
+  catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Organization administrator access is required" }, { status: 403 }); }
 
   const db = getDb();
   if (!db) return Response.json({ error: "Database is not configured" }, { status: 503 });

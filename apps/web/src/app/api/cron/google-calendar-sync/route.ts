@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { syncSelectedGoogleCalendars } from "@/lib/google";
 import { normalizeImportedCalendarEvents } from "@/lib/events";
+import { runCronWithHeartbeat } from "@/lib/cron-health";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -17,9 +18,12 @@ function valid(request: Request) {
 export async function POST(request: Request) {
   if (!valid(request)) return new Response("Unauthorized", { status: 401 });
   try {
-    const sync = await syncSelectedGoogleCalendars();
-    const normalized = await normalizeImportedCalendarEvents();
-    return Response.json({ ok: true, ...sync, normalized });
+    const result=await runCronWithHeartbeat({key:'google-calendar-sync',expectedMaxAgeMinutes:180,run:async()=>{
+      const sync = await syncSelectedGoogleCalendars();
+      const normalized = await normalizeImportedCalendarEvents();
+      return { ...sync, normalized };
+    }});
+    return Response.json({ ok: true, ...result });
   } catch (error) {
     return Response.json(
       { ok: false, error: error instanceof Error ? error.message : "Calendar sync failed" },

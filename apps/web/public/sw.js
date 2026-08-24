@@ -1,5 +1,5 @@
-const CACHE = "bandwagon-shell-v2";
-const SHELL = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
+const CACHE = "bandwagon-shell-v3";
+const SHELL = ["/offline.html", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));
@@ -16,12 +16,8 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET" || event.request.url.includes("/api/")) return;
-  event.respondWith(
-    fetch(event.request).catch(() =>
-      caches.match(event.request).then((r) => r || caches.match("/"))
-    )
-  );
+  if (event.request.method !== "GET" || event.request.mode !== "navigate") return;
+  event.respondWith(fetch(event.request).catch(() => caches.match("/offline.html")));
 });
 
 self.addEventListener("push", (event) => {

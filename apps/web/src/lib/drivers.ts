@@ -50,174 +50,73 @@ export async function upsertDriverProfile(input: {
        vehicle_label=excluded.vehicle_label,vehicle_make=excluded.vehicle_make,
        vehicle_model=excluded.vehicle_model,vehicle_color=excluded.vehicle_color,
        license_plate_hint=excluded.license_plate_hint,notes=excluded.notes,updated_at=now()`,
-    [
-      input.personId,capacity,input.allowMultiPassenger !== false,detour,radius,
-      input.vehicleLabel || null,input.vehicleMake || null,input.vehicleModel || null,
-      input.vehicleColor || null,input.licensePlateHint || null,input.notes || null,
-    ]
+    [input.personId,capacity,input.allowMultiPassenger !== false,detour,radius,input.vehicleLabel || null,input.vehicleMake || null,input.vehicleModel || null,input.vehicleColor || null,input.licensePlateHint || null,input.notes || null]
   );
 
   const settings = await db.query(
     `insert into driver_organization_settings
-      (organization_id,driver_person_id,status,default_capacity,willing_by_default,
-       allow_multi_passenger,max_detour_minutes,max_pickup_radius_km,updated_at)
+      (organization_id,driver_person_id,status,default_capacity,willing_by_default,allow_multi_passenger,max_detour_minutes,max_pickup_radius_km,updated_at)
      values ($1,$2,$3,$4,$5,$6,$7,$8,now())
      on conflict (organization_id,driver_person_id) do update set
-       status=excluded.status,default_capacity=excluded.default_capacity,
-       willing_by_default=excluded.willing_by_default,
-       allow_multi_passenger=excluded.allow_multi_passenger,
-       max_detour_minutes=excluded.max_detour_minutes,
+       status=excluded.status,default_capacity=excluded.default_capacity,willing_by_default=excluded.willing_by_default,
+       allow_multi_passenger=excluded.allow_multi_passenger,max_detour_minutes=excluded.max_detour_minutes,
        max_pickup_radius_km=excluded.max_pickup_radius_km,updated_at=now()
      returning *`,
-    [
-      input.organizationId,input.personId,input.status || 'active',capacity,
-      Boolean(input.willingByDefault),input.allowMultiPassenger !== false,detour,radius,
-    ]
+    [input.organizationId,input.personId,input.status || 'active',capacity,Boolean(input.willingByDefault),input.allowMultiPassenger !== false,detour,radius]
   );
-
   const profile = await db.query(`select * from driver_profiles where person_id=$1`, [input.personId]);
   return { ...profile.rows[0], ...settings.rows[0], person_id: input.personId };
 }
 
-export async function addDriverZone(input: {
+export async function updateRouteAssistPreferences(input: {
   organizationId: string;
-  driverPersonId: string;
-  label: string;
-  latitude: number;
-  longitude: number;
-  radiusKm?: number;
+  personId: string;
+  enabled: boolean;
+  maxExtraMinutes?: number;
+  maxDeviationPercent?: number;
+  notify?: boolean;
 }) {
   const db = dbRequired();
-  await assertMembership(input.organizationId, input.driverPersonId);
-  const settings = await db.query(
-    `select 1 from driver_organization_settings
-     where organization_id=$1 and driver_person_id=$2 and status<>'blocked'`,
-    [input.organizationId,input.driverPersonId]
-  );
-  if (!settings.rowCount) throw new Error("Create a driver profile for this organization first");
-  const radius = Math.max(0.25, Math.min(250, Number(input.radiusKm ?? 8)));
+  await assertMembership(input.organizationId,input.personId);
+  const minutes = Math.max(0,Math.min(60,Number(input.maxExtraMinutes ?? 10)));
+  const percent = Math.max(0,Math.min(50,Number(input.maxDeviationPercent ?? 10)));
   const result = await db.query(
-    `insert into driver_service_zones
-      (organization_id,driver_person_id,label,generalized_latitude,generalized_longitude,radius_km)
-     values ($1,$2,$3,$4,$5,$6) returning *`,
-    [input.organizationId,input.driverPersonId,input.label.trim(),input.latitude,input.longitude,radius]
-  );
-  return result.rows[0];
-}
-
-export async function addRecurringAvailability(input: {
-  organizationId: string;
-  driverPersonId: string;
-  weekday: number;
-  startTime: string;
-  endTime: string;
-  timeZone?: string;
-  direction?: 'any' | 'to_event' | 'from_event' | 'other';
-}) {
-  const db = dbRequired();
-  await assertMembership(input.organizationId, input.driverPersonId);
-  const weekday = Math.max(0, Math.min(6, Number(input.weekday)));
-  const result = await db.query(
-    `insert into driver_recurring_availability
-      (organization_id,driver_person_id,weekday,start_time,end_time,time_zone,direction)
-     values ($1,$2,$3,$4,$5,$6,$7) returning *`,
-    [input.organizationId,input.driverPersonId,weekday,input.startTime,input.endTime,input.timeZone || 'America/Chicago',input.direction || 'any']
-  );
-  return result.rows[0];
-}
-
-export async function setAvailabilityException(input: {
-  organizationId: string;
-  driverPersonId: string;
-  date: string;
-  available: boolean;
-  startTime?: string | null;
-  endTime?: string | null;
-  note?: string | null;
-}) {
-  const db = dbRequired();
-  await assertMembership(input.organizationId, input.driverPersonId);
-  const result = await db.query(
-    `insert into driver_availability_exceptions
-      (organization_id,driver_person_id,exception_date,available,start_time,end_time,note,updated_at)
-     values ($1,$2,$3,$4,$5,$6,$7,now())
-     on conflict (organization_id,driver_person_id,exception_date) do update set
-       available=excluded.available,start_time=excluded.start_time,end_time=excluded.end_time,note=excluded.note,updated_at=now()
+    `update driver_organization_settings
+     set route_assist_enabled=$3,max_route_extra_minutes=$4,max_route_deviation_percent=$5,
+         route_assist_notify=$6,updated_at=now()
+     where organization_id=$1 and driver_person_id=$2
      returning *`,
-    [input.organizationId,input.driverPersonId,input.date,input.available,input.startTime || null,input.endTime || null,input.note || null]
+    [input.organizationId,input.personId,Boolean(input.enabled),minutes,percent,input.notify !== false]
   );
+  if (!result.rowCount) throw new Error("Create a driver profile for this organization first");
   return result.rows[0];
 }
 
-function localParts(at: Date, timeZone: string) {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone,weekday:'short',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23',
-  }).formatToParts(at);
-  const value = (type: string) => parts.find((p) => p.type === type)?.value || '';
-  const weekdayMap: Record<string,number> = { Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6 };
-  return {
-    weekday: weekdayMap[value('weekday')],
-    date: `${value('year')}-${value('month')}-${value('day')}`,
-    time: `${value('hour')}:${value('minute')}:00`,
-  };
+export async function addDriverZone(input: { organizationId:string; driverPersonId:string; label:string; latitude:number; longitude:number; radiusKm?:number }) {
+  const db=dbRequired(); await assertMembership(input.organizationId,input.driverPersonId);
+  const settings=await db.query(`select 1 from driver_organization_settings where organization_id=$1 and driver_person_id=$2 and status<>'blocked'`,[input.organizationId,input.driverPersonId]);
+  if(!settings.rowCount) throw new Error("Create a driver profile for this organization first");
+  const radius=Math.max(.25,Math.min(250,Number(input.radiusKm??8)));
+  return (await db.query(`insert into driver_service_zones (organization_id,driver_person_id,label,generalized_latitude,generalized_longitude,radius_km) values ($1,$2,$3,$4,$5,$6) returning *`,[input.organizationId,input.driverPersonId,input.label.trim(),input.latitude,input.longitude,radius])).rows[0];
 }
 
-export async function isDriverAvailable(input: {
-  organizationId: string;
-  driverPersonId: string;
-  at: Date;
-  direction: string;
-}) {
-  const db = dbRequired();
-  const settings = await db.query(
-    `select * from driver_organization_settings
-     where organization_id=$1 and driver_person_id=$2 and status='active'`,
-    [input.organizationId,input.driverPersonId]
-  );
-  if (!settings.rowCount) return false;
-  const recurring = await db.query(
-    `select * from driver_recurring_availability
-     where organization_id=$1 and driver_person_id=$2 and status='active' order by id`,
-    [input.organizationId,input.driverPersonId]
-  );
-  const timeZone = recurring.rows[0]?.time_zone || 'America/Chicago';
-  const local = localParts(input.at,timeZone);
-  const exception = await db.query(
-    `select * from driver_availability_exceptions
-     where organization_id=$1 and driver_person_id=$2 and exception_date=$3 limit 1`,
-    [input.organizationId,input.driverPersonId,local.date]
-  );
-  if (exception.rowCount) {
-    const row = exception.rows[0];
-    if (!row.available) return false;
-    if (!row.start_time || !row.end_time) return true;
-    return local.time >= String(row.start_time) && local.time <= String(row.end_time);
-  }
-  if (!recurring.rowCount) return Boolean(settings.rows[0].willing_by_default);
-  return recurring.rows.some((row) =>
-    Number(row.weekday) === local.weekday &&
-    local.time >= String(row.start_time) &&
-    local.time <= String(row.end_time) &&
-    (row.direction === 'any' || row.direction === input.direction)
-  );
+export async function addRecurringAvailability(input:{organizationId:string;driverPersonId:string;weekday:number;startTime:string;endTime:string;timeZone?:string;direction?:'any'|'to_event'|'from_event'|'other'}){
+  const db=dbRequired();await assertMembership(input.organizationId,input.driverPersonId);const weekday=Math.max(0,Math.min(6,Number(input.weekday)));
+  return (await db.query(`insert into driver_recurring_availability (organization_id,driver_person_id,weekday,start_time,end_time,time_zone,direction) values ($1,$2,$3,$4,$5,$6,$7) returning *`,[input.organizationId,input.driverPersonId,weekday,input.startTime,input.endTime,input.timeZone||'America/Chicago',input.direction||'any'])).rows[0];
 }
 
-export async function listDriverProfiles(organizationId: string) {
-  const db = dbRequired();
-  const result = await db.query(
-    `select dos.driver_person_id as person_id,dos.*,dp.vehicle_label,dp.vehicle_make,dp.vehicle_model,dp.vehicle_color,
-            dp.license_plate_hint,dp.notes,p.display_name,p.preferred_name,
-       coalesce((select json_agg(z order by z.created_at) from driver_service_zones z
-                 where z.organization_id=$1 and z.driver_person_id=dos.driver_person_id and z.status='active'),'[]'::json) as zones,
-       coalesce((select json_agg(a order by a.weekday,a.start_time) from driver_recurring_availability a
-                 where a.organization_id=$1 and a.driver_person_id=dos.driver_person_id and a.status='active'),'[]'::json) as recurring_availability
-     from driver_organization_settings dos
-     join driver_profiles dp on dp.person_id=dos.driver_person_id
-     join people p on p.id=dos.driver_person_id
-     join memberships m on m.person_id=dos.driver_person_id and m.organization_id=$1 and m.status='active'
-     where dos.organization_id=$1
-     order by coalesce(p.preferred_name,p.display_name),p.display_name`,
-    [organizationId]
-  );
-  return result.rows;
+export async function setAvailabilityException(input:{organizationId:string;driverPersonId:string;date:string;available:boolean;startTime?:string|null;endTime?:string|null;note?:string|null}){
+  const db=dbRequired();await assertMembership(input.organizationId,input.driverPersonId);
+  return (await db.query(`insert into driver_availability_exceptions (organization_id,driver_person_id,exception_date,available,start_time,end_time,note,updated_at) values ($1,$2,$3,$4,$5,$6,$7,now()) on conflict (organization_id,driver_person_id,exception_date) do update set available=excluded.available,start_time=excluded.start_time,end_time=excluded.end_time,note=excluded.note,updated_at=now() returning *`,[input.organizationId,input.driverPersonId,input.date,input.available,input.startTime||null,input.endTime||null,input.note||null])).rows[0];
 }
+
+function localParts(at:Date,timeZone:string){const parts=new Intl.DateTimeFormat('en-US',{timeZone,weekday:'short',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(at);const value=(type:string)=>parts.find(p=>p.type===type)?.value||'';const weekdayMap:Record<string,number>={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};return{weekday:weekdayMap[value('weekday')],date:`${value('year')}-${value('month')}-${value('day')}`,time:`${value('hour')}:${value('minute')}:00`};}
+
+export async function isDriverAvailable(input:{organizationId:string;driverPersonId:string;at:Date;direction:string}){
+  const db=dbRequired();const settings=await db.query(`select * from driver_organization_settings where organization_id=$1 and driver_person_id=$2 and status='active'`,[input.organizationId,input.driverPersonId]);if(!settings.rowCount)return false;
+  const recurring=await db.query(`select * from driver_recurring_availability where organization_id=$1 and driver_person_id=$2 and status='active' order by id`,[input.organizationId,input.driverPersonId]);const timeZone=recurring.rows[0]?.time_zone||'America/Chicago';const local=localParts(input.at,timeZone);
+  const exception=await db.query(`select * from driver_availability_exceptions where organization_id=$1 and driver_person_id=$2 and exception_date=$3 limit 1`,[input.organizationId,input.driverPersonId,local.date]);if(exception.rowCount){const row=exception.rows[0];if(!row.available)return false;if(!row.start_time||!row.end_time)return true;return local.time>=String(row.start_time)&&local.time<=String(row.end_time);}
+  if(!recurring.rowCount)return Boolean(settings.rows[0].willing_by_default);return recurring.rows.some(row=>Number(row.weekday)===local.weekday&&local.time>=String(row.start_time)&&local.time<=String(row.end_time)&&(row.direction==='any'||row.direction===input.direction));
+}
+
+export async function listDriverProfiles(organizationId:string){const db=dbRequired();return (await db.query(`select dos.driver_person_id as person_id,dos.*,dp.vehicle_label,dp.vehicle_make,dp.vehicle_model,dp.vehicle_color,dp.license_plate_hint,dp.notes,p.display_name,p.preferred_name,coalesce((select json_agg(z order by z.created_at) from driver_service_zones z where z.organization_id=$1 and z.driver_person_id=dos.driver_person_id and z.status='active'),'[]'::json) as zones,coalesce((select json_agg(a order by a.weekday,a.start_time) from driver_recurring_availability a where a.organization_id=$1 and a.driver_person_id=dos.driver_person_id and a.status='active'),'[]'::json) as recurring_availability from driver_organization_settings dos join driver_profiles dp on dp.person_id=dos.driver_person_id join people p on p.id=dos.driver_person_id join memberships m on m.person_id=dos.driver_person_id and m.organization_id=$1 and m.status='active' where dos.organization_id=$1 order by coalesce(p.preferred_name,p.display_name),p.display_name`,[organizationId])).rows;}

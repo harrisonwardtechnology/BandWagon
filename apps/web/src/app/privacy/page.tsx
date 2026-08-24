@@ -60,7 +60,7 @@ export default function PrivacyPage() {
         <p>BandWagon is designed to retain only information reasonably necessary to operate, secure, and support the service. Exact ride locations are intended to have shorter retention than generalized ride history. Security, consent, and audit records may be retained longer when reasonably necessary for security, fraud prevention, legal obligations, or service integrity.</p>
 
         <h2>10. Your Privacy Choices</h2>
-        <p>Users can manage contact visibility, notification methods, blocked accounts, driver availability, and other privacy settings. BandWagon is designed to provide data access/export and account deletion workflows.</p>
+        <p>Users can manage contact visibility, notification methods, blocked accounts, driver availability, and other privacy settings. Signed-in users can download their data and schedule or cancel account deletion from <Link href="/app/settings/privacy">Privacy &amp; Data</Link>.</p>
 
         <h2>11. Right to Delete / Be Forgotten</h2>
         <p>Users may request deletion of their account and personal information. BandWagon will delete or anonymize personal information that is no longer reasonably necessary, subject to limited retention required for security, consent records, legal obligations, fraud prevention, dispute handling, or database integrity.</p>

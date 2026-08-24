@@ -1,6 +1,6 @@
 # BandWagon Production Web
 
-This is the production application scaffold for BandWagon. It is intentionally separate from `/demo`.
+This is the production BandWagon application. It is intentionally separate from the fake-data-only `/demo` walkthrough at the repository root.
 
 ## First deployment
 
@@ -18,8 +18,20 @@ Start with only the Core environment values from `.env.example`. Leave `HEALTH_R
 
 Then add Postgres/PostGIS and Redis, set their URLs, run `npm run db:migrate`, verify `/api/health`, and change both health requirement flags to `true`.
 
-## Status
+## Release verification
 
-This scaffold includes the production runtime shell, PWA manifest, typed environment configuration, health endpoint, database/Redis adapters, initial multi-tenant schema, hostname resolver skeleton, and authentication placeholder.
+From this directory:
 
-It does **not** yet implement the complete BandWagon product. Build the product iteratively against the master specification.
+```bash
+npm ci
+npm run db:migrate
+npm run db:verify
+npm test
+npm run typecheck
+npm run build
+npm run release:check-env:flomogo
+```
+
+The environment check reports missing controls without printing configured values. Use `release:check-env` for a core production deployment while optional/external integrations are unavailable; only the `flomogo` profile is sufficient for the v1 launch.
+
+See the repository [v1 launch checklist](../../docs/operations/V1-LAUNCH-CHECKLIST.md) for production evidence and human safety drills that cannot be proven by a build.

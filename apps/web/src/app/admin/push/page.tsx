@@ -3,14 +3,13 @@
 import { useState } from "react";
 
 export default function PushAdmin() {
-  const [token,setToken]=useState("");
   const [status,setStatus]=useState<any>(null);
   const [title,setTitle]=useState("BandWagon");
   const [body,setBody]=useState("Push notifications are working. This can replace routine SMS messages.");
   const [message,setMessage]=useState("");
 
   async function refresh(){
-    const r=await fetch("/api/admin/push/test",{headers:{"x-bandwagon-admin-token":token}});
+    const r=await fetch("/api/admin/push/test");
     const d=await r.json().catch(()=>({}));
     if(!r.ok) return setMessage(d.error||"Unable to load push status");
     setStatus(d); setMessage("");
@@ -20,7 +19,7 @@ export default function PushAdmin() {
     setMessage("Sending push test...");
     const r=await fetch("/api/admin/push/test",{
       method:"POST",
-      headers:{"content-type":"application/json","x-bandwagon-admin-token":token},
+      headers:{"content-type":"application/json"},
       body:JSON.stringify({title,body,url:"/notifications"})
     });
     const d=await r.json().catch(()=>({}));
@@ -36,9 +35,7 @@ export default function PushAdmin() {
     </section>
 
     <section style={{marginTop:20,padding:20,border:"1px solid #dbe3ef",borderRadius:16}}>
-      <label><strong>Admin Test Token</strong></label>
-      <input type="password" value={token} onChange={e=>setToken(e.target.value)}
-        style={{display:"block",width:"100%",padding:12,margin:"8px 0 14px"}}/>
+      <p><strong>Platform administrator access required.</strong> Push diagnostics use your signed-in session.</p>
       <button onClick={refresh}>Refresh Status</button>
     </section>
 

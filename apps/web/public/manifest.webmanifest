@@ -1,12 +1,18 @@
 {
   "name": "BandWagon",
   "short_name": "BandWagon",
+  "id": "/app",
   "description": "Privacy-first community ride coordination.",
-  "start_url": "/",
+  "start_url": "/app",
   "scope": "/",
   "display": "standalone",
   "background_color": "#f4f7fb",
   "theme_color": "#101b33",
+  "categories": ["navigation", "lifestyle", "social"],
+  "shortcuts": [
+    { "name": "My rides", "short_name": "Rides", "url": "/app/rides", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "My household", "short_name": "Household", "url": "/app/household", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }] }
+  ],
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }

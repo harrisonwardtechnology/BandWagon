@@ -1,0 +1,6 @@
+import { requireSessionIdentity } from "@/lib/auth";
+import { assertIdentityOrganizationAdmin } from "@/lib/admin-access";
+import { listMicrosoftCalendars, setSelectedMicrosoftCalendars } from "@/lib/microsoft";
+export const runtime="nodejs";export const dynamic="force-dynamic";
+export async function GET(request:Request){try{const identity=await requireSessionIdentity(),organizationId=new URL(request.url).searchParams.get("organizationId")||"";await assertIdentityOrganizationAdmin(identity,organizationId,{write:false});return Response.json({ok:true,calendars:await listMicrosoftCalendars(organizationId)});}catch(error){return Response.json({error:error instanceof Error?error.message:"Unable to list Microsoft calendars"},{status:403});}}
+export async function POST(request:Request){try{const identity=await requireSessionIdentity(),body=await request.json().catch(()=>({})),organizationId=String(body.organizationId||"");await assertIdentityOrganizationAdmin(identity,organizationId);const calendarIds=Array.isArray(body.calendarIds)?body.calendarIds.filter((x:unknown):x is string=>typeof x==="string"):[];await setSelectedMicrosoftCalendars(organizationId,calendarIds);return Response.json({ok:true,selected:calendarIds.length});}catch(error){return Response.json({error:error instanceof Error?error.message:"Unable to save Microsoft calendars"},{status:400});}}
