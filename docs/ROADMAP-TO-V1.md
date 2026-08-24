@@ -1,4 +1,4 @@
-# BandWagon Roadmap To v2
+# BandWagon Roadmap Through v2
 
 This roadmap intentionally uses larger release packages: one release PR, one review/merge, one deployment, and one migration run per release.
 
@@ -154,6 +154,8 @@ BLUE COW                    BLUE COW
 
 ## 1.0 - FloMoGo Production + General Availability
 **Goal:** Ship the first production tenant and freeze the v1 contract.
+
+The executable go/no-go criteria live in [`operations/V1-LAUNCH-CHECKLIST.md`](operations/V1-LAUNCH-CHECKLIST.md). Twilio and Google approval may proceed in parallel, but both remain launch blockers for the FloMoGo profile.
 
 ### FloMoGo launch
 - production tenant/domain configuration

@@ -21,6 +21,10 @@ BandWagon connects people who voluntarily coordinate rides. It does not provide 
 - `docs/COOLIFY.md` - Coolify deployment
 - `docs/GITHUB-DEPLOY.md` - GitHub to Coolify launch checklist
 - `docs/SECURITY-DEPLOYMENT.md` - production security guidance
+- `docs/operations/V1-LAUNCH-CHECKLIST.md` - authoritative v1 go/no-go checklist
+- `docs/releases/1.0.0-rc1.md` - current v1 release-candidate scope and blockers
+
+Before a FloMoGo production release, run `npm run release:check-env:flomogo` from `apps/web`. The checker reports missing controls without printing configured secret values.
 
 ## Demo
 
