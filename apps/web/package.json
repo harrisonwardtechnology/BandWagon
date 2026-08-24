@@ -12,6 +12,7 @@
     "db:verify": "node scripts/verify-schema.mjs",
     "release:check-env": "node scripts/check-production-readiness.mjs",
     "release:check-env:flomogo": "node scripts/check-production-readiness.mjs --profile=flomogo",
+    "release:smoke": "node scripts/production-smoke.mjs",
     "security:rotate-data-key": "node scripts/rotate-data-key.mjs",
     "ops:verify-backup-restore": "bash scripts/verify-backup-restore.sh",
     "perf:smoke": "node scripts/load-smoke.mjs",

@@ -84,6 +84,8 @@ jobs:
         run: npm run typecheck
 
       - name: Production build
+        env:
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY: ci-only-vapid-public-key
         run: npm run build
 
       - name: Production load smoke
@@ -98,6 +100,13 @@ jobs:
           LOAD_CONCURRENCY: "20"
           LOAD_P95_LIMIT_MS: "1000"
           LOAD_ERROR_RATE_LIMIT: "0"
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY: ci-only-vapid-public-key
+          VAPID_PRIVATE_KEY: ci-only-vapid-private-key
+          VAPID_SUBJECT: mailto:ci@example.invalid
+          RIDE_REMINDER_CRON_SECRET: ci-only-ride-reminder-secret-at-least-32-characters
+          PLATFORM_BUDGET_CRON_SECRET: ci-only-platform-budget-secret-at-least-32-characters
+          SAFETY_CRON_SECRET: ci-only-safety-secret-at-least-32-characters
+          PRIVACY_MAINTENANCE_CRON_SECRET: ci-only-privacy-secret-at-least-32-characters
         run: |
           cp -a public .next/standalone/public
           mkdir -p .next/standalone/.next
@@ -110,4 +119,5 @@ jobs:
             sleep 1
           done
           curl --fail --silent http://127.0.0.1:3000/api/health/live > /dev/null || { cat "$RUNNER_TEMP/bandwagon-server.log"; exit 1; }
+          npm run release:smoke
           npm run perf:smoke

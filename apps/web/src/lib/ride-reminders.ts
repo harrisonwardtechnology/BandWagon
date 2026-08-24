@@ -23,7 +23,8 @@ async function dueRides(kind:ReminderKind){
       and (($1='24h' and o.reminder_24h_enabled=true) or ($1='1h' and o.reminder_1h_enabled=true))
       and coalesce(r.scheduled_pickup_at,rr.requested_pickup_at,e.starts_at) is not null
       and extract(epoch from (coalesce(r.scheduled_pickup_at,rr.requested_pickup_at,e.starts_at)-now()))/60
-          between $2-$3 and $2+$3`,[kind,w.targetMinutes,w.toleranceMinutes]);
+          between ($2::double precision-$3::double precision)
+              and ($2::double precision+$3::double precision)`,[kind,w.targetMinutes,w.toleranceMinutes]);
   return result.rows;
 }
 
