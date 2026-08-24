@@ -163,7 +163,7 @@ export async function buildMyDataExport(identity: SessionIdentity) {
   );
 
   try {
-    const [profile, emails, phones, household, guardians, memberships, rideRequests, rideOffers, rides, locations, documents, preferences, deliveries, safety, consents, activity, authEvents, privacyRequests] = await Promise.all([
+    const [profile, emails, phones, household, guardians, memberships, rideRequests, rideOffers, rides, locations, documents, preferences, deliveries, safety, consents, organizationPolicyAcknowledgements, activity, authEvents, privacyRequests] = await Promise.all([
       db.query(
         `select p.id,p.display_name,p.preferred_name,p.person_type,p.profile_bio,p.birth_month,p.birth_year,
                 p.age_band,p.student_approval_required,p.rider_preferences,p.created_at,p.updated_at,
@@ -247,6 +247,14 @@ export async function buildMyDataExport(identity: SessionIdentity) {
            from guardian_consents where guardian_person_id=$1 or minor_person_id=$1 order by created_at`,
         [identity.personId]
       ),
+      db.query(
+        `select coalesce(o.display_name,o.name) as organization,opa.terms_version,opa.privacy_version,
+                opa.acknowledgement_method,opa.acknowledged_at
+           from organization_policy_acknowledgements opa
+           join organizations o on o.id=opa.organization_id
+          where opa.acknowledged_by_person_id=$1 order by opa.acknowledged_at`,
+        [identity.personId]
+      ),
       db.query(`select activity_type,metadata,occurred_at from user_activity_events where person_id=$1 order by occurred_at`, [identity.personId]),
       db.query(`select event_type,outcome,metadata,occurred_at from auth_events where person_id=$1 order by occurred_at`, [identity.personId]),
       db.query(
@@ -284,6 +292,7 @@ export async function buildMyDataExport(identity: SessionIdentity) {
       notificationDeliveries: deliveries.rows,
       safetyAlerts: safety.rows,
       guardianConsents: consents.rows,
+      organizationPolicyAcknowledgements: organizationPolicyAcknowledgements.rows,
       activityEvents: activity.rows,
       authenticationEvents: authEvents.rows,
       privacyRequests: privacyRequests.rows,

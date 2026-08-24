@@ -123,7 +123,7 @@ BLUE COW                    BLUE COW
 - [x] document deletion / retention lifecycle
 - [x] guardian consent management polish
 - [ ] student account / household management polish
-- [ ] organization privacy / terms acknowledgement
+- [x] organization privacy / terms acknowledgement
 - [x] exact-location retention cleanup
 
 ### Security / reliability

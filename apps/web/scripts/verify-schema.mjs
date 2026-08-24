@@ -34,6 +34,7 @@ const requiredTables = [
   "platform_health_heartbeats",
   "privacy_requests",
   "privacy_request_events",
+  "organization_policy_acknowledgements",
 ];
 
 await client.connect();
@@ -127,6 +128,13 @@ try {
         and indexname in ('auth_otp_request_ip_time_idx','auth_sessions_active_seen_idx')`
   );
   assert.equal(authIndexes.rowCount, 2, "Required authentication hardening indexes are missing");
+
+  const organizationPolicyIndex = await client.query(
+    `select 1 from pg_indexes
+      where schemaname='public'
+        and indexname='organization_policy_acknowledgements_org_time_idx'`
+  );
+  assert.equal(organizationPolicyIndex.rowCount, 1, "Organization policy acknowledgement index is missing");
 
   console.log(
     `Verified ${expectedMigrations.length} migrations, PostGIS, ${requiredTables.length} required tables, privacy retention controls, and tenant-boundary indexes.`
