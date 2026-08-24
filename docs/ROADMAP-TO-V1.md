@@ -114,8 +114,8 @@ BLUE COW                    BLUE COW
 
 ### Calendar expansion
 - [x] Microsoft Calendar integration
-- Google / Microsoft sync controls per organization
-- duplicate / conflict handling
+- [x] Google / Microsoft sync controls per organization
+- [x] duplicate / conflict handling
 
 ### Privacy / family controls
 - [x] user data export

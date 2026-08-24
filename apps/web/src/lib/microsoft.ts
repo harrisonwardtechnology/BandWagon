@@ -160,6 +160,7 @@ export async function setSelectedMicrosoftCalendars(organizationId: string,calen
 export async function syncSelectedMicrosoftCalendars(organizationId: string) {
   const db=getDb();if(!db)throw new Error("Database is not configured");
   const connection=await getActiveMicrosoftConnection(organizationId);if(!connection)throw new Error("No active Microsoft Calendar connection");
+  const controls=await db.query(`select microsoft_sync_enabled from organization_calendar_settings where organization_id=$1`,[organizationId]);if(controls.rows[0]?.microsoft_sync_enabled===false)return{organizations:1,calendars:0,events:0,disabled:true};
   const selected=await db.query(`select * from microsoft_calendars where connection_id=$1 and selected=true order by summary`,[connection.id]);
   const start=new Date(Date.now()-Number(process.env.CALENDAR_LOOKBACK_DAYS||30)*86400000).toISOString();
   const end=new Date(Date.now()+Number(process.env.CALENDAR_LOOKAHEAD_DAYS||180)*86400000).toISOString();

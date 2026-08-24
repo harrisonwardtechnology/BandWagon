@@ -1,10 +1,13 @@
 import { requirePlatformRole } from "@/lib/auth";
+import { requireSessionIdentity } from "@/lib/auth";
 import { listOrganizationsForAdministrator, requireOrganizationAdmin } from "@/lib/admin-access";
 import {
   assignActiveGoogleConnectionToOrganization,
   createManualEvent,
+  getOrganizationCalendarControls,
   listOrganizationEvents,
   normalizeImportedCalendarEvents,
+  updateOrganizationCalendarControls,
 } from "@/lib/events";
 
 export const runtime = "nodejs";
@@ -17,7 +20,8 @@ export async function GET(request: Request) {
     const organizations = await listOrganizationsForAdministrator();
     if (organizationId) await requireOrganizationAdmin(organizationId, { write: false });
     const events = organizationId ? await listOrganizationEvents(organizationId) : [];
-    return Response.json({ organizations, events });
+    const calendarControls=organizationId?await getOrganizationCalendarControls(organizationId):null;
+    return Response.json({ organizations, events, calendarControls });
   } catch (error) {
     return Response.json({ error: error instanceof Error ? error.message : "Event administrator access is required" }, { status: 403 });
   }
@@ -36,6 +40,12 @@ export async function POST(request: Request) {
     if (body.action === "normalize") {
       await requirePlatformRole(["owner"]);
       return Response.json({ ok: true, ...(await normalizeImportedCalendarEvents()) });
+    }
+
+    if(body.action==="update-calendar-controls"){
+      if(!body.organizationId)return Response.json({error:"organizationId is required"},{status:400});
+      const identity=await requireSessionIdentity();await requireOrganizationAdmin(String(body.organizationId));
+      return Response.json({ok:true,calendarControls:await updateOrganizationCalendarControls({organizationId:String(body.organizationId),googleSyncEnabled:body.googleSyncEnabled!==false,microsoftSyncEnabled:body.microsoftSyncEnabled!==false,conflictMode:body.conflictMode,actorPersonId:identity.personId})});
     }
 
     if (body.action === "create-manual") {
