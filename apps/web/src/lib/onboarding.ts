@@ -1,6 +1,7 @@
 import { getDb } from "@/lib/db";
 import { lookupHash } from "@/lib/data-security";
 import { upsertDriverProfile } from "@/lib/drivers";
+import { normalizeManagedStudentEmail } from "@/lib/student-account-policy";
 
 function dbRequired() {
   const db = getDb();
@@ -37,6 +38,8 @@ export async function getOnboardingContext(personId: string, organizationScopeId
   const members = householdId ? await db.query(
     `select p.id,p.display_name,p.preferred_name,p.person_type,p.birth_year,p.student_approval_required,
             hm.household_role,hm.can_manage_household,
+            msa.enabled as student_account_enabled,e.normalized_email as student_login_email,
+            e.verified_at is not null as student_login_verified,ua.id is not null as student_account_claimed,
             coalesce(gr.require_verified_pickup,false) as require_verified_pickup,
             case when p.person_type<>'minor' then 'not_applicable'
                  when exists(select 1 from guardian_consents gc
@@ -45,6 +48,9 @@ export async function getOnboardingContext(personId: string, organizationScopeId
                  else 'not_granted' end as guardian_consent_status
      from household_members hm join people p on p.id=hm.person_id
      left join guardian_relationships gr on gr.guardian_person_id=$2 and gr.minor_person_id=p.id
+     left join managed_student_account_access msa on msa.person_id=p.id
+     left join emails e on e.id=msa.login_email_id
+     left join user_accounts ua on ua.person_id=p.id
      where hm.household_id=$1 and p.status='active' order by hm.created_at`,
     [householdId,personId]
   ) : { rows: [] };
@@ -75,6 +81,84 @@ export async function getOnboardingContext(personId: string, organizationScopeId
     organizations: organizations.rows,
     driverProfiles: driverProfiles.rows,
   };
+}
+
+export async function setManagedStudentAccountAccess(input: {
+  managerPersonId: string;
+  studentPersonId: string;
+  email: string;
+  enabled: boolean;
+}) {
+  const db=dbRequired();
+  const email=normalizeManagedStudentEmail(input.email);
+  const client=await db.connect();
+  try {
+    await client.query("begin");
+    const authorized=await client.query(
+      `select p.id
+         from people p
+        where p.id=$1 and p.person_type='minor' and p.status='active'
+          and (
+            exists(select 1 from guardian_relationships gr
+                    where gr.guardian_person_id=$2 and gr.minor_person_id=p.id and gr.can_manage_profile=true)
+            or exists(select 1 from household_members student
+                       join household_members manager on manager.household_id=student.household_id
+                      where student.person_id=p.id and manager.person_id=$2 and manager.can_manage_household=true)
+          )
+        for update`,
+      [input.studentPersonId,input.managerPersonId]
+    );
+    if(!authorized.rowCount) throw new Error("You cannot manage this student profile");
+    if(input.enabled){
+      const consent=await client.query(
+        `select 1 from guardian_consents
+          where minor_person_id=$1 and consent_type='platform_minor_use' and status='active' limit 1`,
+        [input.studentPersonId]
+      );
+      if(!consent.rowCount) throw new Error("Guardian consent is required before enabling student sign-in");
+    }
+    const conflicting=await client.query(`select id,person_id from emails where normalized_email=$1 for update`,[email]);
+    if(conflicting.rowCount&&conflicting.rows[0].person_id!==input.studentPersonId) throw new Error("That email address is already connected to another account");
+    let emailId:string;
+    if(conflicting.rowCount){emailId=conflicting.rows[0].person_id===input.studentPersonId
+      ? conflicting.rows[0].id
+      : "";
+    }else{
+      emailId=(await client.query(
+        `insert into emails(person_id,normalized_email,visibility) values($1,$2,'hidden') returning id`,
+        [input.studentPersonId,email]
+      )).rows[0].id;
+    }
+    const previous=await client.query(`select login_email_id,enabled from managed_student_account_access where person_id=$1 for update`,[input.studentPersonId]);
+    await client.query(
+      `insert into managed_student_account_access
+        (person_id,login_email_id,enabled,authorized_by_guardian_person_id,authorized_at,disabled_at,updated_at)
+       values($1,$2,$3,$4,now(),case when $3 then null else now() end,now())
+       on conflict(person_id) do update set
+         login_email_id=excluded.login_email_id,enabled=excluded.enabled,
+         authorized_by_guardian_person_id=excluded.authorized_by_guardian_person_id,
+         authorized_at=case when excluded.enabled then now() else managed_student_account_access.authorized_at end,
+         disabled_at=case when excluded.enabled then null else now() end,updated_at=now()`,
+      [input.studentPersonId,emailId,input.enabled,input.managerPersonId]
+    );
+    if(!input.enabled){
+      await client.query(
+        `update auth_sessions set revoked_at=now()
+          where user_account_id in(select id from user_accounts where person_id=$1) and revoked_at is null`,
+        [input.studentPersonId]
+      );
+    }
+    await client.query(
+      `insert into audit_events(actor_person_id,action,target_type,target_id,metadata)
+       values($1,$2,'person',$3,$4::jsonb)`,
+      [input.managerPersonId,input.enabled?'guardian.student_account_enabled':'guardian.student_account_disabled',input.studentPersonId,JSON.stringify({ emailChanged:previous.rows[0]?.login_email_id!==emailId,previouslyEnabled:previous.rows[0]?.enabled??null })]
+    );
+    await client.query("commit");
+    return {studentPersonId:input.studentPersonId,enabled:input.enabled};
+  } catch(error) {
+    await client.query("rollback").catch(()=>undefined);
+    throw error;
+  } finally { client.release(); }
 }
 
 export async function addStudentToHousehold(input: {
@@ -193,6 +277,17 @@ export async function updateManagedStudentSettings(input: {
             and consent_type='platform_minor_use' and status='active'`,
         [input.studentPersonId,input.managerPersonId]
       );
+      const remainingConsent=await client.query(
+        `select 1 from guardian_consents where minor_person_id=$1 and consent_type='platform_minor_use' and status='active' limit 1`,
+        [input.studentPersonId]
+      );
+      if(!remainingConsent.rowCount){
+        await client.query(
+          `update auth_sessions set revoked_at=now()
+            where user_account_id in(select id from user_accounts where person_id=$1) and revoked_at is null`,
+          [input.studentPersonId]
+        );
+      }
     }
     await client.query(
       `insert into audit_events(actor_person_id,action,target_type,target_id,metadata)

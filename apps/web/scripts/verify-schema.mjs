@@ -39,6 +39,7 @@ const requiredTables = [
   "microsoft_calendars",
   "organization_calendar_settings",
   "calendar_event_conflicts",
+  "managed_student_account_access",
 ];
 
 await client.connect();

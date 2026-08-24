@@ -40,6 +40,16 @@ async function loadIdentityForUserAccount(userAccountId:string, sessionId:string
      join people p on p.id=ua.person_id and p.status='active'
      left join memberships m on m.person_id=p.id
      where ua.id=$1 and ua.status='active'
+       and (
+         p.person_type<>'minor'
+         or not exists(select 1 from managed_student_account_access msa where msa.person_id=p.id)
+         or exists(
+           select 1 from managed_student_account_access msa
+            where msa.person_id=p.id and msa.enabled=true
+              and exists(select 1 from guardian_consents gc
+                          where gc.minor_person_id=p.id and gc.consent_type='platform_minor_use' and gc.status='active')
+         )
+       )
      group by ua.id,ua.person_id,p.display_name,p.person_type,p.household_id limit 1`,
     [userAccountId]
   );

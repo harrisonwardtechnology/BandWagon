@@ -122,7 +122,7 @@ BLUE COW                    BLUE COW
 - [x] right-to-be-forgotten workflow
 - [x] document deletion / retention lifecycle
 - [x] guardian consent management polish
-- [ ] student account / household management polish
+- [x] student account / household management polish
 - [x] organization privacy / terms acknowledgement
 - [x] exact-location retention cleanup
 

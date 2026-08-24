@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireSessionIdentity } from "@/lib/auth";
 import { resolveTenant } from "@/lib/tenant";
-import { addStudentToHousehold, configureSelfAsDriver, copyOrganizationMembershipToStudent, getOnboardingContext, joinOrganizationWithCode, updateManagedStudentSettings } from "@/lib/onboarding";
+import { addStudentToHousehold, configureSelfAsDriver, copyOrganizationMembershipToStudent, getOnboardingContext, joinOrganizationWithCode, setManagedStudentAccountAccess, updateManagedStudentSettings } from "@/lib/onboarding";
 import { updateRouteAssistPreferences } from "@/lib/drivers";
 
 export const runtime = "nodejs";
@@ -20,6 +20,7 @@ export async function POST(request:Request){
       case "join_organization": result=await joinOrganizationWithCode({personId:identity.personId,code:String(body.code||""),organizationScopeId:scope});break;
       case "add_student_to_organization": result=await copyOrganizationMembershipToStudent({managerPersonId:identity.personId,studentPersonId:String(body.studentPersonId),organizationId:String(body.organizationId),organizationScopeId:scope});break;
       case "update_student_settings": result=await updateManagedStudentSettings({managerPersonId:identity.personId,studentPersonId:String(body.studentPersonId),studentApprovalRequired:body.studentApprovalRequired!==false,requireVerifiedPickup:Boolean(body.requireVerifiedPickup),guardianConsentGranted:body.guardianConsentGranted!==false});break;
+      case "set_student_account_access": result=await setManagedStudentAccountAccess({managerPersonId:identity.personId,studentPersonId:String(body.studentPersonId),email:String(body.email||""),enabled:body.enabled!==false});break;
       case "configure_driver": result=await configureSelfAsDriver({personId:identity.personId,organizationId:String(body.organizationId),organizationScopeId:scope,enabled:body.enabled!==false,capacity:Number(body.capacity||4),vehicleLabel:body.vehicleLabel||null,vehicleColor:body.vehicleColor||null,willingByDefault:body.willingByDefault!==false});break;
       case "configure_route_assist":
         if(scope&&scope!==String(body.organizationId)) throw new Error("This organization is not available on the current BandWagon tenant");
