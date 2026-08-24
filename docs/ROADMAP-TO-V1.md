@@ -113,7 +113,7 @@ BLUE COW                    BLUE COW
 - configurable join codes and policies
 
 ### Calendar expansion
-- Microsoft Calendar integration
+- [x] Microsoft Calendar integration
 - Google / Microsoft sync controls per organization
 - duplicate / conflict handling
 

@@ -19,12 +19,15 @@ export async function normalizeImportedCalendarEvents() {
   if (!db) throw new Error("Database is not configured");
 
   const imported = await db.query(`
-    select ce.*, gc.organization_id
+    select ce.*, coalesce(gc.organization_id,mc.organization_id) as organization_id
     from calendar_events ce
     left join google_calendars gcal
       on ce.provider='google' and gcal.external_calendar_id=ce.provider_calendar_id
     left join google_connections gc on gc.id=gcal.connection_id
-    where ce.provider='google' and gc.organization_id is not null
+    left join microsoft_calendars mcal
+      on ce.provider='microsoft' and mcal.external_calendar_id=ce.provider_calendar_id
+    left join microsoft_connections mc on mc.id=mcal.connection_id
+    where ce.provider in ('google','microsoft') and coalesce(gc.organization_id,mc.organization_id) is not null
     order by ce.starts_at nulls last
   `);
 
@@ -42,7 +45,7 @@ export async function normalizeImportedCalendarEvents() {
         (organization_id,title,description,location_name,starts_at,ends_at,all_day,status,
          visibility,ride_coordination_enabled,source_type,source_calendar_id,source_event_id,
          source_url,source_updated_at,updated_at)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,'organization',true,'google',$9,$10,$11,$12,now())
+       values ($1,$2,$3,$4,$5,$6,$7,$8,'organization',true,$9,$10,$11,$12,$13,now())
        on conflict (organization_id,source_type,source_calendar_id,source_event_id)
        do update set
          title=excluded.title,
@@ -65,6 +68,7 @@ export async function normalizeImportedCalendarEvents() {
         row.ends_at,
         Boolean(row.all_day),
         status,
+        row.provider,
         row.provider_calendar_id,
         row.provider_event_id,
         row.html_link || null,

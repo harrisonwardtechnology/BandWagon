@@ -35,6 +35,8 @@ const requiredTables = [
   "privacy_requests",
   "privacy_request_events",
   "organization_policy_acknowledgements",
+  "microsoft_connections",
+  "microsoft_calendars",
 ];
 
 await client.connect();
