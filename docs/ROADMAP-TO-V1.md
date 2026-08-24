@@ -136,9 +136,9 @@ BLUE COW                    BLUE COW
 - [x] secret / key rotation procedure and data re-encryption tooling
 - [ ] production backup / isolated restore verification (tooling ready)
 - [x] centralized error / health monitoring
-- accessibility and keyboard review
-- mobile/PWA install and offline-state polish
-- performance / load testing
+- [x] shared-shell accessibility and keyboard safeguards (production assistive-technology matrix remains)
+- [x] mobile/PWA install and privacy-safe offline-state polish
+- [x] repeatable performance / load smoke gate (staging authenticated load test remains)
 
 ### AI governance
 - LiteLLM production virtual keys / budgets

@@ -22,3 +22,5 @@ BandWagon is a Progressive Web App (PWA). Installation is optional; the full ser
 ## Privacy note
 
 Installing the PWA does not enable live tracking. Sensitive ride data should not be broadly cached for offline use.
+
+BandWagon caches only its public offline explanation, manifest, and icons. Household, account, location, event, and ride responses are never cached for offline viewing. When disconnected, reconnect before relying on ride status or safety information.

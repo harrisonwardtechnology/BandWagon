@@ -12,6 +12,7 @@
     "db:verify": "node scripts/verify-schema.mjs",
     "security:rotate-data-key": "node scripts/rotate-data-key.mjs",
     "ops:verify-backup-restore": "bash scripts/verify-backup-restore.sh",
+    "perf:smoke": "node scripts/load-smoke.mjs",
     "push:generate-vapid": "web-push generate-vapid-keys"
   },
   "dependencies": {
