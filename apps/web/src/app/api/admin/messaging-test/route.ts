@@ -1,13 +1,7 @@
-import crypto from "node:crypto";
+import { requirePlatformRole } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function secureEqual(a: string, b: string) {
-  const aa = Buffer.from(a || "");
-  const bb = Buffer.from(b || "");
-  return aa.length === bb.length && crypto.timingSafeEqual(aa, bb);
-}
 
 function normalizePhone(value: unknown) {
   const phone = String(value || "").trim();
@@ -15,18 +9,8 @@ function normalizePhone(value: unknown) {
 }
 
 export async function POST(request: Request) {
-  const configuredToken = process.env.ADMIN_TEST_TOKEN;
-  if (!configuredToken) {
-    return Response.json(
-      { error: "ADMIN_TEST_TOKEN is not configured on the server." },
-      { status: 503 }
-    );
-  }
-
-  const suppliedToken = request.headers.get("x-bandwagon-admin-token") || "";
-  if (!secureEqual(suppliedToken, configuredToken)) {
-    return Response.json({ error: "Invalid admin test token." }, { status: 401 });
-  }
+  try { await requirePlatformRole(["owner"]); }
+  catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Platform owner access is required" }, { status: 403 }); }
 
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN;

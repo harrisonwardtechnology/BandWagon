@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type Row = Record<string, any>;
 
 export default function AdminRidesPage() {
-  const [token,setToken] = useState("");
   const [organizations,setOrganizations] = useState<Row[]>([]);
   const [organizationId,setOrganizationId] = useState("");
   const [people,setPeople] = useState<Row[]>([]);
@@ -23,12 +22,12 @@ export default function AdminRidesPage() {
   const [selectedRide,setSelectedRide] = useState("");
   const [toStatus,setToStatus] = useState("driver_en_route");
 
-  const headers = useMemo(() => ({ "content-type":"application/json", "x-bandwagon-admin-token":token }), [token]);
+  const headers = { "content-type":"application/json" };
 
   async function load(org = organizationId) {
     setMessage("");
     const qs = org ? `?organizationId=${encodeURIComponent(org)}` : "";
-    const r = await fetch(`/api/admin/rides${qs}`, { headers:{ "x-bandwagon-admin-token":token } });
+    const r = await fetch(`/api/admin/rides${qs}`);
     const d = await r.json().catch(() => ({}));
     if (!r.ok) return setMessage(d.error || "Unable to load ride data");
     setOrganizations(d.organizations || []);
@@ -61,8 +60,7 @@ export default function AdminRidesPage() {
     </section>
 
     <section style={card}>
-      <label><b>Admin Test Token</b></label>
-      <input type="password" value={token} onChange={e=>setToken(e.target.value)} style={input}/>
+      <p><b>Platform owner access required.</b> This development console uses your signed-in session.</p>
       <button style={button} onClick={()=>load("")}>Load Organizations</button>
       <label style={{display:"block",marginTop:14}}>Organization</label>
       <select value={organizationId} onChange={e=>setOrganizationId(e.target.value)} style={input}>

@@ -1,5 +1,6 @@
 import { getDb } from "@/lib/db";
 import type { SessionIdentity } from "@/lib/auth";
+import { assertIdentityOrganizationAdmin } from "@/lib/admin-access";
 
 export type OrgAiFeature = "document_review"|"event_intake"|"match_explanations"|"admin_copilot"|"safety_summaries";
 
@@ -15,12 +16,6 @@ export const ORG_AI_FEATURES:Record<OrgAiFeature,{title:string;gets:string;witho
 
 function dbRequired(){const db=getDb();if(!db)throw new Error("Database is not configured");return db;}
 
-async function assertAdmin(identity:SessionIdentity,organizationId:string){
-  const db=dbRequired();
-  const r=await db.query(`select 1 from memberships where organization_id=$1 and person_id=$2 and group_id is null and status='active' and role in ('owner','admin','manager') limit 1`,[organizationId,identity.personId]);
-  if(!r.rowCount)throw new Error("Organization administrator access is required");
-}
-
 export async function getOrganizationAiSettings(organizationId:string){
   const db=dbRequired();
   await db.query(`insert into organization_ai_settings (organization_id) values ($1) on conflict do nothing`,[organizationId]);
@@ -30,12 +25,12 @@ export async function getOrganizationAiSettings(organizationId:string){
 }
 
 export async function getOrganizationAiSettingsForAdmin(identity:SessionIdentity,organizationId:string){
-  await assertAdmin(identity,organizationId);
+  await assertIdentityOrganizationAdmin(identity,organizationId,{write:false});
   return getOrganizationAiSettings(organizationId);
 }
 
 export async function updateOrganizationAiSettings(identity:SessionIdentity,input:{organizationId:string;aiEnabled:boolean;documentReviewEnabled?:boolean;eventIntakeEnabled?:boolean;matchExplanationsEnabled?:boolean;adminCopilotEnabled?:boolean;safetySummariesEnabled?:boolean;monthlyBudgetCents?:number|null}){
-  await assertAdmin(identity,input.organizationId);const db=dbRequired();
+  await assertIdentityOrganizationAdmin(identity,input.organizationId);const db=dbRequired();
   const before=await getOrganizationAiSettings(input.organizationId);
   const master=Boolean(input.aiEnabled);
   const result=await db.query(`update organization_ai_settings set

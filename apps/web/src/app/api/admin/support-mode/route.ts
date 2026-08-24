@@ -33,7 +33,7 @@ export async function POST(request:Request){
     if(body.action!=='start')return NextResponse.json({error:'Unknown action'},{status:400});
     const result=await createSupportSession({operatorUserAccountId:operator.userAccountId,targetUserAccountId:String(body.targetUserAccountId||''),targetOrganizationId:body.targetOrganizationId?String(body.targetOrganizationId):null,reason:String(body.reason||''),mode:body.mode==='assist'?'assist':'view',minutes:Number(body.minutes||30)});
     const response=NextResponse.json({ok:true,session:{id:result.session.id,mode:result.session.mode,reason:result.session.reason,expiresAt:result.session.expires_at,targetDisplayName:result.targetDisplayName,targetOrganizationId:result.session.target_organization_id}});
-    response.cookies.set(SUPPORT_COOKIE,result.token,{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'strict',path:'/',maxAge:60*Math.max(5,Math.min(60,Number(body.minutes||30)))});
+    response.cookies.set(SUPPORT_COOKIE,result.token,{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'strict',priority:'high',path:'/',maxAge:60*Math.max(5,Math.min(60,Number(body.minutes||30)))});
     return response;
   }catch(error){return NextResponse.json({error:error instanceof Error?error.message:'Unable to start Support View'},{status:400});}
 }

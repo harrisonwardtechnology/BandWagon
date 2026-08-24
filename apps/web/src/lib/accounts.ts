@@ -153,11 +153,17 @@ export async function createUserAccount(personId: string) {
   const result = await db.query(
     `insert into user_accounts (person_id,status,created_at)
      values ($1,'active',now())
-     on conflict (person_id) do update set status='active'
+     on conflict (person_id) do update set
+       status=case when user_accounts.status='deleting' then user_accounts.status else 'active' end
      returning *`,
     [personId]
   );
+  if (result.rows[0]?.status === "deleting") throw new Error("Account deletion is already processing");
   return result.rows[0];
+}
+
+export async function ensureUserAccount(personId: string) {
+  return createUserAccount(personId);
 }
 
 export async function addMembership(input: {
@@ -176,6 +182,57 @@ export async function addMembership(input: {
     [input.organizationId, input.groupId || null, input.personId, input.role || "member", input.status || "active"]
   );
   return result.rows[0];
+}
+
+export async function ensureOrganizationMembership(input: {
+  organizationId: string;
+  personId: string;
+  role?: string;
+  status?: string;
+}) {
+  const db = getDb();
+  if (!db) throw new Error("Database is not configured");
+  const existing = await db.query(
+    `select id from memberships
+     where organization_id=$1 and person_id=$2 and group_id is null
+     limit 1`,
+    [input.organizationId, input.personId]
+  );
+  if (existing.rows[0]) {
+    const updated = await db.query(
+      `update memberships set role=$1,status=$2 where id=$3 returning *`,
+      [input.role || "member", input.status || "active", existing.rows[0].id]
+    );
+    return updated.rows[0];
+  }
+  return addMembership(input);
+}
+
+export async function createJoinCode(input: {
+  organizationId: string;
+  label?: string | null;
+  defaultRole?: string;
+  maxUses?: number | null;
+  expiresAt?: Date | null;
+}) {
+  const db = getDb();
+  if (!db) throw new Error("Database is not configured");
+  const code = crypto.randomBytes(5).toString("base64url").replace(/[-_]/g, "").toUpperCase().slice(0, 8);
+  const codeHash = lookupHash(code);
+  await db.query(
+    `insert into organization_join_codes
+      (organization_id,code_hash,label,default_role,max_uses,expires_at,status)
+     values ($1,$2,$3,$4,$5,$6,'active')`,
+    [
+      input.organizationId,
+      codeHash,
+      input.label?.trim() || null,
+      input.defaultRole || "member",
+      input.maxUses || null,
+      input.expiresAt || null,
+    ]
+  );
+  return { code };
 }
 
 export async function getPerson(personId: string) {
@@ -198,6 +255,31 @@ export async function getHousehold(householdId: string) {
     [householdId]
   );
   return { ...household, members: members.rows };
+}
+
+export async function householdSummary(householdId: string) {
+  const db = getDb();
+  if (!db) throw new Error("Database is not configured");
+  const household = await db.query(`select * from households where id=$1`, [householdId]);
+  if (!household.rows[0]) return null;
+  const members = await db.query(
+    `select p.id,p.display_name,p.preferred_name,p.person_type,p.birth_year,p.student_approval_required,
+            hm.household_role,hm.can_manage_household
+     from household_members hm join people p on p.id=hm.person_id
+     where hm.household_id=$1 order by hm.created_at`,
+    [householdId]
+  );
+  const memberIds = members.rows.map((row) => row.id);
+  const guardians = memberIds.length
+    ? await db.query(
+        `select gr.guardian_person_id,gr.minor_person_id,gr.relationship_label,
+                gr.can_approve_rides,gr.can_manage_profile
+         from guardian_relationships gr
+         where gr.guardian_person_id=any($1::uuid[]) or gr.minor_person_id=any($1::uuid[])`,
+        [memberIds]
+      )
+    : { rows: [] };
+  return { ...household.rows[0], members: members.rows, guardians: guardians.rows };
 }
 
 export async function recordAccountAudit(input: {

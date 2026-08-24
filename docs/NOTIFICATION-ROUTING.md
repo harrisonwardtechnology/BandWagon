@@ -57,7 +57,7 @@ After migration `005_notification_routing.sql` is applied:
 
 `/admin/notifications`
 
-Use `ADMIN_TEST_TOKEN` to load the routing policies and route test notifications.
+Sign in with a platform administrator account to load routing policies. Sending a test notification requires a platform owner.
 
 If `ADMIN_TEST_PHONE` is configured, SMS/RCS tests are restricted to that number.
 

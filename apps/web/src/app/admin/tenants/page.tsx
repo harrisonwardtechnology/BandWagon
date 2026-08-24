@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 export default function TenantsAdmin() {
-  const [token,setToken]=useState("");
   const [organizations,setOrganizations]=useState<any[]>([]);
   const [domainSetup,setDomainSetup]=useState<any>({automaticAvailable:false,manualAvailable:true});
   const [name,setName]=useState("FloMoGo");
@@ -14,13 +13,13 @@ export default function TenantsAdmin() {
   const [message,setMessage]=useState("");
   const [result,setResult]=useState<any>(null);
 
-  const headers=()=>({"content-type":"application/json","x-bandwagon-admin-token":token});
+  const headers={"content-type":"application/json"};
   const input={display:"block",width:"100%",padding:12,margin:"8px 0 14px",border:"1px solid #cbd5e1",borderRadius:8} as const;
   const card={marginTop:20,padding:20,border:"1px solid #dbe3ef",borderRadius:16} as const;
 
   async function refresh(){
     setMessage("");
-    const r=await fetch("/api/admin/tenants",{headers:{"x-bandwagon-admin-token":token}});
+    const r=await fetch("/api/admin/tenants");
     const d=await r.json().catch(()=>({}));
     if(!r.ok)return setMessage(d.error||"Unable to load organizations");
     setOrganizations(d.organizations||[]);setDomainSetup(d.domainSetup||{automaticAvailable:false,manualAvailable:true});
@@ -30,7 +29,7 @@ export default function TenantsAdmin() {
 
   async function act(body:any){
     setMessage("Working..."); setResult(null);
-    const r=await fetch("/api/admin/tenants",{method:"POST",headers:headers(),body:JSON.stringify(body)});
+    const r=await fetch("/api/admin/tenants",{method:"POST",headers,body:JSON.stringify(body)});
     const d=await r.json().catch(()=>({}));
     if(!r.ok){setMessage(d.error||"Tenant operation failed");return null;}
     setResult(d); setMessage("Done."); await refresh(); return d;
@@ -44,8 +43,7 @@ export default function TenantsAdmin() {
     </section>
 
     <section style={card}>
-      <label><strong>Admin Test Token</strong></label>
-      <input type="password" value={token} onChange={e=>setToken(e.target.value)} style={input}/>
+      <p><strong>Platform owner access required.</strong> Tenant administration uses your signed-in session.</p>
       <button onClick={refresh}>Refresh Organizations</button>
     </section>
 

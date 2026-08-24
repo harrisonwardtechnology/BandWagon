@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { getDb } from "@/lib/db";
 import { sessionTokenHash } from "@/lib/auth-service";
 import { lookupHash } from "@/lib/data-security";
+import { sessionIdleDays } from "@/lib/auth-policy";
 
 export const SESSION_COOKIE = "bw_session";
 export const SUPPORT_COOKIE = "bw_support";
@@ -53,11 +54,12 @@ export async function getBaseSessionIdentity(): Promise<SessionIdentity | null> 
     `select s.id as session_id,s.user_account_id,ua.platform_role
      from auth_sessions s
      join user_accounts ua on ua.id=s.user_account_id and ua.status='active'
-     where s.token_hash=$1 and s.revoked_at is null and s.expires_at>now() limit 1`,
-    [sessionTokenHash(token)]
+     where s.token_hash=$1 and s.revoked_at is null and s.expires_at>now()
+       and s.last_seen_at>now()-($2||' days')::interval limit 1`,
+    [sessionTokenHash(token),String(sessionIdleDays(process.env.SESSION_IDLE_DAYS))]
   );
   if(!result.rowCount)return null;const row=result.rows[0];
-  await db.query(`update auth_sessions set last_seen_at=now() where id=$1`,[row.session_id]).catch(()=>{});
+  await db.query(`update auth_sessions set last_seen_at=now() where id=$1 and last_seen_at<now()-interval '5 minutes'`,[row.session_id]).catch(()=>{});
   return loadIdentityForUserAccount(row.user_account_id,row.session_id,row.platform_role||null);
 }
 
@@ -88,5 +90,5 @@ export async function getSessionIdentity(): Promise<SessionIdentity | null> {
 
 export async function requireSessionIdentity(){const identity=await getSessionIdentity();if(!identity)throw new Error("Authentication required");return identity;}
 export async function requireBaseSessionIdentity(){const identity=await getBaseSessionIdentity();if(!identity)throw new Error("Authentication required");return identity;}
-export async function requirePlatformRole(roles:Array<NonNullable<SessionIdentity['platformRole']>>=['owner','support']){const identity=await requireBaseSessionIdentity();if(!identity.platformRole||!roles.includes(identity.platformRole))throw new Error("Platform administrator access is required");return identity;}
+export async function requirePlatformRole(roles:Array<NonNullable<SessionIdentity['platformRole']>>=['owner','support']){const identity=await requireSessionIdentity();if(identity.supportMode)throw new Error("End Support View before using platform administration");if(!identity.platformRole||!roles.includes(identity.platformRole))throw new Error("Platform administrator access is required");return identity;}
 export async function requireOrganizationAccess(organizationId:string){const identity=await requireSessionIdentity();if(!identity.organizationIds.includes(organizationId))throw new Error("Organization access denied");return identity;}

@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { getDb } from "@/lib/db";
 import type { SessionIdentity } from "@/lib/auth";
-import { createPrivateUploadUrl, createPrivateViewUrl, headPrivateObject, privateBucket } from "@/lib/object-storage";
+import { createPrivateUploadUrl, createPrivateViewUrl, deletePrivateObject, headPrivateObject, privateBucket } from "@/lib/object-storage";
 
 const ALLOWED_TYPES = new Set(["application/pdf","image/jpeg","image/png","image/webp"]);
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -107,4 +107,76 @@ export async function credentialViewUrl(identity: SessionIdentity, input: { docu
   );
   if (!granted) throw new Error("You are not authorized to view this document");
   return { url:await createPrivateViewUrl(document.storage_key),expiresInSeconds:120 };
+}
+
+export async function deleteMyCredential(identity: SessionIdentity, documentId: string) {
+  if (identity.supportMode) throw new Error("Support View cannot delete user documents");
+  const db = dbRequired();
+  const client = await db.connect();
+  let storageKey = "";
+  try {
+    await client.query("begin");
+    const result = await client.query(
+      `select id,storage_key,status from person_documents
+        where id=$1 and person_id=$2 for update`,
+      [documentId,identity.personId]
+    );
+    if (!result.rowCount || result.rows[0].status === "deleted") {
+      throw new Error("Credential document was not found");
+    }
+    storageKey = result.rows[0].storage_key;
+    await client.query(
+      `update driver_requirement_status
+          set status='not_submitted',document_id=null,reviewed_by_person_id=null,
+              reviewed_at=null,expires_at=null,notes=null,metadata='{}'::jsonb,updated_at=now()
+        where driver_person_id=$1 and document_id=$2`,
+      [identity.personId,documentId]
+    );
+    await client.query(
+      `update ai_jobs
+          set document_id=null,person_id=null,input_metadata='{}'::jsonb,result_json='{}'::jsonb,
+              provider_request_id=null,error_message=null,updated_at=now()
+        where document_id=$1`,
+      [documentId]
+    );
+    await client.query(
+      `update person_documents
+          set status='deleted',deletion_requested_at=now(),delete_after=now(),
+              original_filename=null,content_type=null,size_bytes=null,sha256=null,
+              issued_at=null,expires_at=null,extracted_metadata='{}'::jsonb,
+              storage_delete_error=null,deleted_at=now(),updated_at=now()
+        where id=$1`,
+      [documentId]
+    );
+    await client.query(
+      `insert into document_access_events(document_id,actor_person_id,access_type,purpose)
+       values($1,$2,'delete','user_requested_document_deletion')`,
+      [documentId,identity.personId]
+    );
+    await client.query("commit");
+  } catch (error) {
+    await client.query("rollback").catch(() => undefined);
+    throw error;
+  } finally {
+    client.release();
+  }
+
+  try {
+    await deletePrivateObject(storageKey);
+    await db.query(
+      `update person_documents
+          set storage_deleted_at=now(),storage_delete_error=null,updated_at=now()
+        where id=$1`,
+      [documentId]
+    );
+    return { documentId, deleted: true, pendingStorageCleanup: false };
+  } catch (error) {
+    await db.query(
+      `update person_documents
+          set storage_delete_error=$2,updated_at=now()
+        where id=$1`,
+      [documentId,error instanceof Error ? error.message.slice(0,1000) : "Storage deletion failed"]
+    ).catch(() => undefined);
+    return { documentId, deleted: true, pendingStorageCleanup: true };
+  }
 }

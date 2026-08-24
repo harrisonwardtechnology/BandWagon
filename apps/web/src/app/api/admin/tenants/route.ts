@@ -1,4 +1,4 @@
-import { requireAdminTestToken } from "@/lib/admin-test";
+import { requirePlatformRole } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { createAutomaticDomainSetup, domainSetupCapabilities } from "@/lib/domain-setup-provider";
 import {
@@ -13,14 +13,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const denied = requireAdminTestToken(request);
-  if (denied) return denied;
+  try { await requirePlatformRole(["owner","support","readonly"]); }
+  catch (error) { return Response.json({error:error instanceof Error?error.message:"Platform administrator access is required"},{status:403}); }
   return Response.json({ organizations: await listOrganizations(), domainSetup: domainSetupCapabilities() });
 }
 
 export async function POST(request: Request) {
-  const denied = requireAdminTestToken(request);
-  if (denied) return denied;
+  try { await requirePlatformRole(["owner"]); }
+  catch (error) { return Response.json({error:error instanceof Error?error.message:"Platform owner access is required"},{status:403}); }
 
   const body = await request.json().catch(() => ({}));
   const action = String(body.action || "create");

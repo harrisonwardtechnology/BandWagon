@@ -4,9 +4,10 @@ import { SESSION_COOKIE } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+const privateResponse = { headers: { "cache-control": "no-store, private" } };
 
 function requestIp(request: Request) {
-  return (request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "")
+  return (request.headers.get("cf-connecting-ip") || request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for") || "")
     .split(",")[0]
     .trim() || null;
 }
@@ -21,9 +22,10 @@ export async function POST(request: Request) {
         householdName: body.householdName || null,
         birthMonth: body.birthMonth == null || body.birthMonth === "" ? null : Number(body.birthMonth),
         birthYear: body.birthYear == null || body.birthYear === "" ? null : Number(body.birthYear),
+        signupIntent: body.signupIntent === true,
         requestIp: requestIp(request),
       });
-      return NextResponse.json(result);
+      return NextResponse.json(result, privateResponse);
     }
     if (body.action === "verify") {
       const result = await verifyOtp({
@@ -41,16 +43,18 @@ export async function POST(request: Request) {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
+        priority: "high",
         path: "/",
         expires: new Date(result.expiresAt),
       });
+      response.headers.set("cache-control", "no-store, private");
       return response;
     }
-    return NextResponse.json({ error: "Unknown action" }, { status: 400 });
+    return NextResponse.json({ error: "Unknown action" }, { status: 400, ...privateResponse });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Authentication failed" },
-      { status: 400 }
+      { status: 400, ...privateResponse }
     );
   }
 }

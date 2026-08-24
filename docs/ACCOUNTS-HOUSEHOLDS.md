@@ -32,7 +32,7 @@ After applying migration `007_accounts_households.sql`:
 
 `/admin/accounts`
 
-The console can create a test household, parent/manager, student, verified contact methods, FloMoGo memberships and guardian relationships. It is protected by `ADMIN_TEST_TOKEN` and is intended for development/testing, not end-user production onboarding.
+The console can create a test household, parent/manager, student, verified contact methods, FloMoGo memberships and guardian relationships. It requires a signed-in platform owner and is intended for development/testing, not end-user production onboarding.
 
 ## Next authentication work
 

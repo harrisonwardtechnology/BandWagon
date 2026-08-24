@@ -1,7 +1,12 @@
 import { getDb } from "@/lib/db";
 import { routeNotification } from "@/lib/notification-router";
+import {
+  assertRideTransition,
+  canActorTransitionRide,
+  canEndPooledRideAsNoShow,
+  requestStatusAfterRideCancellation,
+} from "@/lib/ride-policy";
 
-const transitions:Record<string,string[]>={confirmed:['driver_en_route','cancelled','no_show'],driver_en_route:['arrived','cancelled'],arrived:['picked_up','no_show','cancelled'],picked_up:['completed','cancelled'],completed:[],cancelled:[],no_show:[]};
 function dbRequired(){const db=getDb();if(!db)throw new Error('Database is not configured');return db;}
 
 export async function transitionRide(input:{rideId:string;actorPersonId:string;toStatus:string;reason?:string|null}){
@@ -11,16 +16,19 @@ export async function transitionRide(input:{rideId:string;actorPersonId:string;t
     const current=await client.query(`select r.*,rr.requester_person_id,rr.passenger_person_id,rr.public_ref as request_ref
       from rides r join ride_requests rr on rr.id=r.ride_request_id where r.id=$1 for update`,[input.rideId]);
     if(!current.rowCount)throw new Error('Ride not found');const ride=current.rows[0];
-    if(!(transitions[ride.status]||[]).includes(input.toStatus))throw new Error(`Invalid ride transition: ${ride.status} -> ${input.toStatus}`);
-    const guardian=(await client.query(`select 1 from guardian_relationships where guardian_person_id=$1 and minor_person_id=$2 and can_approve_rides=true limit 1`,[input.actorPersonId,ride.passenger_person_id])).rowCount>0;
+    assertRideTransition(ride.status,input.toStatus);
+    const guardianResult=await client.query(`select 1 from guardian_relationships where guardian_person_id=$1 and minor_person_id=$2 and can_approve_rides=true limit 1`,[input.actorPersonId,ride.passenger_person_id]);
+    const guardian=(guardianResult.rowCount??0)>0;
     const actorIsDriver=input.actorPersonId===ride.driver_person_id,actorManagesPrimary=input.actorPersonId===ride.requester_person_id||guardian;
-    if(!actorIsDriver&&!actorManagesPrimary)throw new Error('Person is not authorized to update this ride');
-    if(['driver_en_route','arrived','picked_up','completed','no_show'].includes(input.toStatus)&&!actorIsDriver)throw new Error('Only the assigned driver can perform this ride update');
+    if(!canActorTransitionRide({actorIsDriver,actorManagesPrimary,toStatus:input.toStatus})){
+      if(!actorIsDriver&&!actorManagesPrimary)throw new Error('Person is not authorized to update this ride');
+      throw new Error('Only the assigned driver can perform this ride update');
+    }
 
     const assignments=(await client.query(`select a.ride_request_id,a.seats_reserved,rr.requester_person_id,rr.passenger_person_id,rr.public_ref
       from ride_request_assignments a join ride_requests rr on rr.id=a.ride_request_id
       where a.ride_id=$1 and a.status='confirmed' for update`,[ride.id])).rows;
-    if(input.toStatus==='no_show'&&assignments.length>1)throw new Error('This is a pooled ride. Record no-show for the individual passenger instead of ending the entire carpool.');
+    if(input.toStatus==='no_show'&&!canEndPooledRideAsNoShow(assignments.length))throw new Error('This is a pooled ride. Record no-show for the individual passenger instead of ending the entire carpool.');
 
     if(input.toStatus==='picked_up'){
       const required=(await client.query(`select case when o.pickup_verification_mode='required' or exists(select 1 from guardian_relationships gr where gr.minor_person_id=rr.passenger_person_id and gr.require_verified_pickup=true) then true else false end as required from rides r join ride_requests rr on rr.id=r.ride_request_id join organizations o on o.id=r.organization_id where r.id=$1`,[ride.id])).rows[0]?.required;
@@ -32,11 +40,7 @@ export async function transitionRide(input:{rideId:string;actorPersonId:string;t
       const driverCancelled=actorIsDriver;
       for(const assignment of assignments){
         const isPrimary=assignment.ride_request_id===ride.ride_request_id;
-        let requestStatus='cancelled';
-        if(prePickup){
-          if(driverCancelled)requestStatus='open';
-          else if(!isPrimary)requestStatus='open';
-        }
+        const requestStatus=requestStatusAfterRideCancellation({prePickup,driverCancelled,isPrimary});
         await client.query(`update ride_requests set status=$2,cancelled_reason=case when $2='cancelled' then $3 else null end,updated_at=now() where id=$1`,[assignment.ride_request_id,requestStatus,input.reason||null]);
         await client.query(`update ride_request_assignments set status='cancelled',updated_at=now() where ride_id=$1 and ride_request_id=$2`,[ride.id,assignment.ride_request_id]);
         await client.query(`update ride_passengers set assignment_status='cancelled' where ride_id=$1 and ride_request_id=$2`,[ride.id,assignment.ride_request_id]);

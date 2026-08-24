@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [birthYear,setBirthYear] = useState("");
   const [challengeId,setChallengeId] = useState("");
   const [code,setCode] = useState("");
-  const [signupDetails,setSignupDetails] = useState(false);
+  const [mode,setMode] = useState<"sign_in"|"create_account">("sign_in");
   const [message,setMessage] = useState("");
   const [working,setWorking] = useState(false);
 
@@ -23,19 +23,15 @@ export default function LoginPage() {
       body:JSON.stringify({
         action:"request",identifier,displayName:displayName||null,householdName:householdName||null,
         birthMonth:birthMonth||null,birthYear:birthYear||null,
+        signupIntent:mode==="create_account",
       })
     });
     const d = await r.json().catch(()=>({}));
     setWorking(false);
-    if (d.underAge) { setSignupDetails(true); setMessage(d.message || "A parent or guardian must manage this profile."); return; }
-    if (d.signupDetailsRequired) {
-      setSignupDetails(true);
-      setMessage(d.ageDetailsRequired ? "Add your name and birth month/year to continue." : "New here? Add your account details, then request a code again.");
-      return;
-    }
+    if (d.underAge) { setMessage(d.message || "A parent or guardian must manage this profile."); return; }
     if (!r.ok || !d.ok) { setMessage(d.error || "Unable to send verification code"); return; }
     setChallengeId(d.challengeId);
-    setMessage(`Verification code sent by ${d.destinationType === "phone" ? "text" : "email"}.` + (d.debugCode ? ` Debug code: ${d.debugCode}` : ""));
+    setMessage(`If this ${d.destinationType === "phone" ? "number" : "email address"} can be used, a verification code is on the way.` + (d.debugCode ? ` Debug code: ${d.debugCode}` : ""));
   }
 
   async function verify() {
@@ -56,13 +52,17 @@ export default function LoginPage() {
   return <main style={{minHeight:"100vh",display:"grid",placeItems:"center",padding:24,background:"#f8fafc",fontFamily:"system-ui,sans-serif"}}>
     <section style={{width:"100%",maxWidth:460,background:"white",padding:28,borderRadius:22,boxShadow:"0 14px 50px rgba(15,23,42,.10)"}}>
       <div style={{fontSize:13,fontWeight:900,letterSpacing:1,color:"#64748b"}}>BANDWAGON</div>
-      <h1 style={{fontSize:34,margin:"8px 0 6px"}}>Sign in</h1>
+      <h1 style={{fontSize:34,margin:"8px 0 6px"}}>{mode==="create_account"?"Create account":"Sign in"}</h1>
       <p style={{margin:"0 0 24px",color:"#475569"}}>Use your email address or mobile number. No password to remember.</p>
 
       {!challengeId ? <>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:18}}>
+          <button type="button" aria-pressed={mode==="sign_in"} onClick={()=>{setMode("sign_in");setMessage("");}} style={{padding:10,borderRadius:9,border:"1px solid #cbd5e1",background:mode==="sign_in"?"#101b33":"white",color:mode==="sign_in"?"white":"#334155",fontWeight:800,cursor:"pointer"}}>Sign in</button>
+          <button type="button" aria-pressed={mode==="create_account"} onClick={()=>{setMode("create_account");setMessage("");}} style={{padding:10,borderRadius:9,border:"1px solid #cbd5e1",background:mode==="create_account"?"#101b33":"white",color:mode==="create_account"?"white":"#334155",fontWeight:800,cursor:"pointer"}}>Create account</button>
+        </div>
         <label style={{fontWeight:700}}>Email or mobile number</label>
         <input value={identifier} onChange={e=>setIdentifier(e.target.value)} placeholder="you@example.com or +14695551212" style={{...input,margin:"7px 0 16px"}} />
-        {signupDetails && <div style={{padding:16,background:"#f8fafc",borderRadius:14,marginBottom:16}}>
+        {mode==="create_account" && <div style={{padding:16,background:"#f8fafc",borderRadius:14,marginBottom:16}}>
           <div style={{fontWeight:800,marginBottom:10}}>Create your BandWagon account</div>
           <label style={{fontWeight:700}}>Your name</label>
           <input value={displayName} onChange={e=>setDisplayName(e.target.value)} placeholder="Harrison Ward" style={{...input,margin:"7px 0 14px"}} />
@@ -77,7 +77,7 @@ export default function LoginPage() {
           <label style={{fontWeight:700}}>Household name <span style={{fontWeight:400,color:"#64748b"}}>(optional)</span></label>
           <input value={householdName} onChange={e=>setHouseholdName(e.target.value)} placeholder="Ward Family" style={{...input,marginTop:7}} />
         </div>}
-        <button disabled={working || !identifier || (signupDetails && (!displayName || !birthMonth || birthYear.length!==4))} onClick={requestCode} style={{...button,opacity:working ? .65 : 1}}>{working ? "Sending…" : "Send verification code"}</button>
+        <button disabled={working || !identifier || (mode==="create_account" && (!displayName || !birthMonth || birthYear.length!==4))} onClick={requestCode} style={{...button,opacity:working ? .65 : 1}}>{working ? "Sending…" : "Send verification code"}</button>
       </> : <>
         <label style={{fontWeight:700}}>6-digit verification code</label>
         <input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,""))} placeholder="123456" style={{...input,margin:"7px 0 16px",fontSize:24,letterSpacing:6,textAlign:"center"}} />

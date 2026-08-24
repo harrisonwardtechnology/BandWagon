@@ -1,4 +1,4 @@
-import { requireAdminTestToken } from "@/lib/admin-test";
+import { requirePlatformRole } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import {
   addGuardian,
@@ -25,8 +25,8 @@ async function organizationBySlug(slug: string) {
 }
 
 export async function GET(request: Request) {
-  const denied = requireAdminTestToken(request);
-  if (denied) return denied;
+  try { await requirePlatformRole(["owner"]); }
+  catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Platform owner access is required" }, { status: 403 }); }
   const url = new URL(request.url);
   const householdId = url.searchParams.get("householdId");
   if (!householdId) return Response.json({ error: "householdId is required" }, { status: 400 });
@@ -40,8 +40,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const denied = requireAdminTestToken(request);
-  if (denied) return denied;
+  try { await requirePlatformRole(["owner"]); }
+  catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Platform owner access is required" }, { status: 403 }); }
   const body = await request.json().catch(() => ({}));
   const action = String(body.action || "");
 

@@ -1,4 +1,4 @@
-import { requireAdminTestToken } from "@/lib/admin-test";
+import { requirePlatformRole } from "@/lib/auth";
 import { notificationPolicySummary, routeNotification } from "@/lib/notification-router";
 
 export const runtime = "nodejs";
@@ -10,14 +10,14 @@ function normalizePhone(value: unknown) {
 }
 
 export async function GET(request: Request) {
-  const denied = requireAdminTestToken(request);
-  if (denied) return denied;
+  try { await requirePlatformRole(["owner","support"]); }
+  catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Platform administrator access is required" }, { status: 403 }); }
   return Response.json({ policies: notificationPolicySummary() });
 }
 
 export async function POST(request: Request) {
-  const denied = requireAdminTestToken(request);
-  if (denied) return denied;
+  try { await requirePlatformRole(["owner"]); }
+  catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Platform owner access is required" }, { status: 403 }); }
 
   const body = await request.json().catch(() => ({}));
   const phone = body.phone ? normalizePhone(body.phone) : null;

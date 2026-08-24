@@ -1,4 +1,4 @@
-import { GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 function env(name: string) {
@@ -49,4 +49,8 @@ export async function getPrivateObjectBytes(key:string) {
   if(!result.Body) throw new Error("Stored document is empty");
   const bytes=await result.Body.transformToByteArray();
   return {bytes:Buffer.from(bytes),contentType:result.ContentType||"application/octet-stream"};
+}
+
+export async function deletePrivateObject(key:string) {
+  await client().send(new DeleteObjectCommand({Bucket:privateBucket(),Key:key}));
 }

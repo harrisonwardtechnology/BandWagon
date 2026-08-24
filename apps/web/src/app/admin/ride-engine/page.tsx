@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect,useMemo,useState } from "react";
+import { useEffect,useState } from "react";
 
 type Row = Record<string,any>;
 
 export default function RideEngineAdminPage() {
-  const [token,setToken] = useState("");
   const [organizations,setOrganizations] = useState<Row[]>([]);
   const [organizationId,setOrganizationId] = useState("");
   const [people,setPeople] = useState<Row[]>([]);
@@ -31,7 +30,7 @@ export default function RideEngineAdminPage() {
   const [rideId,setRideId] = useState("");
   const [actorPersonId,setActorPersonId] = useState("");
 
-  const headers = useMemo(()=>({"content-type":"application/json","x-bandwagon-admin-token":token}),[token]);
+  const headers = {"content-type":"application/json"};
   const card = { border:"1px solid #dbe3ef",borderRadius:16,padding:20,marginTop:20 } as const;
   const input = { width:"100%",padding:10,border:"1px solid #cbd5e1",borderRadius:8,margin:"6px 0 12px" } as const;
   const button = { padding:"10px 14px",borderRadius:9,border:"1px solid #cbd5e1",cursor:"pointer",marginRight:8,marginBottom:8 } as const;
@@ -39,7 +38,7 @@ export default function RideEngineAdminPage() {
   async function load(org=organizationId) {
     setMessage("");
     const qs = org ? `?organizationId=${encodeURIComponent(org)}` : "";
-    const r = await fetch(`/api/admin/ride-engine${qs}`,{headers:{"x-bandwagon-admin-token":token}});
+    const r = await fetch(`/api/admin/ride-engine${qs}`);
     const d = await r.json().catch(()=>({}));
     if (!r.ok) return setMessage(d.error || "Unable to load ride engine");
     setOrganizations(d.organizations || []);
@@ -68,8 +67,7 @@ export default function RideEngineAdminPage() {
     </section>
 
     <section style={card}>
-      <label><b>Admin Test Token</b></label>
-      <input type="password" value={token} onChange={e=>setToken(e.target.value)} style={input}/>
+      <p><b>Platform owner access required.</b> This development console uses your signed-in session.</p>
       <button style={button} onClick={()=>load("")}>Load Organizations</button>
       <label style={{display:"block",marginTop:12}}>Organization</label>
       <select value={organizationId} onChange={e=>setOrganizationId(e.target.value)} style={input}>

@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 export default function AccountsAdminPage() {
-  const [token, setToken] = useState("");
   const [householdName, setHouseholdName] = useState("Ward Family");
   const [householdId, setHouseholdId] = useState("");
   const [adultName, setAdultName] = useState("Test Parent");
@@ -14,7 +13,7 @@ export default function AccountsAdminPage() {
   const [result, setResult] = useState<any>(null);
   const [message, setMessage] = useState("");
 
-  const headers = { "content-type": "application/json", "x-bandwagon-admin-token": token };
+  const headers = { "content-type": "application/json" };
   const input = { width: "100%", padding: 11, margin: "6px 0 12px", border: "1px solid #cbd5e1", borderRadius: 8 } as const;
   const card = { border: "1px solid #dbe3ef", borderRadius: 16, padding: 20, marginTop: 18 } as const;
 
@@ -57,9 +56,7 @@ export default function AccountsAdminPage() {
   }
 
   async function loadHousehold() {
-    const r = await fetch(`/api/admin/accounts?householdId=${encodeURIComponent(householdId)}`, {
-      headers: { "x-bandwagon-admin-token": token },
-    });
+    const r = await fetch(`/api/admin/accounts?householdId=${encodeURIComponent(householdId)}`);
     const data = await r.json().catch(() => ({}));
     setResult(data);
     setMessage(r.ok ? "Household loaded." : data.error || "Unable to load household");
@@ -74,8 +71,8 @@ export default function AccountsAdminPage() {
       </section>
 
       <section style={card}>
-        <label><strong>Admin Test Token</strong></label>
-        <input type="password" value={token} onChange={(e) => setToken(e.target.value)} style={input} />
+        <strong>Platform owner access required.</strong>
+        <p style={{ marginBottom: 0, color: "#475569" }}>This development console uses your signed-in BandWagon session.</p>
       </section>
 
       <section style={card}>

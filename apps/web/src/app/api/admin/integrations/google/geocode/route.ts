@@ -1,8 +1,9 @@
-import { requireAdminTestToken } from "@/lib/admin-test";
+import { requirePlatformRole } from "@/lib/auth";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
-  const denied = requireAdminTestToken(request); if (denied) return denied;
+  try { await requirePlatformRole(["owner"]); }
+  catch (error) { return Response.json({error:error instanceof Error?error.message:"Platform owner access is required"},{status:403}); }
   const body = await request.json().catch(() => ({}));
   const address = typeof body.address === "string" ? body.address.trim() : "";
   if (!address) return Response.json({ error: "Address is required" }, { status: 400 });

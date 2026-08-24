@@ -6,8 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start -H 0.0.0.0 -p 3000",
+    "test": "node --test --experimental-strip-types tests/*.test.ts",
     "typecheck": "tsc --noEmit",
     "db:migrate": "node scripts/migrate.mjs",
+    "db:verify": "node scripts/verify-schema.mjs",
     "push:generate-vapid": "web-push generate-vapid-keys"
   },
   "dependencies": {

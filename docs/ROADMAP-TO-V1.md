@@ -118,18 +118,18 @@ BLUE COW                    BLUE COW
 - duplicate / conflict handling
 
 ### Privacy / family controls
-- user data export
-- right-to-be-forgotten workflow
-- document deletion / retention lifecycle
-- guardian consent management
-- student account / household management polish
-- organization privacy / terms acknowledgement
-- exact-location retention cleanup
+- [x] user data export
+- [x] right-to-be-forgotten workflow
+- [x] document deletion / retention lifecycle
+- [x] guardian consent management polish
+- [ ] student account / household management polish
+- [ ] organization privacy / terms acknowledgement
+- [x] exact-location retention cleanup
 
 ### Security / reliability
-- stronger auth/IP throttling
-- account-enumeration hardening
-- session / cookie hardening review
+- [x] stronger auth/IP throttling
+- [x] account-enumeration hardening
+- [x] session / cookie hardening review
 - admin audit export
 - secret / key rotation procedure
 - backup / restore verification

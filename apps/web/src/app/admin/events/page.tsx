@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 export default function EventsAdminPage() {
-  const [token, setToken] = useState("");
   const [organizationId, setOrganizationId] = useState("");
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
@@ -12,9 +11,7 @@ export default function EventsAdminPage() {
 
   async function load(orgId = organizationId) {
     const suffix = orgId ? `?organizationId=${encodeURIComponent(orgId)}` : "";
-    const response = await fetch(`/api/admin/events${suffix}`, {
-      headers: { "x-bandwagon-admin-token": token },
-    });
+    const response = await fetch(`/api/admin/events${suffix}`);
     const data = await response.json().catch(() => ({}));
     if (!response.ok) return setMessage(data.error || "Unable to load events");
     setOrganizations(data.organizations || []);
@@ -25,7 +22,7 @@ export default function EventsAdminPage() {
   async function runAction(action: string) {
     const response = await fetch("/api/admin/events", {
       method: "POST",
-      headers: { "content-type": "application/json", "x-bandwagon-admin-token": token },
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({ action, organizationId, title }),
     });
     const data = await response.json().catch(() => ({}));
@@ -40,8 +37,7 @@ export default function EventsAdminPage() {
     <main style={{ maxWidth: 1000, margin: "40px auto", padding: 20, fontFamily: "system-ui,sans-serif" }}>
       <h1>BandWagon Events</h1>
       <section style={card}>
-        <label>Admin Test Token</label>
-        <input type="password" value={token} onChange={(e) => setToken(e.target.value)} style={input} />
+        <p>Signed-in organization administrators see only organizations they manage.</p>
         <button onClick={() => load()}>Load</button>
       </section>
       {organizations.length > 0 && (

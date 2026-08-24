@@ -1,17 +1,17 @@
-import { requireAdminTestToken } from "@/lib/admin-test";
+import { requirePlatformRole } from "@/lib/auth";
 import { evaluatePlatformBudget,getPlatformCostSnapshot,setPlatformBudget } from "@/lib/platform-budget";
 
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 
 export async function GET(request:Request){
- const denied=requireAdminTestToken(request);if(denied)return denied;
+ try{await requirePlatformRole(["owner","finance","readonly"]);}catch(error){return Response.json({error:error instanceof Error?error.message:"Platform finance access is required"},{status:403});}
  const url=new URL(request.url),month=url.searchParams.get("month")||undefined;
  return Response.json({ok:true,snapshot:await getPlatformCostSnapshot(month)});
 }
 
 export async function POST(request:Request){
- const denied=requireAdminTestToken(request);if(denied)return denied;
+ try{await requirePlatformRole(["owner","finance"]);}catch(error){return Response.json({error:error instanceof Error?error.message:"Platform finance access is required"},{status:403});}
  const body=await request.json().catch(()=>({}));
  if(body.action==="evaluate")return Response.json({ok:true,result:await evaluatePlatformBudget(body.month||undefined)});
  const budgetDollars=Number(body.budgetDollars||0),fixedMonthlyCostDollars=Number(body.fixedMonthlyCostDollars||0);

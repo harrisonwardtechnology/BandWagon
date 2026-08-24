@@ -1,11 +1,11 @@
 import { getDb } from "@/lib/db";
 import type { SessionIdentity } from "@/lib/auth";
+import { assertIdentityOrganizationAdmin } from "@/lib/admin-access";
 
 function dbRequired(){const db=getDb();if(!db)throw new Error("Database is not configured");return db;}
-async function assertAdmin(identity:SessionIdentity,organizationId:string){const db=dbRequired();const r=await db.query(`select 1 from memberships where organization_id=$1 and person_id=$2 and group_id is null and status='active' and role in ('owner','admin','manager') limit 1`,[organizationId,identity.personId]);if(!r.rowCount)throw new Error("Organization administrator access is required");}
 
 export async function getAdminNotificationHealth(identity:SessionIdentity,organizationId:string){
-  await assertAdmin(identity,organizationId);const db=dbRequired();
+  await assertIdentityOrganizationAdmin(identity,organizationId,{write:false});const db=dbRequired();
   const [summary,recentFailures]=await Promise.all([
     db.query(`select channel,status,count(*)::int as count,coalesce(sum(estimated_cost_cents),0)::numeric as estimated_cost_cents from notification_deliveries where organization_id=$1 and created_at>=date_trunc('month',now()) group by channel,status order by channel,status`,[organizationId]),
     db.query(`select notification_type,channel,status,estimated_cost_cents,created_at,failed_at,metadata from notification_deliveries where organization_id=$1 and status in ('failed','undelivered') order by created_at desc limit 20`,[organizationId])

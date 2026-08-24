@@ -1,9 +1,9 @@
-import { requireAdminTestToken } from "@/lib/admin-test";
+import { requirePlatformRole } from "@/lib/auth";
+import { listOrganizationsForAdministrator, requireOrganizationAdmin } from "@/lib/admin-access";
 import {
   assignActiveGoogleConnectionToOrganization,
   createManualEvent,
   listOrganizationEvents,
-  listOrganizationsForEventAdmin,
   normalizeImportedCalendarEvents,
 } from "@/lib/events";
 
@@ -11,32 +11,36 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const denied = requireAdminTestToken(request);
-  if (denied) return denied;
-  const url = new URL(request.url);
-  const organizationId = url.searchParams.get("organizationId");
-  const organizations = await listOrganizationsForEventAdmin();
-  const events = organizationId ? await listOrganizationEvents(organizationId) : [];
-  return Response.json({ organizations, events });
+  try {
+    const url = new URL(request.url);
+    const organizationId = url.searchParams.get("organizationId");
+    const organizations = await listOrganizationsForAdministrator();
+    if (organizationId) await requireOrganizationAdmin(organizationId, { write: false });
+    const events = organizationId ? await listOrganizationEvents(organizationId) : [];
+    return Response.json({ organizations, events });
+  } catch (error) {
+    return Response.json({ error: error instanceof Error ? error.message : "Event administrator access is required" }, { status: 403 });
+  }
 }
 
 export async function POST(request: Request) {
-  const denied = requireAdminTestToken(request);
-  if (denied) return denied;
   const body = await request.json().catch(() => ({}));
 
   try {
     if (body.action === "bind-google") {
       if (!body.organizationId) return Response.json({ error: "organizationId is required" }, { status: 400 });
+      await requireOrganizationAdmin(String(body.organizationId));
       return Response.json({ ok: true, connection: await assignActiveGoogleConnectionToOrganization(String(body.organizationId)) });
     }
 
     if (body.action === "normalize") {
+      await requirePlatformRole(["owner"]);
       return Response.json({ ok: true, ...(await normalizeImportedCalendarEvents()) });
     }
 
     if (body.action === "create-manual") {
       if (!body.organizationId) return Response.json({ error: "organizationId is required" }, { status: 400 });
+      await requireOrganizationAdmin(String(body.organizationId));
       const event = await createManualEvent({
         organizationId: String(body.organizationId),
         title: String(body.title || ""),
@@ -54,6 +58,6 @@ export async function POST(request: Request) {
 
     return Response.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
-    return Response.json({ error: error instanceof Error ? error.message : "Event operation failed" }, { status: 500 });
+    return Response.json({ error: error instanceof Error ? error.message : "Event operation failed" }, { status: 403 });
   }
 }

@@ -36,10 +36,17 @@ export async function getOnboardingContext(personId: string, organizationScopeId
   const householdId = household.rows[0]?.id || null;
   const members = householdId ? await db.query(
     `select p.id,p.display_name,p.preferred_name,p.person_type,p.birth_year,p.student_approval_required,
-            hm.household_role,hm.can_manage_household
+            hm.household_role,hm.can_manage_household,
+            coalesce(gr.require_verified_pickup,false) as require_verified_pickup,
+            case when p.person_type<>'minor' then 'not_applicable'
+                 when exists(select 1 from guardian_consents gc
+                              where gc.guardian_person_id=$2 and gc.minor_person_id=p.id
+                                and gc.consent_type='platform_minor_use' and gc.status='active') then 'active'
+                 else 'not_granted' end as guardian_consent_status
      from household_members hm join people p on p.id=hm.person_id
+     left join guardian_relationships gr on gr.guardian_person_id=$2 and gr.minor_person_id=p.id
      where hm.household_id=$1 and p.status='active' order by hm.created_at`,
-    [householdId]
+    [householdId,personId]
   ) : { rows: [] };
   const organizations = await db.query(
     `select o.id,coalesce(o.display_name,o.name) as name,o.slug,m.role,m.status
@@ -106,12 +113,100 @@ export async function addStudentToHousehold(input: {
        values ($1,$2,$3,true,true)`,
       [input.managerPersonId,studentId,input.relationshipLabel?.trim() || "Parent / Guardian"]
     );
+    await client.query(
+      `insert into guardian_consents
+        (minor_person_id,guardian_person_id,consent_type,status,metadata)
+       values($1,$2,'platform_minor_use','active',$3::jsonb)`,
+      [studentId,input.managerPersonId,JSON.stringify({ source:"household_student_created" })]
+    );
     // Organization membership is intentionally NOT inherited from the parent.
     // A household manager explicitly chooses each organization for each student.
     await client.query("COMMIT");
     return person.rows[0];
   } catch (error) {
     await client.query("ROLLBACK").catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateManagedStudentSettings(input: {
+  managerPersonId: string;
+  studentPersonId: string;
+  studentApprovalRequired: boolean;
+  requireVerifiedPickup: boolean;
+  guardianConsentGranted: boolean;
+}) {
+  const db = dbRequired();
+  const client = await db.connect();
+  try {
+    await client.query("begin");
+    const authorized = await client.query(
+      `select p.household_id
+         from people p
+        where p.id=$1 and p.person_type='minor' and p.status='active'
+          and (
+            exists(select 1 from guardian_relationships gr
+                    where gr.guardian_person_id=$2 and gr.minor_person_id=p.id and gr.can_manage_profile=true)
+            or exists(select 1 from household_members manager
+                       where manager.household_id=p.household_id and manager.person_id=$2
+                         and manager.can_manage_household=true)
+          )
+        for update`,
+      [input.studentPersonId,input.managerPersonId]
+    );
+    if (!authorized.rowCount) throw new Error("You cannot manage this student profile");
+    await client.query(
+      `update people set student_approval_required=$2,updated_at=now() where id=$1`,
+      [input.studentPersonId,input.studentApprovalRequired]
+    );
+    await client.query(
+      `insert into guardian_relationships
+        (guardian_person_id,minor_person_id,relationship_label,can_approve_rides,can_manage_profile,require_verified_pickup)
+       values($1,$2,'Parent / Guardian',true,true,$3)
+       on conflict(guardian_person_id,minor_person_id) do update set
+         can_approve_rides=true,can_manage_profile=true,require_verified_pickup=excluded.require_verified_pickup`,
+      [input.managerPersonId,input.studentPersonId,input.requireVerifiedPickup]
+    );
+    if (input.guardianConsentGranted) {
+      const renewed = await client.query(
+        `update guardian_consents
+            set metadata=metadata||$3::jsonb
+          where minor_person_id=$1 and guardian_person_id=$2
+            and consent_type='platform_minor_use' and status='active'
+          returning id`,
+        [input.studentPersonId,input.managerPersonId,JSON.stringify({ source:"household_settings",renewedAt:new Date().toISOString() })]
+      );
+      if (!renewed.rowCount) {
+        await client.query(
+          `insert into guardian_consents
+            (minor_person_id,guardian_person_id,consent_type,status,metadata)
+           values($1,$2,'platform_minor_use','active',$3::jsonb)`,
+          [input.studentPersonId,input.managerPersonId,JSON.stringify({ source:"household_settings",renewedAt:new Date().toISOString() })]
+        );
+      }
+    } else {
+      await client.query(
+        `update guardian_consents set status='revoked',revoked_at=now()
+          where minor_person_id=$1 and guardian_person_id=$2
+            and consent_type='platform_minor_use' and status='active'`,
+        [input.studentPersonId,input.managerPersonId]
+      );
+    }
+    await client.query(
+      `insert into audit_events(actor_person_id,action,target_type,target_id,metadata)
+       values($1,'guardian.student_settings_updated','person',$2,$3::jsonb)`,
+      [input.managerPersonId,input.studentPersonId,JSON.stringify({
+        studentApprovalRequired:input.studentApprovalRequired,
+        requireVerifiedPickup:input.requireVerifiedPickup,
+        guardianConsentGranted:input.guardianConsentGranted,
+      })]
+    );
+    await client.query("commit");
+    return { studentPersonId:input.studentPersonId,updated:true };
+  } catch (error) {
+    await client.query("rollback").catch(() => undefined);
     throw error;
   } finally {
     client.release();

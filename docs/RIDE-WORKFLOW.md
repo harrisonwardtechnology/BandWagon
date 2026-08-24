@@ -60,7 +60,7 @@ The initial workflow stores pickup/drop-off **notes**, not public street address
 
 `/admin/rides`
 
-Use `ADMIN_TEST_TOKEN` to exercise the workflow while user authentication/UI is still being built.
+Sign in as a platform owner to exercise the development workflow. The console no longer accepts the shared bootstrap token.
 
 ## Next layers
 
