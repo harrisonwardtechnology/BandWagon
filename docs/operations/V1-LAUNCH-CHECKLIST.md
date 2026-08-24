@@ -4,7 +4,7 @@ This is the authoritative go/no-go list for the FloMoGo v1 launch. A checked ite
 
 ## Automated release gate
 
-- [ ] Pull request CI passes migrations, schema verification, migration repeatability, unit tests, TypeScript, production build, and load smoke.
+- [ ] Pull request CI passes migrations, schema verification, migration repeatability, unit tests, TypeScript, production build, cron/deep-health smoke, and load smoke.
 - [ ] `npm run release:check-env:flomogo` passes against the production secret set without exposing values.
 - [ ] The exact release commit is deployed to staging and recorded.
 - [ ] No unresolved severity 1 or severity 2 defects remain.
