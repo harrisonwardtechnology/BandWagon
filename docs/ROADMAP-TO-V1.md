@@ -141,11 +141,12 @@ BLUE COW                    BLUE COW
 - [x] repeatable performance / load smoke gate (staging authenticated load test remains)
 
 ### AI governance
-- LiteLLM production virtual keys / budgets
-- prompt/body logging disabled for sensitive workflows
-- provider retention configuration review
-- AI cost alerts
-- AI failure / fallback behavior
+- [x] BandWagon hard caps, in-flight reservations, and approved model aliases
+- [x] fail-closed runtime switch, input bounds, and provider timeouts
+- [x] policy decision / manual fallback audit history
+- [ ] production LiteLLM virtual key and matching gateway budget
+- [ ] provider retention / training / region configuration evidence
+- [ ] verify prompt/body logging disabled in production gateway and providers
 
 **Exit:** A second organization can be onboarded without code changes; privacy deletion/export and disaster recovery are tested; production security checklist is complete.
 

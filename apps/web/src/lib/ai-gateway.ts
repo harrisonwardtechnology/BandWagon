@@ -1,6 +1,8 @@
 import { getDb } from "@/lib/db";
 import { getPrivateObjectBytes } from "@/lib/object-storage";
-import { assertOrgAiFeatureEnabled,type OrgAiFeature } from "@/lib/org-ai";
+import type { OrgAiFeature } from "@/lib/org-ai";
+import { beginGovernedAiJob,recordAiFallback } from "@/lib/ai-governance";
+import { aiRequestTimeoutMs } from "@/lib/ai-governance-policy";
 
 function dbRequired(){const db=getDb();if(!db)throw new Error("Database is not configured");return db;}
 function env(name:string){const value=process.env[name];if(!value)throw new Error(`${name} is not configured`);return value;}
@@ -40,15 +42,12 @@ async function recordDaily(input:{organizationId?:string|null;purpose:string;mod
 
 export async function runStructuredAi(input:AiInput){
   const feature=featureForPurpose(input.purpose);
-  if(feature&&input.organizationId)await assertOrgAiFeatureEnabled(input.organizationId,feature);
+  if(!feature)throw new Error("AI purpose is not approved");
   const db=dbRequired();
   const modelAlias=input.modelAlias||process.env.AI_FAST_MODEL||"bandwagon-fast";
-  const job=await db.query(
-    `insert into ai_jobs (organization_id,person_id,document_id,purpose,provider_path,model_alias,status,prompt_version,started_at)
-     values ($1,$2,$3,$4,'litellm',$5,'processing',$6,now()) returning id`,
-    [input.organizationId||null,input.personId||null,input.documentId||null,input.purpose,modelAlias,input.promptVersion||"v1"]
-  );
-  const jobId=job.rows[0].id;
+  if(input.instruction.length>20_000)throw new Error("AI input is too large; continue with the manual workflow");
+  if(input.image&&input.image.bytes.length>10*1024*1024)throw new Error("AI image input is too large; continue with manual review");
+  const {jobId}=await beginGovernedAiJob({organizationId:input.organizationId,personId:input.personId,documentId:input.documentId,purpose:input.purpose,feature,providerPath:'litellm',modelAlias,promptVersion:input.promptVersion||"v1"});
   try{
     const userContent:any[]= [{type:"text",text:input.instruction}];
     if(input.image){userContent.push({type:"image_url",image_url:{url:`data:${input.image.contentType};base64,${input.image.bytes.toString("base64")}`}});}
@@ -57,10 +56,10 @@ export async function runStructuredAi(input:AiInput){
       body:JSON.stringify({model:modelAlias,messages:[
         {role:"system",content:"You are a BandWagon extraction assistant. Return only valid JSON. Never decide whether a person is safe or eligible to drive; extract facts and flag uncertainty for human review."},
         {role:"user",content:userContent},
-      ],response_format:{type:"json_object"}}),cache:"no-store",
+      ],response_format:{type:"json_object"}}),cache:"no-store",signal:AbortSignal.timeout(aiRequestTimeoutMs(process.env.AI_REQUEST_TIMEOUT_MS)),
     });
     const body:any=await response.json().catch(()=>({}));
-    if(!response.ok)throw new Error(body?.error?.message||`LiteLLM request failed (${response.status})`);
+    if(!response.ok)throw new Error(`AI gateway request failed (${response.status})`);
     const text=body?.choices?.[0]?.message?.content;
     if(typeof text!=="string")throw new Error("AI response did not contain structured text");
     const result=parseJsonText(text);
@@ -70,16 +69,17 @@ export async function runStructuredAi(input:AiInput){
     const confidence=typeof result.confidence==="number"?Math.max(0,Math.min(1,result.confidence)):null;
     const humanReview=confidence==null||confidence<0.9||Boolean(result.human_review_required)||Array.isArray(result.warnings)&&result.warnings.length>0;
     await db.query(
-      `update ai_jobs set status='completed',result_json=$1::jsonb,confidence=$2,human_review_required=$3,
+      `update ai_jobs set status='completed',result_json=$1::jsonb,confidence=$2,human_review_required=$3,reserved_cost_microusd=0,
          input_tokens=$4,output_tokens=$5,estimated_cost_microusd=$6,provider_request_id=$7,completed_at=now(),updated_at=now()
        where id=$8`,
       [JSON.stringify(result),confidence,humanReview,inputTokens,outputTokens,costMicrousd,body?.id||null,jobId]
     );
-    await recordDaily({organizationId:input.organizationId,purpose:input.purpose,modelAlias,inputTokens,outputTokens,costMicrousd});
+    await recordDaily({organizationId:input.organizationId,purpose:input.purpose,modelAlias,inputTokens,outputTokens,costMicrousd}).catch(()=>{});
     return {jobId,result,confidence,humanReview,costMicrousd,modelAlias};
   }catch(error){
-    await db.query(`update ai_jobs set status='failed',error_message=$1,completed_at=now(),updated_at=now() where id=$2`,[error instanceof Error?error.message:"AI request failed",jobId]);
-    throw error;
+    const timedOut=error instanceof Error&&(error.name==='TimeoutError'||error.name==='AbortError');
+    await recordAiFallback({jobId,organizationId:input.organizationId,personId:input.personId,purpose:input.purpose,reason:timedOut?"AI provider timed out":"AI provider failed",timedOut});
+    throw new Error(timedOut?"AI processing timed out; continue with the manual workflow":"AI processing is unavailable; continue with the manual workflow");
   }
 }
 

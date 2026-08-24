@@ -29,7 +29,7 @@ export async function getFeatureAdoptionSnapshot(){
     db.query(`select count(*)::int as count from organizations where status='active'`),
     db.query(`select count(distinct organization_id::text||':'||driver_person_id::text)::int as count from driver_organization_settings where status='active'`),
     db.query(`select count(*)::int as count from driver_organization_settings where status='active' and route_assist_enabled=true`),
-    db.query(`select count(*)::int as count from organization_ai_settings where enabled=true`).catch(()=>({rows:[{count:0}]} as any)),
+    db.query(`select count(*)::int as count from organization_ai_settings where ai_enabled=true`).catch(()=>({rows:[{count:0}]} as any)),
     db.query(`select count(distinct person_id)::int as count from push_subscriptions where status='active'`),
     db.query(`select count(*)::int as count from pickup_verification_sessions where created_at>=now()-interval '30 days'`).catch(()=>({rows:[{count:0}]} as any)),
     db.query(`select count(*)::int as count from pickup_verification_sessions where verified_at is not null and created_at>=now()-interval '30 days'`).catch(()=>({rows:[{count:0}]} as any)),

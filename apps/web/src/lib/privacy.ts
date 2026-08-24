@@ -163,7 +163,7 @@ export async function buildMyDataExport(identity: SessionIdentity) {
   );
 
   try {
-    const [profile, emails, phones, household, guardians, memberships, rideRequests, rideOffers, rides, locations, documents, preferences, deliveries, safety, consents, organizationPolicyAcknowledgements, activity, authEvents, privacyRequests] = await Promise.all([
+    const [profile, emails, phones, household, guardians, memberships, rideRequests, rideOffers, rides, locations, documents, preferences, deliveries, safety, consents, organizationPolicyAcknowledgements, activity, authEvents, privacyRequests,aiJobs,aiPolicyEvents] = await Promise.all([
       db.query(
         `select p.id,p.display_name,p.preferred_name,p.person_type,p.profile_bio,p.birth_month,p.birth_year,
                 p.age_band,p.student_approval_required,p.rider_preferences,p.created_at,p.updated_at,
@@ -262,6 +262,8 @@ export async function buildMyDataExport(identity: SessionIdentity) {
            from privacy_requests where person_id=$1 order by requested_at`,
         [identity.personId]
       ),
+      db.query(`select purpose,provider_path,model_alias,status,confidence,human_review_required,prompt_version,input_tokens,output_tokens,estimated_cost_microusd,policy_decision,fallback_reason,timed_out,created_at,completed_at from ai_jobs where person_id=$1 order by created_at`,[identity.personId]),
+      db.query(`select purpose,decision,reason,monthly_budget_microusd,committed_and_reserved_microusd,requested_reservation_microusd,occurred_at from ai_policy_events where person_id=$1 order by occurred_at`,[identity.personId]),
     ]);
 
     const exportData = {
@@ -296,6 +298,8 @@ export async function buildMyDataExport(identity: SessionIdentity) {
       activityEvents: activity.rows,
       authenticationEvents: authEvents.rows,
       privacyRequests: privacyRequests.rows,
+      aiJobs: aiJobs.rows,
+      aiPolicyEvents: aiPolicyEvents.rows,
       notes: [
         "Credential document binaries are not embedded in this JSON export. Active documents remain available through the Credential Vault until deleted.",
         "Minimum de-identified security, safety, billing, and audit records may be retained under BandWagon policy.",

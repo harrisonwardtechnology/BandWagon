@@ -42,9 +42,14 @@ LITELLM_API_KEY=<BandWagon virtual key or master key during bootstrap>
 AI_FAST_MODEL=bandwagon-fast
 AI_BALANCED_MODEL=bandwagon-balanced
 AI_DEEP_MODEL=bandwagon-deep
+AI_RUNTIME_ENABLED=false
+AI_REQUEST_TIMEOUT_MS=30000
+AI_MAX_JOB_COST_MICROUSD=250000
 ```
 
 Do not place provider API keys in the BandWagon application once LiteLLM is operational.
+
+`AI_RUNTIME_ENABLED` is the platform kill switch and defaults closed. Set it to `true` only after the provider-retention review, a production LiteLLM virtual key, matching LiteLLM budget/rate limits, and organization hard caps are configured.
 
 ## Security defaults
 
@@ -55,6 +60,10 @@ Do not place provider API keys in the BandWagon application once LiteLLM is oper
 - BandWagon stores purpose, model, token/cost metadata, confidence and structured results in `ai_jobs`; it does not need raw prompt history.
 - Use separate virtual keys for production, development and administrative testing.
 - Apply budgets/rate limits per virtual key and/or application purpose.
+- Require a positive BandWagon monthly hard cap for every AI-enabled organization. Completed costs and in-flight reservations count against the cap before a job starts.
+- Permit only the three configured model aliases. Provider model names are never accepted from product callers.
+- Abort provider calls after the bounded request timeout. Do not automatically retry sensitive or billable requests.
+- On policy denial, timeout, or provider failure, return to the documented manual workflow and retain a policy event without raw prompt content.
 - Rotate provider and LiteLLM keys without changing BandWagon business logic.
 
 ## Routing policy
@@ -108,3 +117,7 @@ Safety summaries
 ```
 
 The BandWagon record is the business/accounting source of truth; LiteLLM is the operational inference gateway.
+
+## Provider retention launch gate
+
+Before enabling the runtime in production, record evidence that each configured provider account/project has prompt and response logging disabled where supported, zero/approved retention for submitted content, no training on submitted content, and region/access settings acceptable for credential and minor-related workflows. If those controls cannot be verified, leave the relevant feature off. Never enable request-body logging, session replay, or prompt callbacks in LiteLLM observability.

@@ -41,6 +41,7 @@ const requiredTables = [
   "calendar_event_conflicts",
   "managed_student_account_access",
   "application_errors",
+  "ai_policy_events",
 ];
 
 await client.connect();

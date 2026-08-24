@@ -33,6 +33,8 @@ export async function updateOrganizationAiSettings(identity:SessionIdentity,inpu
   await assertIdentityOrganizationAdmin(identity,input.organizationId);const db=dbRequired();
   const before=await getOrganizationAiSettings(input.organizationId);
   const master=Boolean(input.aiEnabled);
+  const budget=input.monthlyBudgetCents==null?null:Math.round(Number(input.monthlyBudgetCents));
+  if(master&&(!Number.isFinite(budget)||Number(budget)<1))throw new Error("Set a monthly AI hard cap before enabling AI");
   const result=await db.query(`update organization_ai_settings set
       ai_enabled=$1,
       document_review_enabled=$2,
@@ -52,7 +54,7 @@ export async function updateOrganizationAiSettings(identity:SessionIdentity,inpu
       master&&Boolean(input.matchExplanationsEnabled),
       master&&Boolean(input.adminCopilotEnabled),
       master&&Boolean(input.safetySummariesEnabled),
-      input.monthlyBudgetCents==null?null:Math.max(0,Math.round(Number(input.monthlyBudgetCents))),
+      budget==null?null:Math.max(0,budget),
       ORG_AI_CONSENT_VERSION,identity.personId,input.organizationId
     ]);
   await db.query(`insert into organization_ai_setting_events (organization_id,actor_person_id,previous_settings,new_settings,consent_version) values ($1,$2,$3::jsonb,$4::jsonb,$5)`,[input.organizationId,identity.personId,JSON.stringify(before),JSON.stringify(result.rows[0]),ORG_AI_CONSENT_VERSION]);
@@ -63,7 +65,7 @@ export async function isOrgAiFeatureEnabled(organizationId:string|undefined|null
   if(!organizationId)return false;
   const s=await getOrganizationAiSettings(organizationId);
   const field:Record<OrgAiFeature,string>={document_review:"document_review_enabled",event_intake:"event_intake_enabled",match_explanations:"match_explanations_enabled",admin_copilot:"admin_copilot_enabled",safety_summaries:"safety_summaries_enabled"};
-  return Boolean(s.ai_enabled&&s[field[feature]]);
+  return Boolean(s.ai_enabled&&s[field[feature]]&&s.consent_version===ORG_AI_CONSENT_VERSION&&Number(s.monthly_budget_cents)>0);
 }
 
 export async function assertOrgAiFeatureEnabled(organizationId:string|undefined|null,feature:OrgAiFeature){

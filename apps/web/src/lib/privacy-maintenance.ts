@@ -326,6 +326,7 @@ async function anonymizeAccount(request: any) {
         where person_id=$1 or document_id in(select id from person_documents where person_id=$1)`,
       [row.person_id]
     );
+    await client.query(`update ai_policy_events set person_id=null,metadata='{}'::jsonb where person_id=$1`,[row.person_id]);
     await client.query(
       `update person_documents
           set status='deleted',storage_key='deleted/'||id::text,original_filename=null,content_type=null,
