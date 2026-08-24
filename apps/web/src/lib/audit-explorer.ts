@@ -10,7 +10,7 @@ function redact(value:any,depth=0):any{
   return value;
 }
 
-export async function queryAuditEvents(input:{organizationId?:string|null;action?:string|null;actor?:string|null;targetType?:string|null;outcome?:string|null;days?:number;limit?:number;offset?:number}){
+export async function queryAuditEvents(input:{organizationId?:string|null;action?:string|null;actor?:string|null;targetType?:string|null;outcome?:string|null;days?:number;limit?:number;offset?:number;maximumLimit?:number}){
   const db=getDb();if(!db)throw new Error('Database is not configured');
   const params:any[]=[];const where:string[]=[];
   const days=Math.max(1,Math.min(3650,Number(input.days||30)));params.push(days);where.push(`ae.occurred_at>=now()-($${params.length}||' days')::interval`);
@@ -19,7 +19,7 @@ export async function queryAuditEvents(input:{organizationId?:string|null;action
   if(clean(input.actor)){params.push(`%${clean(input.actor)}%`);where.push(`(p.display_name ilike $${params.length} or e.normalized_email ilike $${params.length})`);}
   if(clean(input.targetType)){params.push(clean(input.targetType));where.push(`ae.target_type=$${params.length}`);}
   if(clean(input.outcome)){params.push(clean(input.outcome));where.push(`ae.outcome=$${params.length}`);}
-  const limit=Math.max(1,Math.min(500,Number(input.limit||100))),offset=Math.max(0,Number(input.offset||0));params.push(limit,offset);
+  const maximumLimit=Math.max(1,Math.min(10000,Number(input.maximumLimit||500)));const limit=Math.max(1,Math.min(maximumLimit,Number(input.limit||100))),offset=Math.max(0,Number(input.offset||0));params.push(limit,offset);
   const result=await db.query(`select ae.id,ae.organization_id,coalesce(o.display_name,o.name) as organization_name,ae.actor_person_id,p.display_name as actor_name,
     ae.action,ae.target_type,ae.target_id,ae.outcome,ae.metadata,ae.occurred_at
     from audit_events ae

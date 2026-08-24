@@ -130,7 +130,7 @@ BLUE COW                    BLUE COW
 - [x] stronger auth/IP throttling
 - [x] account-enumeration hardening
 - [x] session / cookie hardening review
-- admin audit export
+- [x] admin audit export
 - secret / key rotation procedure
 - backup / restore verification
 - centralized error / health monitoring
