@@ -116,7 +116,7 @@ test("organizer creates an event and a ride completes across real roles", async 
     await context.addCookies([{ name: "bw_session", value: parentToken, url: baseURL }]);
     const page = await context.newPage();
     await page.goto("/app/rides");
-    await expect(page.getByText(`Practice ${runId}`).first()).toBeVisible();
+    await expect(page.locator("select option").filter({ hasText: `Practice ${runId}` })).toHaveCount(1);
     await expect(page.getByText("completed", { exact: false }).first()).toBeVisible();
     await context.close();
   } finally {
