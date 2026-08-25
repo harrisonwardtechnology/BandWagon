@@ -3,9 +3,10 @@ import "./globals.css";
 import PwaRegister from "./PwaRegister";
 import SupportModeBanner from "@/components/support-mode-banner";
 import OfflineStatus from "./OfflineStatus";
+import { BrandLogo } from "@/components/brand-logo";
 
 export const viewport: Viewport = {
-  themeColor: "#101b33",
+  themeColor: "#071a33",
   width: "device-width",
   initialScale: 1,
 };
@@ -15,6 +16,10 @@ export const metadata: Metadata = {
   title: { default: "BandWagon", template: "%s | BandWagon" },
   description: "Privacy-first, open-source community ride coordination for families, teams, schools, and organizations.",
   applicationName: "BandWagon",
+  icons: {
+    icon: [{ url: "/bandwagon-icon.svg", type: "image/svg+xml" }, { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   alternates: { canonical: "/" },
   openGraph: {
     title: "BandWagon",
@@ -46,9 +51,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <div id="main-content" tabIndex={-1}>{children}</div>
         <footer style={{marginTop:48,borderTop:"1px solid #e2e8f0",background:"#f8fafc",padding:"24px 20px",fontFamily:"system-ui,sans-serif"}}>
           <div style={{maxWidth:1120,margin:"0 auto",display:"flex",gap:18,justifyContent:"space-between",alignItems:"center",flexWrap:"wrap"}}>
-            <div style={{fontSize:13,color:"#64748b"}}><strong style={{color:"#101b33"}}>BandWagon</strong> · Community-powered rides</div>
+            <div className="footer-brand"><BrandLogo /><span>Community-powered rides</span></div>
             <nav aria-label="Footer" style={{display:"flex",gap:16,flexWrap:"wrap"}}>
               <a href="/help" style={linkStyle}>Help Center</a>
+              <a href="/documents/BandWagon_Organization_Proposal_and_Review_Package.docx" style={linkStyle}>Review Package</a>
               <a href={statusUrl} target="_blank" rel="noreferrer" style={linkStyle}>Platform Status <span className="sr-only">(opens in a new tab)</span></a>
               <a href="/security" style={linkStyle}>Security / Report a Bug</a>
               <a href="/support" style={linkStyle}>Support BandWagon</a>
