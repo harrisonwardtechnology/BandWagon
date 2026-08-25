@@ -40,6 +40,7 @@ async function recipientContext(request:NotificationRequest){
   let phone=request.phone||null;if(!phone&&request.personId)phone=await getVerifiedPhone(request.personId);
   const params:unknown[]=[];let where="where status='active'";
   if(request.personId){params.push(request.personId);where+=` and person_id=$${params.length}`;}else if(request.organizationId){params.push(request.organizationId);where+=` and organization_id=$${params.length}`;}
+  else where+=" and false";
   const subscriptions=await db.query(`select endpoint,p256dh,auth,person_id,organization_id from push_subscriptions ${where} order by last_seen_at desc limit 20`,params);
   return {preferences,email,phone,subscriptions:subscriptions.rows};
 }

@@ -217,6 +217,11 @@ The executable go/no-go criteria live in [`operations/V1-LAUNCH-CHECKLIST.md`](o
 - device registration and session management
 - biometric unlock as an optional convenience layer after normal BandWagon authentication
 - Sign in with Apple / Google where useful, while preserving email / phone OTP and organization policies
+- passwordless login approval using a signed, single-use device challenge delivered by push first and branded RCS when supported
+- push / RCS approval displays the requesting device, approximate location, time, organization, and a number-match challenge before Approve or Deny
+- RCS one-time passcodes and approval links as a fallback for users without an active push-capable device; SMS and email remain recovery fallbacks
+- approval requests expire quickly, cannot be replayed, are rate-limited, and trigger audit events and user-visible denial/report controls
+- never treat a bare inbound `YES` as login approval; require the signed challenge and number/device match to prevent reply spoofing and approval fatigue
 - account recovery and device-loss flows
 
 ### Native notifications

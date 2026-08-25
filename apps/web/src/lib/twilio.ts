@@ -1,10 +1,16 @@
 import crypto from "node:crypto";
 import { getRedis } from "./redis";
+import { getDb } from "./db";
+import { lookupHash } from "./data-security";
+import { normalizePhoneInput } from "./phone-format";
 
 export type TwilioForm = Record<string, string>;
 
 export async function parseTwilioForm(request: Request): Promise<TwilioForm> {
+  const declared=Number(request.headers.get("content-length")||0);
+  if(declared>65_536)throw new Error("Twilio webhook payload is too large");
   const text = await request.text();
+  if(text.length>65_536)throw new Error("Twilio webhook payload is too large");
   const params = new URLSearchParams(text);
   return Object.fromEntries(params.entries());
 }
@@ -47,12 +53,19 @@ export async function markOnce(key: string, ttlSeconds = 86400) {
 
 export async function setSmsConsent(phone: string, state: "opted_in" | "opted_out") {
   const redis = getRedis();
-  if (!redis || !phone) return;
-  if (redis.status === "wait") await redis.connect();
-  await redis.hset(`twilio:sms-consent:${phone}`, {
-    state,
-    updatedAt: new Date().toISOString(),
-  });
+  if (!phone) return;
+  if(redis){
+    if (redis.status === "wait") await redis.connect();
+    await redis.hset(`twilio:sms-consent:${phone}`, {
+      state,
+      updatedAt: new Date().toISOString(),
+    }).catch(()=>undefined);
+  }
+  const normalized=normalizePhoneInput(phone,"US");
+  const db=getDb();
+  if(db&&normalized&&process.env.LOOKUP_HASH_KEY){
+    await db.query(`update phones set messaging_consent_status=$1 where lookup_hash=$2 and verified_at is not null`,[state,lookupHash(normalized)]);
+  }
 }
 
 export function twiml(xml: string) {

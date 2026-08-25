@@ -1,4 +1,6 @@
 import { getDb } from "@/lib/db";
+import { lookupHash } from "@/lib/data-security";
+import { enforceMobileMessageIntent } from "@/lib/messaging-policy";
 
 export type TwilioDeliveryMode = "auto" | "sms";
 
@@ -34,14 +36,28 @@ export async function sendTwilioNotification(input: {
   const to = normalizePhone(input.to);
   if (!to) throw new Error("Recipient must be a valid E.164 phone number");
 
-  const body = input.body.trim();
-  if (!body || body.length > 1000) {
-    throw new Error("Message body must be between 1 and 1000 characters");
-  }
+  const { body } = enforceMobileMessageIntent(input);
 
   const mode = input.mode || "auto";
   if (mode === "sms" && !phoneNumber) {
     throw new Error("TWILIO_PHONE_NUMBER is required to force SMS");
+  }
+
+  const db = getDb();
+  if (db) {
+    if (process.env.LOOKUP_HASH_KEY) {
+      const consent=await db.query(`select messaging_consent_status from phones where lookup_hash=$1 and verified_at is not null order by created_at desc limit 1`,[lookupHash(to)]);
+      if (consent.rows[0]?.messaging_consent_status==="opted_out") throw new Error("Recipient has opted out of mobile messaging");
+    }
+    const windowMinutes=input.notificationType==="otp"?15:60;
+    const limit=input.notificationType==="otp"?5:20;
+    const recent=await db.query(`select count(*)::int as count from notification_deliveries where destination_ref=$1 and channel in ('sms','rcs') and created_at>now()-($2||' minutes')::interval`,[to,String(windowMinutes)]);
+    if(Number(recent.rows[0]?.count||0)>=limit)throw new Error("Mobile messaging rate limit reached for this recipient");
+  }
+
+  if(input.notificationType==="platform_test"&&process.env.NODE_ENV==="production"){
+    const allowed=normalizePhone(process.env.ADMIN_TEST_PHONE);
+    if(!allowed||to!==allowed)throw new Error("Production platform tests are restricted to ADMIN_TEST_PHONE");
   }
 
   const form = new URLSearchParams();
@@ -72,7 +88,6 @@ export async function sendTwilioNotification(input: {
     twilio = { message: raw };
   }
 
-  const db = getDb();
   const channel = mode === "sms" ? "sms" : "rcs";
   const segments = estimatedSegments(body);
   // Planning estimate only: roughly 1.25 cents/segment including blended carrier fees.

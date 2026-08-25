@@ -15,9 +15,6 @@ type SendResult = {
 
 export default function MessagingTestPage() {
   const [to, setTo] = useState("");
-  const [body, setBody] = useState(
-    "BandWagon platform test: Messaging is working. Reply HELP for help or STOP to opt out."
-  );
   const [mode, setMode] = useState<"auto" | "sms">("auto");
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<SendResult | null>(null);
@@ -31,7 +28,7 @@ export default function MessagingTestPage() {
       const response = await fetch("/api/admin/messaging-test", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ to, body, mode }),
+        body: JSON.stringify({ to, mode }),
       });
 
       const data = await response.json();
@@ -100,15 +97,10 @@ export default function MessagingTestPage() {
         </div>
 
         <label style={{display:"block", fontWeight:700, marginBottom:6}}>Message</label>
-        <textarea
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          rows={5}
-          maxLength={1000}
-          required
-          style={{width:"100%", padding:12, border:"1px solid #cbd5e1", borderRadius:8, marginBottom:8}}
-        />
-        <div style={{fontSize:13, color:"#64748b", marginBottom:20}}>{body.length}/1000 characters</div>
+        <div style={{padding:12, border:"1px solid #cbd5e1", borderRadius:8, marginBottom:20, background:"#f8fafc"}}>
+          BandWagon platform test: Transactional messaging is working. Reply HELP for help or STOP to opt out.
+        </div>
+        <div style={{fontSize:13, color:"#64748b", marginTop:-12, marginBottom:20}}>The server controls this template; the test tool cannot send free-form messages.</div>
 
         <button
           disabled={sending}

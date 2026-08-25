@@ -1,10 +1,11 @@
-import { emptyTwiml, escapeXml, markOnce, parseTwilioForm, setSmsConsent, twiml, validateTwilioSignature } from "@/lib/twilio";
+import { emptyTwiml, escapeXml, markOnce, parseTwilioForm, setSmsConsent, twiml, validateTwilioSignature,type TwilioForm } from "@/lib/twilio";
 import { confirmOrganizationDecommissionFromMessage } from "@/lib/organization-decommission-sms";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const form = await parseTwilioForm(request);
+  let form:TwilioForm;
+  try{form=await parseTwilioForm(request);}catch{return new Response("Webhook payload is too large or invalid",{status:413});}
   if (!validateTwilioSignature(request, form)) {
     return new Response("Invalid Twilio signature", { status: 403 });
   }

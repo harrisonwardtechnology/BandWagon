@@ -1,4 +1,5 @@
 import { requirePlatformRole } from "@/lib/auth";
+import { sendTwilioNotification } from "@/lib/twilio-send";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,19 +13,7 @@ export async function POST(request: Request) {
   try { await requirePlatformRole(["owner"]); }
   catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Platform owner access is required" }, { status: 403 }); }
 
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
-  const phoneNumber = process.env.TWILIO_PHONE_NUMBER;
-
-  if (!accountSid || !authToken || !messagingServiceSid) {
-    return Response.json(
-      { error: "Twilio production configuration is incomplete." },
-      { status: 503 }
-    );
-  }
-
-  let payload: { to?: string; body?: string; mode?: string };
+  let payload: { to?: string; mode?: string };
   try {
     payload = await request.json();
   } catch {
@@ -43,6 +32,9 @@ export async function POST(request: Request) {
     ? normalizePhone(process.env.ADMIN_TEST_PHONE)
     : null;
 
+  if (process.env.NODE_ENV === "production" && !allowedPhone) {
+    return Response.json({ error: "ADMIN_TEST_PHONE is required for production messaging tests." }, { status: 503 });
+  }
   if (allowedPhone && to !== allowedPhone) {
     return Response.json(
       { error: "This test tool is restricted to ADMIN_TEST_PHONE." },
@@ -50,95 +42,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = String(payload.body || "").trim();
-  if (!body || body.length > 1000) {
-    return Response.json(
-      { error: "Message body must be between 1 and 1000 characters." },
-      { status: 400 }
-    );
-  }
-
   const mode = payload.mode === "sms" ? "sms" : "auto";
-  if (mode === "sms" && !phoneNumber) {
-    return Response.json(
-      { error: "TWILIO_PHONE_NUMBER is required to force SMS." },
-      { status: 503 }
-    );
-  }
-
-  const form = new URLSearchParams();
-  form.set("To", to);
-  form.set("Body", body);
-  form.set("MessagingServiceSid", messagingServiceSid);
-
-  // Auto mode lets Messaging Service sender selection choose RCS first and
-  // automatically fall back to an SMS/MMS sender when required.
-  // SMS mode pins the From sender to the configured BandWagon number.
-  if (mode === "sms" && phoneNumber) {
-    form.set("From", phoneNumber);
-  }
-
-  const appUrl = (process.env.APP_URL || "").replace(/\/$/, "");
-  if (appUrl) {
-    form.set("StatusCallback", `${appUrl}/api/webhooks/twilio/status`);
-  }
-
-  const endpoint =
-    `https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(accountSid)}/Messages.json`;
-
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      authorization:
-        "Basic " + Buffer.from(`${accountSid}:${authToken}`).toString("base64"),
-      "content-type": "application/x-www-form-urlencoded",
-    },
-    body: form.toString(),
-    cache: "no-store",
-  });
-
-  const raw = await response.text();
-  let twilio: any = {};
   try {
-    twilio = JSON.parse(raw);
-  } catch {
-    twilio = { message: raw };
+    const result=await sendTwilioNotification({to,body:"BandWagon platform test: Transactional messaging is working. Reply HELP for help or STOP to opt out.",mode,notificationType:"platform_test",urgency:"important"});
+    return Response.json({...result,to,requestedMode:mode==="auto"?"RCS preferred + SMS fallback":"Forced SMS",note:"This endpoint uses a fixed transactional test template and cannot relay free-form messages."});
+  } catch(error) {
+    return Response.json({error:error instanceof Error?error.message:"Twilio rejected the test message."},{status:500});
   }
-
-  if (!response.ok) {
-    console.warn("BandWagon messaging test rejected by Twilio", {
-      status: response.status,
-      code: twilio.code || null,
-      message: twilio.message || null,
-    });
-
-    return Response.json(
-      {
-        error: twilio.message || "Twilio rejected the test message.",
-        twilioCode: twilio.code || null,
-      },
-      { status: response.status }
-    );
-  }
-
-  console.info("BandWagon messaging platform test accepted", {
-    sid: twilio.sid,
-    status: twilio.status,
-    requestedMode: mode,
-    to,
-  });
-
-  return Response.json({
-    ok: true,
-    sid: twilio.sid,
-    status: twilio.status,
-    to: twilio.to || to,
-    from: twilio.from || null,
-    requestedMode:
-      mode === "auto" ? "RCS preferred + SMS fallback" : "Forced SMS",
-    note:
-      mode === "auto"
-        ? "Twilio Messaging Service sender selection determines whether this is delivered over RCS or falls back to SMS."
-        : "The configured BandWagon phone number was explicitly selected as the sender.",
-  });
 }
