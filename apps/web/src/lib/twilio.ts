@@ -3,17 +3,10 @@ import { getRedis } from "./redis";
 import { getDb } from "./db";
 import { lookupHash } from "./data-security";
 import { normalizePhoneInput } from "./phone-format";
+import { parseTwilioForm, type TwilioForm } from "./twilio-form";
 
-export type TwilioForm = Record<string, string>;
-
-export async function parseTwilioForm(request: Request): Promise<TwilioForm> {
-  const declared=Number(request.headers.get("content-length")||0);
-  if(declared>65_536)throw new Error("Twilio webhook payload is too large");
-  const text = await request.text();
-  if(text.length>65_536)throw new Error("Twilio webhook payload is too large");
-  const params = new URLSearchParams(text);
-  return Object.fromEntries(params.entries());
-}
+export { parseTwilioForm };
+export type { TwilioForm };
 
 function signatureBase(url: string, params: TwilioForm) {
   return url + Object.keys(params).sort().map((key) => key + params[key]).join("");
