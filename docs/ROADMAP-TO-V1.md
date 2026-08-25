@@ -205,6 +205,8 @@ The executable go/no-go criteria live in [`operations/V1-LAUNCH-CHECKLIST.md`](o
 ## 2.0 - Native Mobile Apps + Product Expansion
 **Goal:** Deliver first-class iOS and Android apps and the highest-value post-v1 workflows without forking BandWagon into three separate products.
 
+The implementation sequence, sprint ownership, release gates, and definition of done are maintained in [`V2-ROADMAP-AND-SPRINT-MAP.md`](V2-ROADMAP-AND-SPRINT-MAP.md).
+
 ### Mobile architecture
 - keep the BandWagon backend, data model, authorization, safety rules, tenant isolation, AI gateway, and notification engine authoritative
 - expose stable versioned application APIs for web, iOS, and Android clients
@@ -232,7 +234,7 @@ The executable go/no-go criteria live in [`operations/V1-LAUNCH-CHECKLIST.md`](o
 - trusted household delegates and backup pickup contacts with scoped permissions, expiration, guardian approval, and a visible audit history
 - capacity-aware pooled-ride planning and suggested pickup order while keeping the driver and organizer in control of the final route
 - a user-facing security center for active devices, recent sign-ins, login approvals, recovery methods, and one-tap session revocation
-- localization and accessibility expansion, including translated transactional notices and organization-controlled language defaults
+- localization and accessibility are V2 release gates, including WCAG 2.2 AA, assistive-technology testing, translated transactional notices, per-user language preferences, and organization-controlled language defaults
 
 ### Native notifications
 - Apple Push Notification Service (APNs)
