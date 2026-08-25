@@ -140,7 +140,7 @@ export async function getVerifiedPhone(personId: string) {
   const db = getDb();
   if (!db) return null;
   const result = await db.query(
-    `select e164_ciphertext from phones where person_id=$1 and verified_at is not null order by verified_at desc limit 1`,
+    `select e164_ciphertext from phones where person_id=$1 and verified_at is not null and messaging_consent_status<>'opted_out' order by verified_at desc limit 1`,
     [personId]
   );
   if (!result.rowCount) return null;

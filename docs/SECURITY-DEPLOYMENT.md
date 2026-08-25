@@ -35,3 +35,5 @@ Optional integrations may disable themselves only when the corresponding feature
 ## Environment Separation
 
 Development/demo environments must not share production OAuth, SMTP, Twilio, database, encryption, or signing secrets.
+
+BandWagon treats SMS/RCS as a closed transactional channel rather than user chat or a general-purpose relay. The enforced boundaries and operational checks are documented in [`MESSAGING-ABUSE-CONTROLS.md`](MESSAGING-ABUSE-CONTROLS.md).

@@ -140,24 +140,6 @@ export async function requestOtp(input: {
   }
 
   const ipHash = input.requestIp ? digest(`ip:${input.requestIp}`) : null;
-  const [identifierRate,ipRate] = await Promise.all([
-    db.query(
-      `select count(*)::int as count from auth_otp_challenges
-        where identifier_lookup=$1 and created_at > now()-($2||' minutes')::interval`,
-      [normalized.lookup,String(OTP_RATE_WINDOW_MINUTES)]
-    ),
-    ipHash
-      ? db.query(
-          `select count(*)::int as count from auth_otp_challenges
-            where request_ip_hash=$1 and created_at > now()-($2||' minutes')::interval`,
-          [ipHash,String(OTP_RATE_WINDOW_MINUTES)]
-        )
-      : Promise.resolve({ rows: [{ count: 0 }] }),
-  ]);
-  if (Number(identifierRate.rows[0]?.count || 0) >= OTP_IDENTIFIER_LIMIT || Number(ipRate.rows[0]?.count || 0) >= OTP_IP_LIMIT) {
-    throw new Error("Too many verification requests. Try again shortly.");
-  }
-
   const existing = await findExistingAccount(normalized.type, normalized.lookup);
   const managedClaim = !existing && normalized.type === "email"
     ? await findManagedStudentClaim(normalized.destination)
@@ -169,19 +151,55 @@ export async function requestOtp(input: {
   const code = String(crypto.randomInt(100000, 1000000));
   const codeHash = digest(`${id}:${code}`);
   const purpose = managedClaim ? "managed_student_claim" : createNewAccount ? "sign_up" : "sign_in";
-  await db.query(
-    `insert into auth_otp_challenges
-      (id,purpose,destination_type,identifier_lookup,destination_ciphertext,person_id,user_account_id,
-       code_hash,signup_display_name,signup_household_name,signup_birth_month,signup_birth_year,request_ip_hash,expires_at)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,now()+($14 || ' minutes')::interval)`,
-    [
-      id,purpose,normalized.type,normalized.lookup,encryptSensitive(normalized.destination),
-      existing?.person_id || managedClaim?.person_id || null,existing?.user_account_id || null,codeHash,createNewAccount ? displayName : null,
-      createNewAccount ? input.householdName?.trim() || null : null,
-      createNewAccount ? input.birthMonth || null : null,createNewAccount ? input.birthYear || null : null,
-      ipHash,String(OTP_TTL_MINUTES),
-    ]
-  );
+  const client = await db.connect();
+  try {
+    await client.query("BEGIN");
+    // Acquire every quota lock in stable order so both same-identifier and
+    // same-IP requests serialize without creating a lock-order deadlock.
+    const quotaLocks = [
+      `bandwagon:otp:identifier:${normalized.lookup}`,
+      ...(ipHash ? [`bandwagon:otp:ip:${ipHash}`] : []),
+    ].sort();
+    for (const quotaLock of quotaLocks) {
+      await client.query("select pg_advisory_xact_lock(hashtext($1))", [quotaLock]);
+    }
+
+    const identifierRate = await client.query(
+      `select count(*)::int as count from auth_otp_challenges
+        where identifier_lookup=$1 and created_at > now()-($2||' minutes')::interval`,
+      [normalized.lookup,String(OTP_RATE_WINDOW_MINUTES)]
+    );
+    const ipRate = ipHash
+      ? await client.query(
+          `select count(*)::int as count from auth_otp_challenges
+            where request_ip_hash=$1 and created_at > now()-($2||' minutes')::interval`,
+          [ipHash,String(OTP_RATE_WINDOW_MINUTES)]
+        )
+      : { rows: [{ count: 0 }] };
+    if (Number(identifierRate.rows[0]?.count || 0) >= OTP_IDENTIFIER_LIMIT || Number(ipRate.rows[0]?.count || 0) >= OTP_IP_LIMIT) {
+      throw new Error("Too many verification requests. Try again shortly.");
+    }
+
+    await client.query(
+      `insert into auth_otp_challenges
+        (id,purpose,destination_type,identifier_lookup,destination_ciphertext,person_id,user_account_id,
+         code_hash,signup_display_name,signup_household_name,signup_birth_month,signup_birth_year,request_ip_hash,expires_at)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,now()+($14 || ' minutes')::interval)`,
+      [
+        id,purpose,normalized.type,normalized.lookup,encryptSensitive(normalized.destination),
+        existing?.person_id || managedClaim?.person_id || null,existing?.user_account_id || null,codeHash,createNewAccount ? displayName : null,
+        createNewAccount ? input.householdName?.trim() || null : null,
+        createNewAccount ? input.birthMonth || null : null,createNewAccount ? input.birthYear || null : null,
+        ipHash,String(OTP_TTL_MINUTES),
+      ]
+    );
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw error;
+  } finally {
+    client.release();
+  }
 
   let deliveryAccepted = false;
   try {

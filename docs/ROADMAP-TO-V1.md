@@ -202,8 +202,10 @@ The executable go/no-go criteria live in [`operations/V1-LAUNCH-CHECKLIST.md`](o
 
 ---
 
-## 2.0 - Native Mobile Apps
-**Goal:** Deliver first-class iOS and Android apps without forking BandWagon into three separate products.
+## 2.0 - Native Mobile Apps + Product Expansion
+**Goal:** Deliver first-class iOS and Android apps and the highest-value post-v1 workflows without forking BandWagon into three separate products.
+
+The implementation sequence, sprint ownership, release gates, and definition of done are maintained in [`V2-ROADMAP-AND-SPRINT-MAP.md`](V2-ROADMAP-AND-SPRINT-MAP.md).
 
 ### Mobile architecture
 - keep the BandWagon backend, data model, authorization, safety rules, tenant isolation, AI gateway, and notification engine authoritative
@@ -215,9 +217,24 @@ The executable go/no-go criteria live in [`operations/V1-LAUNCH-CHECKLIST.md`](o
 ### Native account / identity
 - secure token storage using iOS Keychain and Android Keystore
 - device registration and session management
+- passkeys / WebAuthn as the preferred phishing-resistant sign-in method; push, RCS, SMS, and email remain approval or recovery channels rather than equivalent trust factors
 - biometric unlock as an optional convenience layer after normal BandWagon authentication
 - Sign in with Apple / Google where useful, while preserving email / phone OTP and organization policies
+- passwordless login approval using a signed, single-use device challenge delivered by push first and branded RCS when supported
+- push / RCS approval displays the requesting device, approximate location, time, organization, and a number-match challenge before Approve or Deny
+- RCS one-time passcodes and approval links as a fallback for users without an active push-capable device; SMS and email remain recovery fallbacks
+- approval requests expire quickly, cannot be replayed, are rate-limited, and trigger audit events and user-visible denial/report controls
+- never treat a bare inbound `YES` as login approval; require the signed challenge and number/device match to prevent reply spoofing and approval fatigue
 - account recovery and device-loss flows
+
+### V2 product workflows
+- recurring ride and event templates with explicit exception handling for holidays, cancellations, and one-off schedule changes
+- waitlists / standby offers with expiring, auditable acceptance windows instead of organizer-managed message chains
+- organization policy for member-created event proposals: members may submit drafts, but only authorized organizers may approve and publish them
+- trusted household delegates and backup pickup contacts with scoped permissions, expiration, guardian approval, and a visible audit history
+- capacity-aware pooled-ride planning and suggested pickup order while keeping the driver and organizer in control of the final route
+- a user-facing security center for active devices, recent sign-ins, login approvals, recovery methods, and one-tap session revocation
+- localization and accessibility are V2 release gates, including WCAG 2.2 AA, assistive-technology testing, translated transactional notices, per-user language preferences, and organization-controlled language defaults
 
 ### Native notifications
 - Apple Push Notification Service (APNs)
@@ -303,6 +320,7 @@ The initial native apps should prioritize parents, students, and drivers. Comple
 - QR event check-in / attendance integrations
 - school / district roster integrations where legally and contractually appropriate
 - broader SSO / identity integrations
+- scoped organization API and signed webhooks only after the public API threat model, tenant-isolation tests, quotas, and key-rotation controls are complete
 - optional white-label / organization-branded mobile experience only if demand justifies the operational cost
 - CarPlay / Android Auto only after safety and platform-policy review
 

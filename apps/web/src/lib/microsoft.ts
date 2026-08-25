@@ -80,10 +80,23 @@ async function refreshMicrosoftAccessToken(refreshToken: string) {
 }
 
 async function graphFetchWithToken(url: string, accessToken: string) {
-  const response=await fetch(url,{headers:{authorization:`Bearer ${accessToken}`,accept:"application/json",Prefer:'outlook.timezone="UTC"'},cache:"no-store"});
-  const body=await response.json();
-  if(!response.ok)throw new Error(body.error?.message||"Microsoft Graph request failed");
-  return body;
+  let lastError="Microsoft Graph request failed";
+  for(let attempt=1;attempt<=3;attempt++){
+    const response=await fetch(url,{headers:{authorization:`Bearer ${accessToken}`,accept:"application/json",Prefer:'outlook.timezone="UTC"'},cache:"no-store"});
+    const text=await response.text();
+    let body:any=null;
+    if(text.trim()){
+      try{body=JSON.parse(text);}
+      catch{lastError=`Microsoft Graph returned HTTP ${response.status} with an invalid JSON response`;}
+    }else lastError=`Microsoft Graph returned HTTP ${response.status} with an empty response`;
+    if(response.ok&&body)return body;
+    if(body?.error?.message)lastError=`Microsoft Graph returned HTTP ${response.status}: ${body.error.message}`;
+    const retryable=[429,500,502,503,504].includes(response.status)||!text.trim();
+    if(!retryable||attempt===3)throw new Error(lastError);
+    const retryAfter=Math.min(10,Math.max(1,Number(response.headers.get("retry-after")||attempt)));
+    await new Promise(resolve=>setTimeout(resolve,retryAfter*1000));
+  }
+  throw new Error(lastError);
 }
 
 export async function saveMicrosoftConnection(organizationId: string,tokens: MicrosoftTokens) {

@@ -28,29 +28,24 @@ export async function POST(request: Request) {
   const allowedPhone = process.env.ADMIN_TEST_PHONE
     ? normalizePhone(process.env.ADMIN_TEST_PHONE)
     : null;
-  if (phone && allowedPhone && phone !== allowedPhone) {
-    return Response.json({ error: "This test tool is restricted to ADMIN_TEST_PHONE" }, { status: 403 });
+  if(process.env.NODE_ENV==="production"&&!allowedPhone){
+    return Response.json({error:"ADMIN_TEST_PHONE is required for production notification tests"},{status:503});
   }
-
-  const notificationType = String(body.notificationType || "platform_test");
-  const title = String(body.title || "BandWagon notification routing test").trim();
-  const message = String(body.body || "Push-first notification routing is working.").trim();
-
-  if (!title || !message || message.length > 1000) {
-    return Response.json({ error: "Invalid notification title/body" }, { status: 400 });
+  if (!phone) {
+    return Response.json({ error: "A test phone is required" }, { status: 400 });
+  }
+  if (allowedPhone && phone !== allowedPhone) {
+    return Response.json({ error: "This test tool is restricted to ADMIN_TEST_PHONE" }, { status: 403 });
   }
 
   try {
     const result = await routeNotification({
-      notificationType,
-      title,
-      body: message,
-      url: typeof body.url === "string" ? body.url : "/notifications",
-      personId: typeof body.personId === "string" ? body.personId : null,
-      organizationId: typeof body.organizationId === "string" ? body.organizationId : null,
+      notificationType:"platform_test",
+      title:"BandWagon notification routing test",
+      body:"BandWagon platform test: Transactional notification routing is working. Reply HELP for help or STOP to opt out.",
+      url:"/notifications",
       phone,
-      email: typeof body.email === "string" ? body.email : null,
-      correlationId: typeof body.correlationId === "string" ? body.correlationId : null,
+      forceUrgency:"critical",
     });
     return Response.json({ ok: true, ...result });
   } catch (error) {
