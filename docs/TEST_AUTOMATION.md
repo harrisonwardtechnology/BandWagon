@@ -23,6 +23,13 @@ SYNTHETIC_S3_CANARY=true npm run ops:synthetic
 
 The canary always attempts to delete its randomly named test object. It does not print credentials or secret values.
 
+Calendar synchronization can be scheduled in Coolify without fragile inline JavaScript:
+
+```sh
+npm run cron:google-calendar-sync
+npm run cron:microsoft-calendar-sync
+```
+
 ## Local end-to-end run
 
 Run the migrated application and database, then use:
