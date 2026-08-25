@@ -1,0 +1,41 @@
+name: Production Synthetic
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check configuration
+        env:
+          SYNTHETIC_BASE_URL: ${{ vars.PRODUCTION_URL }}
+        run: |
+          if [ -z "$SYNTHETIC_BASE_URL" ]; then
+            echo "Configure the repository variable PRODUCTION_URL to enable scheduled synthetic checks."
+            exit 1
+          fi
+
+      - name: Verify live, ready, and deep health
+        env:
+          SYNTHETIC_BASE_URL: ${{ vars.PRODUCTION_URL }}
+        run: |
+          node --input-type=module <<'NODE'
+          const base = process.env.SYNTHETIC_BASE_URL.replace(/\/$/, "");
+          async function check(path) {
+            const response = await fetch(`${base}${path}`, { signal: AbortSignal.timeout(15000) });
+            const body = await response.json();
+            if (!response.ok || body.ok !== true) throw new Error(`${path} failed with HTTP ${response.status}`);
+            return body;
+          }
+          const live = await check("/api/health/live");
+          const ready = await check("/api/health/ready");
+          const deep = await check("/api/health/deep");
+          if ((deep.summary?.failed || 0) > 0) throw new Error(`Deep health has ${deep.summary.failed} failed checks`);
+          console.log(JSON.stringify({ live: live.status, ready: ready.status, deep: deep.status, summary: deep.summary }));
+          NODE

@@ -7,12 +7,14 @@
     "build": "next build",
     "start": "next start -H 0.0.0.0 -p 3000",
     "test": "node --test --experimental-strip-types tests/*.test.ts",
+    "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
     "db:migrate": "node scripts/migrate.mjs",
     "db:verify": "node scripts/verify-schema.mjs",
     "release:check-env": "node scripts/check-production-readiness.mjs",
     "release:check-env:flomogo": "node scripts/check-production-readiness.mjs --profile=flomogo",
     "release:smoke": "node scripts/production-smoke.mjs",
+    "ops:synthetic": "node scripts/synthetic-operations.mjs",
     "security:rotate-data-key": "node scripts/rotate-data-key.mjs",
     "ops:verify-backup-restore": "bash scripts/verify-backup-restore.sh",
     "perf:smoke": "node scripts/load-smoke.mjs",
@@ -32,6 +34,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^22.10.5",
     "@types/pg": "^8.11.10",
     "@types/qrcode": "^1.5.5",

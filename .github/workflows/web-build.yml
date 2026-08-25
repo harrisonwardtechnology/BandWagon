@@ -59,6 +59,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install browser for end-to-end tests
+        run: npx playwright install --with-deps chromium
+
       - name: Apply database migrations
         env:
           DATABASE_URL: postgresql://bandwagon:bandwagon-test-only@localhost:5432/bandwagon_test
@@ -107,6 +110,7 @@ jobs:
           PLATFORM_BUDGET_CRON_SECRET: ci-only-platform-budget-secret-at-least-32-characters
           SAFETY_CRON_SECRET: ci-only-safety-secret-at-least-32-characters
           PRIVACY_MAINTENANCE_CRON_SECRET: ci-only-privacy-secret-at-least-32-characters
+          E2E_BASE_URL: http://127.0.0.1:3000
         run: |
           cp -a public .next/standalone/public
           mkdir -p .next/standalone/.next
@@ -119,5 +123,17 @@ jobs:
             sleep 1
           done
           curl --fail --silent http://127.0.0.1:3000/api/health/live > /dev/null || { cat "$RUNNER_TEMP/bandwagon-server.log"; exit 1; }
+          npm run test:e2e
           npm run release:smoke
           npm run perf:smoke
+
+      - name: Upload end-to-end diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          if-no-files-found: ignore
+          retention-days: 14
