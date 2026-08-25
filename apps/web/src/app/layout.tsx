@@ -49,6 +49,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <div style={{fontSize:13,color:"#64748b"}}><strong style={{color:"#101b33"}}>BandWagon</strong> · Community-powered rides</div>
             <nav aria-label="Footer" style={{display:"flex",gap:16,flexWrap:"wrap"}}>
               <a href="/help" style={linkStyle}>Help Center</a>
+              <a href="/documents/BandWagon_Organization_Proposal_and_Review_Package.docx" style={linkStyle}>Review Package</a>
               <a href={statusUrl} target="_blank" rel="noreferrer" style={linkStyle}>Platform Status <span className="sr-only">(opens in a new tab)</span></a>
               <a href="/security" style={linkStyle}>Security / Report a Bug</a>
               <a href="/support" style={linkStyle}>Support BandWagon</a>

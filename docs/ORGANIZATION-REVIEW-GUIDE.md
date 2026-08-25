@@ -1,5 +1,11 @@
 # BandWagon Organization Review Guide
 
+Download the current reusable proposal and evidence package from the public website:
+
+- [BandWagon Organization Proposal and Review Package](https://bandwagon.harrisonward.net/documents/BandWagon_Organization_Proposal_and_Review_Package.docx)
+
+The package is proposal material, not an approval or launch authorization. Each participating organization must complete its own review and attach its official decision and conditions.
+
 This guide distills the working BandWagon proposal/evidence package into reusable, organization-neutral review language. It is not an approval form and does not replace a board, school, insurer, legal, privacy, transportation or other required review process.
 
 ## Bottom Line
