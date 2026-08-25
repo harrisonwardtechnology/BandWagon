@@ -15,6 +15,8 @@
     "release:check-env:flomogo": "node scripts/check-production-readiness.mjs --profile=flomogo",
     "release:smoke": "node scripts/production-smoke.mjs",
     "ops:synthetic": "node scripts/synthetic-operations.mjs",
+    "cron:google-calendar-sync": "node scripts/run-calendar-cron.mjs google-calendar-sync",
+    "cron:microsoft-calendar-sync": "node scripts/run-calendar-cron.mjs microsoft-calendar-sync",
     "security:rotate-data-key": "node scripts/rotate-data-key.mjs",
     "ops:verify-backup-restore": "bash scripts/verify-backup-restore.sh",
     "perf:smoke": "node scripts/load-smoke.mjs",
