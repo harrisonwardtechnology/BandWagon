@@ -50,6 +50,7 @@ export default async function Home() {
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>
           <Link href="/messaging">Messaging & SMS Consent</Link>
+          <a href="/documents/BandWagon_Organization_Proposal_and_Review_Package.docx">Organization Review Package</a>
         </div>
       </footer>
     </main>
