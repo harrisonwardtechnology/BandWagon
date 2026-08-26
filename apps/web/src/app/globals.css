@@ -34,8 +34,18 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .footer-brand .brand-logo-full { height: 36px; width: auto; }
 .footer-brand span { border-left: 1px solid #cbd5e1; padding-left: 14px; }
 
+/* Shared public website navigation */
+.public-site-header { position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(220,227,236,.9); background: rgba(255,255,255,.96); box-shadow: 0 8px 30px rgba(7,26,51,.055); backdrop-filter: blur(14px); }
+.public-nav-shell { max-width: 1240px; min-height: 82px; margin: 0 auto; padding: 12px 28px; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
+.public-nav-shell .brand-logo-full { height: 52px; max-width: 215px; }
+.public-nav-links { display: flex; align-items: center; justify-content: flex-end; gap: 4px; flex-wrap: wrap; }
+.public-nav-links a { padding: 10px 12px; border-radius: 11px; color: #42536a; text-decoration: none; font-size: 14px; font-weight: 780; white-space: nowrap; }
+.public-nav-links a:hover, .public-nav-links a[aria-current="page"] { background: #f1f4f8; color: var(--navy); }
+.public-nav-links .public-nav-sign-in { margin-left: 4px; padding-inline: 18px; background: var(--navy); color: #fff; }
+.public-nav-links .public-nav-sign-in:hover, .public-nav-links .public-nav-sign-in[aria-current="page"] { background: var(--navy-soft); color: #fff; }
+
 /* Modern public landing page */
-.home-shell { max-width: 1240px; margin: 0 auto; padding: 18px 28px 72px; }
+.home-shell { max-width: 1240px; margin: 0 auto; padding: 28px 28px 72px; }
 .home-nav { min-height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .home-nav-links { display: flex; align-items: center; gap: 8px; }
 .home-nav-links a { color: #334155; text-decoration: none; font-weight: 750; padding: 10px 14px; border-radius: 12px; }
@@ -136,6 +146,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 
 @media (max-width: 640px) {
+  .public-nav-shell { min-height: 0; padding: 10px 14px; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .public-nav-shell .brand-logo-full { height: 43px; max-width: 180px; }
+  .public-nav-links { width: 100%; justify-content: flex-start; gap: 2px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+  .public-nav-links a { padding: 8px 10px; }
+  .public-nav-links .public-nav-sign-in { margin-left: 0; padding-inline: 12px; }
   .home-shell { padding: 10px 14px 48px; }
   .home-nav { min-height: 70px; }
   .home-nav .brand-logo-full { height: 44px; max-width: 188px; }
