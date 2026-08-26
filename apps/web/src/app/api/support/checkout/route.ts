@@ -1,15 +1,17 @@
+import crypto from "node:crypto";
 import { createSupportCheckout } from "@/lib/stripe-support";
-import { turnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
-import { getBaseSessionIdentity } from "@/lib/auth";
+import { getRedis } from "@/lib/redis";
 
 export const runtime = "nodejs";
+
+function clientIp(request:Request){return String(request.headers.get("cf-connecting-ip")||request.headers.get("x-real-ip")||request.headers.get("x-forwarded-for")?.split(",")[0]||"unknown").trim().slice(0,100);}
+function privateKey(value:string){const secret=process.env.AUTH_SECRET||process.env.DATA_ENCRYPTION_KEY||"bandwagon-support-checkout-rate-limit";return crypto.createHmac("sha256",secret).update(value).digest("hex").slice(0,32);}
+async function checkoutAllowed(request:Request){const redis=getRedis();if(!redis)return true;if(redis.status==="wait")await redis.connect();const key=`support-checkout:ip:${privateKey(clientIp(request))}`,count=await redis.incr(key);if(count===1)await redis.expire(key,3600);return count<=20;}
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const identity=await getBaseSessionIdentity().catch(()=>null),isPlatformAdmin=Boolean(identity?.platformRole&&["owner","support","finance"].includes(identity.platformRole));
-    if(!isPlatformAdmin&&!turnstileConfigured())return Response.json({error:"Checkout is temporarily unavailable"},{status:503});
-    if(!isPlatformAdmin&&!await verifyTurnstileToken(request,body.turnstileToken,"support_checkout").catch(()=>false))return Response.json({error:"The security check was unsuccessful. Please try again."},{status:400});
+    if(!await checkoutAllowed(request).catch(()=>false))return Response.json({error:"Too many checkout attempts were started recently. Please wait before trying again."},{status:429});
 
     const type = body.type === "sponsor" ? "sponsor" : "individual";
     const amountCents = Number(body.amountCents);
