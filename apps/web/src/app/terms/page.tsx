@@ -12,7 +12,7 @@ export default function TermsPage() {
         <Link className="brand-link" href="/">BandWagon</Link>
         <div className="eyebrow">A Harrison Ward Technology product</div>
         <h1>Terms of Use</h1>
-        <p>Last updated: August 21, 2026</p>
+        <p>Last updated: August 26, 2026</p>
       </header>
 
       <section className="notice">
@@ -153,7 +153,16 @@ export default function TermsPage() {
           legal, fraud-prevention, or operational recordkeeping purposes.
         </p>
 
-        <h2>14. Contact</h2>
+        <h2>14. Privacy and Browser Storage</h2>
+        <p>
+          Use of personal information, cookies, service workers, browser storage, and
+          similar technology is described in the <Link href="/privacy">Privacy Policy</Link> and{" "}
+          <Link href="/cookies">Cookie and Similar Technologies Policy</Link>. Essential technology
+          is used to provide and secure requested services. Optional browser storage remains off
+          unless the user permits it and may be changed through Cookie preferences in the footer.
+        </p>
+
+        <h2>15. Contact</h2>
         <p>
           Questions, privacy requests, messaging assistance, or reports of misuse may
           be submitted using the contact method published on the BandWagon website.
@@ -161,6 +170,7 @@ export default function TermsPage() {
 
         <div className="legal-links">
           <Link href="/privacy">Privacy Policy</Link>
+          <Link href="/cookies">Cookie Policy</Link>
           <Link href="/messaging">Messaging &amp; SMS Consent</Link>
           <Link href="/sms-opt-in">SMS Opt-In Example</Link>
           <Link href="/">BandWagon Home</Link>

@@ -34,8 +34,18 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .footer-brand .brand-logo-full { height: 36px; width: auto; }
 .footer-brand span { border-left: 1px solid #cbd5e1; padding-left: 14px; }
 
+/* Shared public website navigation */
+.public-site-header { position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(220,227,236,.9); background: rgba(255,255,255,.96); box-shadow: 0 8px 30px rgba(7,26,51,.055); backdrop-filter: blur(14px); }
+.public-nav-shell { max-width: 1240px; min-height: 82px; margin: 0 auto; padding: 12px 28px; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
+.public-nav-shell .brand-logo-full { height: 52px; max-width: 215px; }
+.public-nav-links { display: flex; align-items: center; justify-content: flex-end; gap: 4px; flex-wrap: wrap; }
+.public-nav-links a { padding: 10px 12px; border-radius: 11px; color: #42536a; text-decoration: none; font-size: 14px; font-weight: 780; white-space: nowrap; }
+.public-nav-links a:hover, .public-nav-links a[aria-current="page"] { background: #f1f4f8; color: var(--navy); }
+.public-nav-links .public-nav-sign-in { margin-left: 4px; padding-inline: 18px; background: var(--navy); color: #fff; }
+.public-nav-links .public-nav-sign-in:hover, .public-nav-links .public-nav-sign-in[aria-current="page"] { background: var(--navy-soft); color: #fff; }
+
 /* Modern public landing page */
-.home-shell { max-width: 1240px; margin: 0 auto; padding: 18px 28px 72px; }
+.home-shell { max-width: 1240px; margin: 0 auto; padding: 28px 28px 72px; }
 .home-nav { min-height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .home-nav-links { display: flex; align-items: center; gap: 8px; }
 .home-nav-links a { color: #334155; text-decoration: none; font-weight: 750; padding: 10px 14px; border-radius: 12px; }
@@ -127,6 +137,58 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .site-footer-links { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; }
 .site-footer-links a { color: #526684; text-decoration: none; font-weight: 700; }
 
+/* Explicit privacy consent and preference center */
+.footer-privacy-button { appearance: none; padding: 0; border: 0; background: transparent; color: #475569; font-size: 13px; font-weight: 700; cursor: pointer; }
+.footer-privacy-button:hover { color: var(--navy); text-decoration: underline; }
+.privacy-banner { position: fixed; z-index: 1000; right: 22px; bottom: 22px; left: 22px; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 28px; align-items: center; max-width: 1180px; margin: 0 auto; padding: 24px 26px; border: 1px solid #cad5e5; border-radius: 22px; background: #fff; box-shadow: 0 24px 70px rgba(7,26,51,.24); }
+.privacy-banner-copy { max-width: 760px; }
+.privacy-banner-kicker { margin-bottom: 5px; color: #8a5a00; font-size: 11px; font-weight: 900; letter-spacing: .1em; }
+.privacy-banner h2, .privacy-modal h2 { margin: 0; color: var(--navy); font-size: 22px; line-height: 1.2; }
+.privacy-banner p { margin: 8px 0 0; color: #4c5a72; line-height: 1.55; }
+.privacy-banner-links { display: flex; gap: 14px; font-size: 13px; font-weight: 800; }
+.privacy-banner-links a, .privacy-modal-policy a { color: var(--blue); }
+.privacy-banner-actions { display: grid; grid-template-columns: repeat(2,minmax(145px,1fr)); gap: 9px; min-width: 330px; }
+.consent-button { min-height: 44px; padding: 10px 15px; border: 2px solid var(--navy); border-radius: 11px; font-weight: 850; cursor: pointer; }
+.consent-accept { background: var(--navy); color: #fff; }
+.consent-reject { background: #fff; color: var(--navy); }
+.consent-manage { grid-column: 1 / -1; border-color: #cbd5e1; background: #f8fafc; color: #334155; }
+.consent-button:hover { filter: brightness(.94); }
+.privacy-modal-backdrop { position: fixed; z-index: 1100; inset: 0; display: grid; place-items: center; overflow-y: auto; padding: 22px; background: rgba(7,26,51,.72); }
+.privacy-modal { width: min(720px,100%); max-height: calc(100vh - 44px); overflow-y: auto; padding: 28px; border-radius: 22px; background: #fff; box-shadow: 0 28px 80px rgba(0,0,0,.35); }
+.privacy-modal-heading { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+.privacy-modal-close { width: 40px; height: 40px; border: 1px solid #cbd5e1; border-radius: 50%; background: #fff; color: var(--navy); font-size: 27px; line-height: 1; cursor: pointer; }
+.privacy-modal > p { color: #526075; line-height: 1.55; }
+.privacy-category { display: flex; justify-content: space-between; gap: 22px; align-items: center; margin-top: 12px; padding: 18px; border: 1px solid #dbe3ed; border-radius: 14px; background: #fff; }
+.privacy-category h3 { margin: 0 0 4px; font-size: 17px; }
+.privacy-category p { margin: 0; color: #5b687b; font-size: 14px; line-height: 1.5; }
+.privacy-category input { flex: 0 0 auto; width: 25px; height: 25px; accent-color: var(--navy); }
+.privacy-always-on, .privacy-category-disabled > span { flex: 0 0 auto; padding: 6px 9px; border-radius: 999px; background: #e9f7ee; color: #166534; font-size: 12px; font-weight: 850; }
+.privacy-category-disabled { background: #f8fafc; }
+.privacy-category-disabled > span { background: #e2e8f0; color: #475569; }
+.privacy-modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
+.privacy-modal-policy { margin-bottom: 0; text-align: center; font-size: 13px; font-weight: 800; }
+.legal-table-wrap { overflow-x: auto; }
+.legal-table { width: 100%; border-collapse: collapse; color: #4c5a72; font-size: 14px; line-height: 1.55; }
+.legal-table th, .legal-table td { min-width: 150px; padding: 13px; border: 1px solid #d9e1ef; text-align: left; vertical-align: top; }
+.legal-table th { background: #edf3ff; color: var(--navy); }
+.legal-card code { padding: 2px 5px; border-radius: 5px; background: #f1f5f9; color: #243853; }
+
+/* Familiar local phone entry with automatic international normalization */
+.contact-method-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.contact-method-tabs button { min-height: 44px; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; color: #334155; font-weight: 800; cursor: pointer; }
+.contact-method-tabs button[aria-pressed="true"] { border-color: var(--navy); background: var(--navy); color: #fff; }
+.phone-field { width: 100%; margin-bottom: 16px; }
+.phone-input-shell { display: grid; grid-template-columns: 76px minmax(0,1fr); min-height: 51px; overflow: hidden; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; transition: border-color .15s, box-shadow .15s; }
+.phone-input-shell:focus-within { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(36,88,216,.14); }
+.phone-input-shell.phone-input-invalid { border-color: #b91c1c; }
+.phone-country-picker { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; border-right: 1px solid #dbe3ed; background: #f8fafc; font-size: 22px; }
+.phone-country-chevron { color: #64748b; font-size: 15px; }
+.phone-country-picker select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.phone-input-shell > input { min-width: 0; width: 100%; border: 0; outline: 0; padding: 12px 14px; background: transparent; color: var(--navy); font-size: 17px; }
+.phone-input-shell > input::placeholder { color: #8a96a8; }
+.phone-field-help { min-height: 18px; margin-top: 5px; color: #64748b; font-size: 12px; line-height: 1.4; }
+.phone-field-error { color: #b91c1c; font-weight: 700; }
+
 @media (max-width: 960px) {
   .home-hero { grid-template-columns: 1fr; gap: 44px; padding: 52px; }
   .ride-preview { max-width: 620px; transform: none; }
@@ -136,6 +198,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 
 @media (max-width: 640px) {
+  .public-nav-shell { min-height: 0; padding: 10px 14px; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .public-nav-shell .brand-logo-full { height: 43px; max-width: 180px; }
+  .public-nav-links { width: 100%; justify-content: flex-start; gap: 2px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+  .public-nav-links a { padding: 8px 10px; }
+  .public-nav-links .public-nav-sign-in { margin-left: 0; padding-inline: 12px; }
   .home-shell { padding: 10px 14px 48px; }
   .home-nav { min-height: 70px; }
   .home-nav .brand-logo-full { height: 44px; max-width: 188px; }
@@ -158,6 +225,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .app-brand > span { display: none; }
   .legal-header h1 { font-size: 32px; }
   .legal-card { padding: 22px; }
+  .privacy-banner { right: 10px; bottom: 10px; left: 10px; grid-template-columns: 1fr; gap: 16px; max-height: calc(100vh - 20px); overflow-y: auto; padding: 20px; border-radius: 18px; }
+  .privacy-banner h2, .privacy-modal h2 { font-size: 20px; }
+  .privacy-banner-actions { min-width: 0; grid-template-columns: 1fr; }
+  .consent-manage { grid-column: auto; }
+  .privacy-modal-backdrop { padding: 10px; }
+  .privacy-modal { max-height: calc(100vh - 20px); padding: 20px; border-radius: 17px; }
+  .privacy-category { align-items: flex-start; }
+  .privacy-modal-actions { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

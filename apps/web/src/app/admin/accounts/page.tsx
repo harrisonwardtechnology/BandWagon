@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import PhoneNumberInput from "@/components/phone-number-input";
 
 export default function AccountsAdminPage() {
   const [householdName, setHouseholdName] = useState("Ward Family");
@@ -86,7 +87,7 @@ export default function AccountsAdminPage() {
         <h2>2. Add Parent / Household Manager</h2>
         <label>Name</label><input value={adultName} onChange={(e) => setAdultName(e.target.value)} style={input} />
         <label>Email (optional)</label><input value={adultEmail} onChange={(e) => setAdultEmail(e.target.value)} style={input} />
-        <label>Phone in E.164 (optional)</label><input value={adultPhone} onChange={(e) => setAdultPhone(e.target.value)} placeholder="+14695551212" style={input} />
+        <label htmlFor="adult-phone">Mobile phone (optional)</label><PhoneNumberInput id="adult-phone" value={adultPhone} onChange={setAdultPhone} />
         <button onClick={makeAdult}>Create Parent</button>
         <p>Parent ID: <code>{adultId || "not created"}</code></p>
       </section>

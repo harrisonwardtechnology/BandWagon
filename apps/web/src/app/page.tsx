@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { BrandLogo } from "@/components/brand-logo";
 import { floMoGoBrand, platformBrand } from "@/lib/branding";
 import { resolveTenant } from "@/lib/tenant";
 
@@ -9,15 +8,6 @@ export default async function Home() {
 
   return (
     <main className="home-shell">
-      <nav className="home-nav" aria-label="Primary navigation">
-        <BrandLogo priority />
-        <div className="home-nav-links">
-          <Link href="/help">Help</Link>
-          <Link href="/privacy">Privacy</Link>
-          <Link className="nav-sign-in" href="/login">Sign in</Link>
-        </div>
-      </nav>
-
       <section className="home-hero" aria-labelledby="home-heading">
         <div className="hero-copy">
           <div className="hero-kicker"><span aria-hidden="true">●</span> Privacy-first community transportation</div>
