@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import TurnstileWidget from "@/components/turnstile-widget";
+import PhoneNumberInput from "@/components/phone-number-input";
 
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 export default function LoginPage() {
-  const [identifier,setIdentifier] = useState("");
+  const [contactMethod,setContactMethod] = useState<"email"|"phone">("email");
+  const [email,setEmail] = useState("");
+  const [phone,setPhone] = useState("");
   const [displayName,setDisplayName] = useState("");
   const [householdName,setHouseholdName] = useState("");
   const [birthMonth,setBirthMonth] = useState("");
@@ -21,6 +24,7 @@ export default function LoginPage() {
 
   async function requestCode() {
     setWorking(true); setMessage("");
+    const identifier=contactMethod==="email"?email.trim():phone;
     const r = await fetch("/api/auth/otp", {
       method:"POST", headers:{"content-type":"application/json"},
       body:JSON.stringify({
@@ -63,8 +67,20 @@ export default function LoginPage() {
           <button type="button" aria-pressed={mode==="sign_in"} onClick={()=>{setMode("sign_in");setMessage("");}} style={{padding:10,borderRadius:9,border:"1px solid #cbd5e1",background:mode==="sign_in"?"#101b33":"white",color:mode==="sign_in"?"white":"#334155",fontWeight:800,cursor:"pointer"}}>Sign in</button>
           <button type="button" aria-pressed={mode==="create_account"} onClick={()=>{setMode("create_account");setMessage("");}} style={{padding:10,borderRadius:9,border:"1px solid #cbd5e1",background:mode==="create_account"?"#101b33":"white",color:mode==="create_account"?"white":"#334155",fontWeight:800,cursor:"pointer"}}>Create account</button>
         </div>
-        <label style={{fontWeight:700}}>Email or mobile number</label>
-        <input value={identifier} onChange={e=>setIdentifier(e.target.value)} placeholder="you@example.com or +14695551212" style={{...input,margin:"7px 0 16px"}} />
+        <fieldset style={{border:0,padding:0,margin:"0 0 16px"}}>
+          <legend style={{fontWeight:700,marginBottom:7}}>How should we send your code?</legend>
+          <div className="contact-method-tabs">
+            <button type="button" aria-pressed={contactMethod==="email"} onClick={()=>{setContactMethod("email");setMessage("");}}>Email</button>
+            <button type="button" aria-pressed={contactMethod==="phone"} onClick={()=>{setContactMethod("phone");setMessage("");}}>Mobile phone</button>
+          </div>
+        </fieldset>
+        {contactMethod==="email" ? <>
+          <label htmlFor="login-email" style={{fontWeight:700}}>Email address</label>
+          <input id="login-email" type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" style={{...input,margin:"7px 0 16px"}} />
+        </> : <>
+          <label htmlFor="login-phone" style={{display:"block",fontWeight:700,marginBottom:7}}>Mobile number</label>
+          <PhoneNumberInput id="login-phone" value={phone} onChange={setPhone} required />
+        </>}
         {mode==="create_account" && <div style={{padding:16,background:"#f8fafc",borderRadius:14,marginBottom:16}}>
           <div style={{fontWeight:800,marginBottom:10}}>Create your BandWagon account</div>
           <label style={{fontWeight:700}}>Your name</label>
@@ -81,7 +97,7 @@ export default function LoginPage() {
           <input value={householdName} onChange={e=>setHouseholdName(e.target.value)} placeholder="Ward Family" style={{...input,marginTop:7}} />
         </div>}
         <TurnstileWidget action="otp_request" onToken={setTurnstileToken} resetKey={turnstileReset}/>
-        <button disabled={working || !turnstileToken || !identifier || (mode==="create_account" && (!displayName || !birthMonth || birthYear.length!==4))} onClick={requestCode} style={{...button,opacity:working ? .65 : 1}}>{working ? "Sending…" : "Send verification code"}</button>
+        <button disabled={working || !turnstileToken || !(contactMethod==="email"?email.trim():phone) || (mode==="create_account" && (!displayName || !birthMonth || birthYear.length!==4))} onClick={requestCode} style={{...button,opacity:working ? .65 : 1}}>{working ? "Sending…" : "Send verification code"}</button>
       </> : <>
         <label style={{fontWeight:700}}>6-digit verification code</label>
         <input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,""))} placeholder="123456" style={{...input,margin:"7px 0 16px",fontSize:24,letterSpacing:6,textAlign:"center"}} />

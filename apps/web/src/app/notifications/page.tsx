@@ -20,7 +20,7 @@ export default function NotificationsPage() {
     setSupported(ok);
     if(ok){
       setPermission(Notification.permission);
-      navigator.serviceWorker.ready.then(reg=>reg.pushManager.getSubscription()).then(sub=>setSubscribed(Boolean(sub)));
+      navigator.serviceWorker.getRegistration().then(reg=>reg?.pushManager.getSubscription()).then(sub=>setSubscribed(Boolean(sub)));
     }
   },[]);
 
@@ -28,6 +28,8 @@ export default function NotificationsPage() {
     setMessage("");
     const publicKey=process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     if(!publicKey) return setMessage("Push notifications are not configured on this BandWagon deployment.");
+
+    await navigator.serviceWorker.register("/sw.js",{updateViaCache:"none"});
 
     const result=await Notification.requestPermission();
     setPermission(result);

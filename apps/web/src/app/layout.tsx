@@ -4,6 +4,8 @@ import PwaRegister from "./PwaRegister";
 import SupportModeBanner from "@/components/support-mode-banner";
 import OfflineStatus from "./OfflineStatus";
 import { BrandLogo } from "@/components/brand-logo";
+import { PublicSiteHeader } from "@/components/public-site-header";
+import PrivacyConsentManager, { PrivacyPreferencesButton } from "@/components/privacy-consent-manager";
 
 export const viewport: Viewport = {
   themeColor: "#071a33",
@@ -45,9 +47,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en">
       <body>
         <a className="skip-link" href="#main-content">Skip to main content</a>
+        <PrivacyConsentManager />
         <PwaRegister />
         <OfflineStatus />
         <SupportModeBanner />
+        <PublicSiteHeader />
         <div id="main-content" tabIndex={-1}>{children}</div>
         <footer style={{marginTop:48,borderTop:"1px solid #e2e8f0",background:"#f8fafc",padding:"24px 20px",fontFamily:"system-ui,sans-serif"}}>
           <div style={{maxWidth:1120,margin:"0 auto",display:"flex",gap:18,justifyContent:"space-between",alignItems:"center",flexWrap:"wrap"}}>
@@ -59,6 +63,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <a href="/security" style={linkStyle}>Security / Report a Bug</a>
               <a href="/support" style={linkStyle}>Support BandWagon</a>
               <a href="/privacy" style={linkStyle}>Privacy</a>
+              <a href="/cookies" style={linkStyle}>Cookies</a>
+              <PrivacyPreferencesButton />
               <a href="/terms" style={linkStyle}>Terms</a>
             </nav>
           </div>

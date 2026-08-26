@@ -3,18 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#0f172a" />
-  <title>FloMoGo - Powered by BandWagon - Interactive Demo</title>
+  <meta name="theme-color" content="#071a33" />
+  <meta name="description" content="Explore BandWagon's privacy-first community ride coordination experience using fake demonstration data." />
+  <title>BandWagon Interactive Demo</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <a class="skip-link" href="#screen">Skip to demo</a>
   <header class="topbar">
     <div class="brand-wrap">
-      <div class="logo">FG</div>
+      <img class="brand-logo" src="bandwagon-logo.svg" alt="BandWagon" />
       <div>
-        <div class="brand">FloMoGo</div>
-        <div class="subbrand">Hop on the BandWagon. - Interactive Demo</div>
+        <div class="demo-label">Interactive Demo</div>
+        <div class="subbrand">Community-powered rides · Fake data only</div>
       </div>
     </div>
     <div class="top-actions">
@@ -24,8 +26,8 @@
     </div>
   </header>
 
-  <div class="disclaimer">
-    <strong>FloMoGo is powered by BandWagon, a Harrison Ward Technology product. Independent third-party coordination service.</strong> This demo only illustrates how people can connect. No transportation is provided, supervised, tracked, verified, or guaranteed.
+  <div class="disclaimer demo-banner">
+    <span class="banner-icon" aria-hidden="true">i</span><span><strong>This is a safe, interactive demonstration.</strong> It uses fictional people and events, connects to no production services, and never sends messages or creates real rides.</span>
   </div>
 
   <main class="layout">
@@ -74,7 +76,7 @@
     </div>
     <div class="notice">Installing FloMoGo does not enable GPS tracking. The same service remains available in a normal browser.</div>
   </dialog>
-  <footer class="disclaimer">Powered by <strong>BandWagon</strong> - A Harrison Ward Technology product. FloMoGo is not owned, operated, sponsored, endorsed, supervised, or managed by FMHS, LISD, a band/booster organization, or a governing body.</footer>
+  <footer class="site-footer"><img src="bandwagon-logo.svg" alt="BandWagon" /><div><strong>A Harrison Ward Technology product.</strong><br>Community-powered rides. Privacy first.</div><div class="footer-note">This independent coordination service does not provide, supervise, track, verify, or guarantee transportation.</div></footer>
   <script src="app.js"></script>
 </body>
 </html>

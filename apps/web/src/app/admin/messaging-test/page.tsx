@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import PhoneNumberInput from "@/components/phone-number-input";
 
 type SendResult = {
   ok?: boolean;
@@ -54,18 +55,8 @@ export default function MessagingTestPage() {
       </div>
 
       <form onSubmit={submit} style={{background:"#fff", border:"1px solid #dbe3ef", borderRadius:18, padding:24}}>
-        <label style={{display:"block", fontWeight:700, marginBottom:6}}>Recipient</label>
-        <input
-          type="tel"
-          value={to}
-          onChange={(e) => setTo(e.target.value)}
-          placeholder="+14695550123"
-          required
-          style={{width:"100%", padding:12, border:"1px solid #cbd5e1", borderRadius:8, marginBottom:18}}
-        />
-        <div style={{fontSize:13, color:"#64748b", marginTop:-12, marginBottom:18}}>
-          Use E.164 format, for example +14695550123.
-        </div>
+        <label htmlFor="test-recipient" style={{display:"block", fontWeight:700, marginBottom:6}}>Recipient</label>
+        <PhoneNumberInput id="test-recipient" value={to} onChange={setTo} required />
 
         <label style={{display:"block", fontWeight:700, marginBottom:6}}>Delivery Test</label>
         <div style={{display:"grid", gap:10, marginBottom:18}}>

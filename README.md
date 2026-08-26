@@ -10,6 +10,7 @@
 <p align="center">
   <a href="https://bandwagon.harrisonward.net">Platform</a> ·
   <a href="https://flomogo.app">FloMoGo</a> ·
+  <a href="https://bandwagon-demo.harrisonward.net/">Interactive demo</a> ·
   <a href="docs/ROADMAP-TO-V1.md">Roadmap</a> ·
   <a href="docs/operations/V1-LAUNCH-CHECKLIST.md">Launch checklist</a> ·
   <a href="CONTRIBUTING.md">Contributing</a>
@@ -29,6 +30,10 @@ BandWagon is a privacy-first community carpool coordination platform developed a
 **FloMoGo** is the first community powered by BandWagon, serving the Flower Mound band community.
 
 > **Hop on the BandWagon.**
+
+## Try the interactive demo
+
+Explore the complete fake-data walkthrough at **[bandwagon-demo.harrisonward.net](https://bandwagon-demo.harrisonward.net/)**. It demonstrates the BandWagon experience without connecting to production APIs, sending messages, or creating real rides.
 
 ## Built for real community coordination
 
@@ -112,7 +117,7 @@ BandWagon/
 └── .github/workflows/ # CI and production synthetic monitoring
 ```
 
-The demo never calls production APIs or creates real rides.
+The demo never calls production APIs, uses production credentials, sends real notifications, or creates real rides.
 
 ## Documentation
 
