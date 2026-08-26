@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { getDb } from "@/lib/db";
 import { getRedis } from "@/lib/redis";
 import { sendEmailNotification } from "@/lib/email-send";
+import { turnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
 
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
@@ -29,6 +30,7 @@ async function rateLimit(request:Request,email:string){
 }
 
 export async function POST(request:Request){
+  if(!turnstileConfigured())return Response.json({error:"Reporting is temporarily unavailable"},{status:503});
   const db=getDb();if(!db)return Response.json({error:"Reporting is temporarily unavailable"},{status:503});
   const body=await request.json().catch(()=>({}));
   const honeypot=text(body.companyWebsite,200);if(honeypot)return Response.json({ok:true});
@@ -41,6 +43,7 @@ export async function POST(request:Request){
   const contactEmail=text(body.contactEmail,320).toLowerCase();
   const secureEvidenceUrl=text(body.secureEvidenceUrl,2000);
   const safeHarborAcknowledged=Boolean(body.safeHarborAcknowledged);
+  if(!await verifyTurnstileToken(request,body.turnstileToken,"security_report").catch(()=>false))return Response.json({error:"The security check was unsuccessful. Please try again."},{status:400});
   if(!["security","privacy","safety","bug"].includes(reportType))return Response.json({error:"Invalid report type"},{status:400});
   if(!["unknown","low","medium","high","critical"].includes(severity))return Response.json({error:"Invalid severity"},{status:400});
   if(title.length<5||description.length<20)return Response.json({error:"Please include a clear title and enough detail for us to investigate"},{status:400});

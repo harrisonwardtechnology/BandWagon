@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requestOtp, verifyOtp } from "@/lib/auth-service";
 import { SESSION_COOKIE } from "@/lib/auth";
+import { turnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +17,8 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   try {
     if (body.action === "request") {
+      if(!turnstileConfigured())return NextResponse.json({error:"The security check is temporarily unavailable"},{status:503,...privateResponse});
+      if(!await verifyTurnstileToken(request,body.turnstileToken,"otp_request").catch(()=>false))return NextResponse.json({error:"The security check was unsuccessful. Please try again."},{status:400,...privateResponse});
       const result = await requestOtp({
         identifier: String(body.identifier || ""),
         displayName: body.displayName || null,

@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import TurnstileWidget from "@/components/turnstile-widget";
 
 export default function SecurityPage(){
   const [form,setForm]=useState({reportType:"security",severity:"unknown",title:"",description:"",reproductionSteps:"",affectedUrl:"",contactEmail:"",secureEvidenceUrl:"",safeHarborAcknowledged:false,companyWebsite:""});
   const [message,setMessage]=useState("");
   const [trackingId,setTrackingId]=useState("");
+  const [turnstileToken,setTurnstileToken]=useState("");const[turnstileReset,setTurnstileReset]=useState(0);
   const input={display:"block",width:"100%",padding:12,margin:"7px 0 14px",border:"1px solid #cbd5e1",borderRadius:9,boxSizing:"border-box"} as const;
   const card={background:"#fff",border:"1px solid #dbe3ef",borderRadius:18,padding:22,marginTop:18} as const;
-  async function submit(){setMessage("Submitting...");setTrackingId("");const r=await fetch("/api/security/report",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(form)});const d=await r.json().catch(()=>({}));if(!r.ok){setMessage(d.error||"Unable to submit report");return;}setTrackingId(d.trackingId||"");setMessage("Report received. Thank you for helping keep BandWagon safe.");}
+  async function submit(){if(!turnstileToken){setMessage("Please complete the security check.");return;}setMessage("Submitting...");setTrackingId("");const r=await fetch("/api/security/report",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({...form,turnstileToken})});const d=await r.json().catch(()=>({}));setTurnstileToken("");setTurnstileReset(x=>x+1);if(!r.ok){setMessage(d.error||"Unable to submit report");return;}setTrackingId(d.trackingId||"");setMessage("Report received. Thank you for helping keep BandWagon safe.");}
   return <main style={{maxWidth:920,margin:"36px auto",padding:"0 20px",fontFamily:"system-ui,sans-serif"}}>
     <section style={{background:"#101b33",color:"white",padding:30,borderRadius:22}}><div style={{fontSize:13,fontWeight:900,letterSpacing:1}}>SECURITY & RESPONSIBLE DISCLOSURE</div><h1 style={{fontSize:40,margin:"6px 0"}}>Help us keep BandWagon safe</h1><p style={{fontSize:17,lineHeight:1.6,marginBottom:0}}>We welcome good-faith security, privacy and safety reports. BandWagon is designed around families and minors, so careful handling of sensitive information matters as much as fixing the bug itself.</p></section>
 
@@ -27,7 +29,8 @@ export default function SecurityPage(){
       <label>Secure Evidence Reference <span style={{color:"#64748b"}}>(optional)</span></label><input value={form.secureEvidenceUrl} onChange={e=>setForm({...form,secureEvidenceUrl:e.target.value})} style={input} placeholder="https://secret.harrisonward.com/..."/>
       <input tabIndex={-1} autoComplete="off" aria-hidden="true" value={form.companyWebsite} onChange={e=>setForm({...form,companyWebsite:e.target.value})} style={{display:"none"}}/>
       <label style={{display:"flex",gap:10,alignItems:"flex-start",margin:"12px 0 18px"}}><input type="checkbox" checked={form.safeHarborAcknowledged} onChange={e=>setForm({...form,safeHarborAcknowledged:e.target.checked})}/><span>I will follow the responsible disclosure rules above and avoid unnecessary access to other people’s data.</span></label>
-      <button onClick={submit} style={{background:"#101b33",color:"white",border:0,borderRadius:10,padding:"12px 18px",fontWeight:800,cursor:"pointer"}}>Submit Security Report</button>
+      <TurnstileWidget action="security_report" onToken={setTurnstileToken} resetKey={turnstileReset}/>
+      <button disabled={!turnstileToken} onClick={submit} style={{background:"#101b33",color:"white",border:0,borderRadius:10,padding:"12px 18px",fontWeight:800,cursor:"pointer"}}>Submit Security Report</button>
       {message&&<p style={{marginTop:16,fontWeight:700}}>{message}</p>}{trackingId&&<p style={{padding:14,background:"#ecfdf5",borderRadius:10}}>Tracking ID: <strong>{trackingId}</strong>. Save this number for follow-up.</p>}
     </section>
   </main>;

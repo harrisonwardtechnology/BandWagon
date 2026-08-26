@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import TurnstileWidget from "@/components/turnstile-widget";
 
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
@@ -15,6 +16,8 @@ export default function LoginPage() {
   const [mode,setMode] = useState<"sign_in"|"create_account">("sign_in");
   const [message,setMessage] = useState("");
   const [working,setWorking] = useState(false);
+  const [turnstileToken,setTurnstileToken]=useState("");
+  const [turnstileReset,setTurnstileReset]=useState(0);
 
   async function requestCode() {
     setWorking(true); setMessage("");
@@ -23,11 +26,11 @@ export default function LoginPage() {
       body:JSON.stringify({
         action:"request",identifier,displayName:displayName||null,householdName:householdName||null,
         birthMonth:birthMonth||null,birthYear:birthYear||null,
-        signupIntent:mode==="create_account",
+        signupIntent:mode==="create_account",turnstileToken,
       })
     });
     const d = await r.json().catch(()=>({}));
-    setWorking(false);
+    setWorking(false);setTurnstileToken("");setTurnstileReset(x=>x+1);
     if (d.underAge) { setMessage(d.message || "A parent or guardian must manage this profile."); return; }
     if (!r.ok || !d.ok) { setMessage(d.error || "Unable to send verification code"); return; }
     setChallengeId(d.challengeId);
@@ -77,7 +80,8 @@ export default function LoginPage() {
           <label style={{fontWeight:700}}>Household name <span style={{fontWeight:400,color:"#64748b"}}>(optional)</span></label>
           <input value={householdName} onChange={e=>setHouseholdName(e.target.value)} placeholder="Ward Family" style={{...input,marginTop:7}} />
         </div>}
-        <button disabled={working || !identifier || (mode==="create_account" && (!displayName || !birthMonth || birthYear.length!==4))} onClick={requestCode} style={{...button,opacity:working ? .65 : 1}}>{working ? "Sending…" : "Send verification code"}</button>
+        <TurnstileWidget action="otp_request" onToken={setTurnstileToken} resetKey={turnstileReset}/>
+        <button disabled={working || !turnstileToken || !identifier || (mode==="create_account" && (!displayName || !birthMonth || birthYear.length!==4))} onClick={requestCode} style={{...button,opacity:working ? .65 : 1}}>{working ? "Sending…" : "Send verification code"}</button>
       </> : <>
         <label style={{fontWeight:700}}>6-digit verification code</label>
         <input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,""))} placeholder="123456" style={{...input,margin:"7px 0 16px",fontSize:24,letterSpacing:6,textAlign:"center"}} />

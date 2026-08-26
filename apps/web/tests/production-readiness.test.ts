@@ -29,6 +29,8 @@ const core = {
   SUPPORT_EMAIL: "support@example.com",
   PRIVACY_EMAIL: "privacy@example.com",
   SECURITY_EMAIL: "security@example.com",
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: "turnstile-site-key",
+  TURNSTILE_SECRET_KEY: secret("turnstile"),
   ERROR_MONITOR_INGEST_SECRET: secret("e"),
   CALENDAR_SYNC_CRON_SECRET: secret("f"),
   DECOMMISSION_CRON_SECRET: secret("g"),
