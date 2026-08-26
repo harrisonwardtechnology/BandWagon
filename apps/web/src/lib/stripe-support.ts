@@ -47,10 +47,17 @@ export async function createSupportCheckout(input: {
   params.set("cancel_url", `${appUrl}/support?cancelled=1`);
   params.set("submit_type", "pay");
   params.set("branding_settings[display_name]", "BandWagon by Harrison Ward Technology");
-  params.set("branding_settings[logo][type]", "url");
-  params.set("branding_settings[logo][url]", `${appUrl}/bandwagon-logo.svg`);
-  params.set("branding_settings[icon][type]", "url");
-  params.set("branding_settings[icon][url]", `${appUrl}/bandwagon-icon.svg`);
+  const stripeLogoFileId = process.env.STRIPE_BANDWAGON_LOGO_FILE_ID?.trim();
+  if (stripeLogoFileId) {
+    if (!/^file_[A-Za-z0-9]+$/.test(stripeLogoFileId)) {
+      throw new Error("STRIPE_BANDWAGON_LOGO_FILE_ID must be a Stripe File ID");
+    }
+    params.set("branding_settings[logo][type]", "file");
+    params.set("branding_settings[logo][file]", stripeLogoFileId);
+  } else {
+    params.set("branding_settings[logo][type]", "url");
+    params.set("branding_settings[logo][url]", `${appUrl}/bandwagon-logo.svg`);
+  }
   params.set("branding_settings[background_color]", "#fffaf0");
   params.set("branding_settings[button_color]", "#071a33");
   params.set("branding_settings[font_family]", "inter");
