@@ -13,6 +13,7 @@ export async function stripePost(path: string, params: URLSearchParams) {
     headers: {
       authorization: `Bearer ${stripeSecret()}`,
       "content-type": "application/x-www-form-urlencoded",
+      "Stripe-Version": "2025-09-30.clover",
     },
     body: params.toString(),
     cache: "no-store",
@@ -44,14 +45,28 @@ export async function createSupportCheckout(input: {
   params.set("mode", "payment");
   params.set("success_url", `${appUrl}/support?success=1&session_id={CHECKOUT_SESSION_ID}`);
   params.set("cancel_url", `${appUrl}/support?cancelled=1`);
-  params.set("submit_type", input.type === "sponsor" ? "donate" : "pay");
+  params.set("submit_type", "pay");
+  params.set("branding_settings[display_name]", "BandWagon by Harrison Ward Technology");
+  params.set("branding_settings[logo][type]", "url");
+  params.set("branding_settings[logo][url]", `${appUrl}/bandwagon-logo.svg`);
+  params.set("branding_settings[icon][type]", "url");
+  params.set("branding_settings[icon][url]", `${appUrl}/bandwagon-icon.svg`);
+  params.set("branding_settings[background_color]", "#fffaf0");
+  params.set("branding_settings[button_color]", "#071a33");
+  params.set("branding_settings[font_family]", "inter");
+  params.set("branding_settings[border_style]", "rounded");
+  params.set("payment_intent_data[statement_descriptor_suffix]", "BANDWAGON");
+  params.set(
+    "custom_text[submit][message]",
+    "Support BandWagon, a Harrison Ward Technology product. Payments support platform operations and are not tax-deductible charitable contributions."
+  );
 
   params.set("line_items[0][quantity]", "1");
   params.set("line_items[0][price_data][currency]", "usd");
   params.set("line_items[0][price_data][unit_amount]", String(input.amountCents));
   params.set(
     "line_items[0][price_data][product_data][name]",
-    input.type === "sponsor" ? "BandWagon Community Sponsorship" : "Support BandWagon"
+    input.type === "sponsor" ? "Support BandWagon - Community Sponsorship" : "Support BandWagon"
   );
 
   params.set(
