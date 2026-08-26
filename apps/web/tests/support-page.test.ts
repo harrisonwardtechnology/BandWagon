@@ -11,4 +11,8 @@ test("support page accepts custom contributions of at least one dollar", () => {
   assert.match(page, /step="0\.01"/);
   assert.match(page, /dollars<1/);
   assert.match(checkout, /amountCents < 100/);
+  assert.doesNotMatch(page, /TurnstileWidget|turnstileToken|support_checkout/);
+  assert.doesNotMatch(checkout, /verifyTurnstileToken|turnstileConfigured/);
+  assert.match(checkout, /support-checkout:ip:/);
+  assert.match(checkout, /count<=20/);
 });
