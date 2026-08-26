@@ -1,10 +1,15 @@
 import { createSupportCheckout } from "@/lib/stripe-support";
+import { turnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
+import { getBaseSessionIdentity } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
+    const identity=await getBaseSessionIdentity().catch(()=>null),isPlatformAdmin=Boolean(identity?.platformRole&&["owner","support","finance"].includes(identity.platformRole));
+    if(!isPlatformAdmin&&!turnstileConfigured())return Response.json({error:"Checkout is temporarily unavailable"},{status:503});
+    if(!isPlatformAdmin&&!await verifyTurnstileToken(request,body.turnstileToken,"support_checkout").catch(()=>false))return Response.json({error:"The security check was unsuccessful. Please try again."},{status:400});
 
     const type = body.type === "sponsor" ? "sponsor" : "individual";
     const amountCents = Number(body.amountCents);

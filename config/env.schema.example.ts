@@ -35,6 +35,8 @@ export const envSchema = z.object({
   SMTP_FROM_NAME: z.string().min(1),
   SMTP_FROM_EMAIL: z.string().email(),
   SUPPORT_EMAIL: z.string().email(),
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1),
+  TURNSTILE_SECRET_KEY: z.string().min(1),
   PRIVACY_EMAIL: z.string().email(),
   SECURITY_EMAIL: z.string().email(),
 

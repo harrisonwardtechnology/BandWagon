@@ -67,7 +67,7 @@ export default async function Home() {
         <div><div className="eyebrow">Ready when your community is</div><h2>Plan the ride. Protect the people.</h2><p>Use BandWagon on the web, install it as an app, or review the open-source project before your organization adopts it.</p></div>
         <div className="actions">
           <Link className="button light" href="/login">Sign in</Link>
-          <a className="button outline-light" href="/documents/BandWagon_Organization_Proposal_and_Review_Package.docx">Review package</a>
+          <a className="button outline-light" href="/api/review-package">Review package</a>
           <a className="button outline-light" href="https://github.com/harrisonwardtechnology/BandWagon">GitHub</a>
         </div>
       </section>

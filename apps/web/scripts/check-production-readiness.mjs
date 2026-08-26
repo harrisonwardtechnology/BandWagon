@@ -60,6 +60,8 @@ requireEmail("EMAIL_FROM");
 requireEmail("SUPPORT_EMAIL");
 requireEmail("PRIVACY_EMAIL");
 requireEmail("SECURITY_EMAIL");
+requireValue("NEXT_PUBLIC_TURNSTILE_SITE_KEY");
+requireSecret("TURNSTILE_SECRET_KEY");
 
 for (const name of [
   "ERROR_MONITOR_INGEST_SECRET",
