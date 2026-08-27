@@ -56,7 +56,7 @@ export async function createSupportCheckout(input: {
     params.set("branding_settings[logo][file]", stripeLogoFileId);
   } else {
     params.set("branding_settings[logo][type]", "url");
-    params.set("branding_settings[logo][url]", `${appUrl}/bandwagon-logo.svg`);
+    params.set("branding_settings[logo][url]", `${appUrl}/bandwagon-logo.png`);
   }
   params.set("branding_settings[background_color]", "#fffaf0");
   params.set("branding_settings[button_color]", "#071a33");
