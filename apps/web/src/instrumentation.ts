@@ -1,6 +1,16 @@
 import type { Instrumentation } from "next";
 import { redactApplicationErrorText } from "@/lib/error-monitoring-policy";
 
+// APP_ROLE=web      -> serve pages and API only
+// APP_ROLE=worker   -> run the background worker (it still answers /api/health/*)
+// APP_ROLE=all      -> both, for single-container installs (default)
+export async function register() {
+  // This exact check lets Next drop the Node-only worker from the edge bundle.
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    await import("./instrumentation-node");
+  }
+}
+
 export const onRequestError:Instrumentation.onRequestError=async(error,request,context)=>{
   const baseUrl=process.env.APP_URL,secret=process.env.ERROR_MONITOR_INGEST_SECRET;
   if(!baseUrl||!secret||request.path==="/api/internal/error-monitor")return;

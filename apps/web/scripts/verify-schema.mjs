@@ -44,6 +44,8 @@ const requiredTables = [
   "ai_policy_events",
   "sms_opt_outs",
   "sms_consent_events",
+  "background_jobs",
+  "stripe_webhook_events",
 ];
 
 await client.connect();
