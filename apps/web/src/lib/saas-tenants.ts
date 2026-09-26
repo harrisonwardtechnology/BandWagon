@@ -1,5 +1,9 @@
 import crypto from "node:crypto";
+import type { PoolClient } from "pg";
 import { getDb } from "@/lib/db";
+import { isReservedTenantSlug, normalizeSlug, TENANT_SLUG_MAX, TENANT_SLUG_MIN } from "@/lib/organization-onboarding-policy";
+
+export { isReservedTenantSlug, normalizeSlug } from "@/lib/organization-onboarding-policy";
 
 const TENANT_BASE_DOMAIN = (process.env.TENANT_BASE_DOMAIN || "harrisonward.org").toLowerCase();
 
@@ -7,21 +11,21 @@ export function normalizeHostname(value: string) {
   return value.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "").split(":")[0];
 }
 
-export function normalizeSlug(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .replace(/-+/g, "-");
-}
-
 export function tenantHostnameForSlug(slug: string) {
   return `${normalizeSlug(slug)}.${TENANT_BASE_DOMAIN}`;
 }
 
-export function isReservedTenantSlug(slug: string) {
-  return new Set(["www", "admin", "api", "app", "support", "status", "mail", "smtp", "mta-sts", "autodiscover", "calendar", "help", "docs"]).has(normalizeSlug(slug));
+export function tenantBaseDomain() {
+  return TENANT_BASE_DOMAIN;
+}
+
+/** True when no organization already uses the slug or its platform hostname. */
+export async function isTenantSlugAvailable(slugValue: string, client?: Pick<PoolClient, "query">) {
+  const db = client || getDb();
+  if (!db) throw new Error("Database is not configured");
+  const slug = normalizeSlug(slugValue);
+  const existing = await db.query(`select 1 from organizations where slug=$1 or tenant_hostname=$2 limit 1`, [slug, tenantHostnameForSlug(slug)]);
+  return !existing.rowCount;
 }
 
 export async function listOrganizations() {
@@ -65,46 +69,72 @@ export async function resolveOrganizationByHostname(hostnameValue: string) {
   return result.rows[0] || null;
 }
 
-export async function createOrganization(input: { name: string; slug: string; discoverability?: string }) {
-  const db = getDb();
-  if (!db) throw new Error("Database is not configured");
+export type CreateOrganizationInput = { name: string; slug: string; discoverability?: string; actorPersonId?: string | null; metadata?: Record<string, unknown> };
+
+/**
+ * Creates an organization using a caller-owned client. The caller controls the
+ * transaction, so onboarding approval can add memberships and settings atomically.
+ */
+export async function createOrganizationWithClient(client: Pick<PoolClient, "query">, input: CreateOrganizationInput) {
   const name = input.name.trim();
   const slug = normalizeSlug(input.slug || input.name);
   if (!name) throw new Error("Organization name is required");
-  if (!slug || slug.length < 2 || slug.length > 50) throw new Error("Tenant slug must be 2-50 characters");
+  if (!slug || slug.length < TENANT_SLUG_MIN || slug.length > TENANT_SLUG_MAX) throw new Error("Tenant slug must be 2-50 characters");
   if (isReservedTenantSlug(slug)) throw new Error("That tenant slug is reserved");
   const hostname = tenantHostnameForSlug(slug);
 
-  await db.query("begin");
+  const existing = await client.query(`select id from organizations where slug=$1 or tenant_hostname=$2 limit 1`, [slug, hostname]);
+  if (existing.rowCount) throw new Error("That tenant slug is already in use");
+
+  const org = await client.query(
+    `insert into organizations (name,display_name,slug,status,discoverability,tenant_hostname)
+     values ($1,$1,$2,'active',$3,$4)
+     returning *`,
+    [name, slug, input.discoverability || "unlisted", hostname]
+  );
+
+  await client.query(
+    `insert into organization_domains
+      (organization_id,hostname,status,is_primary,verified_at,activated_at,domain_type,target_hostname,dns_status,ssl_status,verification_method)
+     values ($1,$2,'active',true,now(),now(),'platform',$2,'active','active','platform_wildcard')`,
+    [org.rows[0].id, hostname]
+  );
+
+  await seedOrganizationDefaults(client, org.rows[0].id);
+
+  await client.query(
+    `insert into audit_events (organization_id,actor_person_id,action,target_type,target_id,metadata)
+     values ($1,$2,'organization.created','organization',$3,$4::jsonb)`,
+    [org.rows[0].id, input.actorPersonId || null, String(org.rows[0].id), JSON.stringify({ slug, tenantHostname: hostname, ...(input.metadata || {}) })]
+  );
+
+  return org.rows[0];
+}
+
+/**
+ * Default per-organization settings rows. Conservative: optional modules such as
+ * AI stay off, driver rules use the platform defaults, calendar sync is allowed.
+ */
+export async function seedOrganizationDefaults(client: Pick<PoolClient, "query">, organizationId: string) {
+  await client.query(`insert into organization_driver_requirements (organization_id) values ($1) on conflict (organization_id) do nothing`, [organizationId]);
+  await client.query(`insert into organization_calendar_settings (organization_id) values ($1) on conflict (organization_id) do nothing`, [organizationId]);
+  await client.query(`insert into organization_ai_settings (organization_id) values ($1) on conflict (organization_id) do nothing`, [organizationId]);
+}
+
+export async function createOrganization(input: CreateOrganizationInput) {
+  const db = getDb();
+  if (!db) throw new Error("Database is not configured");
+  const client = await db.connect();
   try {
-    const existing = await db.query(`select id from organizations where slug=$1 or tenant_hostname=$2 limit 1`, [slug, hostname]);
-    if (existing.rowCount) throw new Error("That tenant slug is already in use");
-
-    const org = await db.query(
-      `insert into organizations (name,display_name,slug,status,discoverability,tenant_hostname)
-       values ($1,$1,$2,'active',$3,$4)
-       returning *`,
-      [name, slug, input.discoverability || "unlisted", hostname]
-    );
-
-    await db.query(
-      `insert into organization_domains
-        (organization_id,hostname,status,is_primary,verified_at,activated_at,domain_type,target_hostname,dns_status,ssl_status,verification_method)
-       values ($1,$2,'active',true,now(),now(),'platform',$2,'active','active','platform_wildcard')`,
-      [org.rows[0].id, hostname]
-    );
-
-    await db.query(
-      `insert into audit_events (organization_id,action,target_type,target_id,metadata)
-       values ($1,'organization.created','organization',$1,$2::jsonb)`,
-      [org.rows[0].id, JSON.stringify({ slug, tenantHostname: hostname })]
-    );
-
-    await db.query("commit");
-    return org.rows[0];
+    await client.query("begin");
+    const organization = await createOrganizationWithClient(client, input);
+    await client.query("commit");
+    return organization;
   } catch (error) {
-    await db.query("rollback");
+    await client.query("rollback").catch(() => {});
     throw error;
+  } finally {
+    client.release();
   }
 }
 

@@ -18,6 +18,7 @@ const schema = z.object({
   AUTH_SECRET: z.string().optional().transform(v => v || undefined),
   DATA_ENCRYPTION_KEY: z.string().optional().transform(v => v || undefined),
   SUPPORT_EMAIL: z.string().email().optional().or(z.literal("")),
+  PLATFORM_OWNER_EMAIL: z.string().email().optional().or(z.literal("")),
   PRIVACY_EMAIL: z.string().email().optional().or(z.literal("")),
   SECURITY_EMAIL: z.string().email().optional().or(z.literal(""))
 });
