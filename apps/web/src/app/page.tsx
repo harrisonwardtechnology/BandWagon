@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { floMoGoBrand, platformBrand } from "@/lib/branding";
+import type { CSSProperties } from "react";
+import { platformBrand } from "@/lib/branding";
+import { resolveBranding } from "@/lib/branding-policy";
 import { resolveTenant } from "@/lib/tenant";
 import ProductHome from "./ProductHome";
 
@@ -38,16 +40,21 @@ export default async function Home() {
   const tenant = await resolveTenant();
   // The platform host is the public product site for organizations.
   if (tenant.type !== "organization") return <ProductHome />;
-  const org = floMoGoBrand;
+  // Each community's own branding (set in /admin/branding), with safe defaults.
+  const org = resolveBranding({ displayName: tenant.displayName, name: tenant.name, branding: tenant.branding });
+  const themed = { "--gold": org.accentColor } as CSSProperties;
 
   return (
-    <main className="home-shell">
+    <main className="home-shell" style={themed}>
       <section className="home-hero" aria-labelledby="home-heading">
         <div className="hero-copy">
           <div className="hero-kicker"><span aria-hidden="true">●</span> Privacy-first community transportation</div>
           <div className="eyebrow">A {platformBrand.vendorName} product</div>
+          {org.logoUrl && <img src={org.logoUrl} alt={`${org.name} logo`} referrerPolicy="no-referrer" style={{ width: 72, height: 72, objectFit: "contain", borderRadius: 16, background: "#fff", padding: 6, marginBottom: 12 }} />}
+          {org.communityName && <div className="eyebrow">{org.communityName}</div>}
           <h1 id="home-heading">{org.name}</h1>
           <p className="hero-lede">{org.tagline}</p>
+          {org.welcomeText && <p className="hero-lede" style={{ whiteSpace: "pre-line", fontSize: "1rem" }}>{org.welcomeText}</p>}
           <div className="actions">
             <Link className="button" href="/login">Get started <span aria-hidden="true">→</span></Link>
             <Link className="button ghost" href="/help">See how it works</Link>
@@ -88,7 +95,7 @@ export default async function Home() {
       </section>
 
       <section className="community-banner">
-        <div><div className="eyebrow">Ready when your community is</div><h2>Plan the ride. Protect the people.</h2><p>Use BandWagon on the web, install it as an app, or review the open-source project before your organization adopts it.</p></div>
+        <div><div className="eyebrow">Ready when your community is</div><h2>Plan the ride. Protect the people.</h2><p>Use BandWagon on the web, install it as an app, or review the code on GitHub before your organization adopts it.</p></div>
         <div className="actions">
           <Link className="button light" href="/login">Sign in</Link>
           <a className="button outline-light" href="/api/review-package">Review package</a>
