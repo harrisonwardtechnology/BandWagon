@@ -18,7 +18,7 @@ export async function processOrganizationDecommissions(limit=10){
       const cleanup=await cleanupOrganizationInfrastructure(row.organization_id);
       const allClean=Boolean(cleanup.ok)&&!(cleanup.monitoring as any)?.error;
       await db.query(`update organization_decommissions set external_cleanup=$2::jsonb,status=$3,last_error=$4,updated_at=now() where id=$1`,[row.id,JSON.stringify(cleanup),allClean?'retention':'external_cleanup',allClean?null:'One or more external cleanup steps require retry']);
-      if(allClean){await db.query(`insert into audit_events(organization_id,action,target_type,target_id,metadata) values($1,'organization.decommission.external_cleanup_complete','organization',$1,$2::jsonb)`,[row.organization_id,JSON.stringify({decommissionId:row.id})]).catch(()=>{});}
+      if(allClean){await db.query(`insert into audit_events(organization_id,action,target_type,target_id,metadata) values($1::uuid,'organization.decommission.external_cleanup_complete','organization',$1::text,$2::jsonb)`,[row.organization_id,JSON.stringify({decommissionId:row.id})]).catch(()=>{});}
       results.push({id:row.id,status:allClean?'retention':'external_cleanup',cleanup});
     }catch(error){const message=error instanceof Error?error.message:'Decommission cleanup failed';await db.query(`update organization_decommissions set status='external_cleanup',last_error=$2,updated_at=now() where id=$1`,[row.id,message]).catch(()=>{});results.push({id:row.id,status:'failed_attempt',error:message});}
   }

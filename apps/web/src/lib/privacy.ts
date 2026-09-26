@@ -317,7 +317,7 @@ export async function buildMyDataExport(identity: SessionIdentity) {
     );
     await db.query(
       `insert into audit_events(actor_person_id,action,target_type,target_id,metadata)
-       values($1,'privacy.data_exported','person',$1,$2::jsonb)`,
+       values($1::uuid,'privacy.data_exported','person',$1::text,$2::jsonb)`,
       [identity.personId,JSON.stringify({ privacyRequestId: requestId })]
     );
     return exportData;
