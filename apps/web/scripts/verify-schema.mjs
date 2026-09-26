@@ -42,6 +42,8 @@ const requiredTables = [
   "managed_student_account_access",
   "application_errors",
   "ai_policy_events",
+  "sms_opt_outs",
+  "sms_consent_events",
 ];
 
 await client.connect();

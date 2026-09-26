@@ -1,6 +1,7 @@
 import { getDb } from "@/lib/db";
 import { lookupHash } from "@/lib/data-security";
 import { enforceMobileMessageIntent } from "@/lib/messaging-policy";
+import { mobileSendDecision } from "@/lib/sms-consent-policy";
 
 export type TwilioDeliveryMode = "auto" | "sms";
 
@@ -36,17 +37,23 @@ async function reserveMobileDelivery(input: {
     // the same destination cannot all observe the same pre-send count.
     await client.query("select pg_advisory_xact_lock(hashtext($1))", [`bandwagon:mobile:${input.to}`]);
 
-    if (process.env.LOOKUP_HASH_KEY) {
-      const consent = await client.query(
-        `select messaging_consent_status from phones
-          where lookup_hash=$1 and verified_at is not null
-          order by created_at desc limit 1`,
-        [lookupHash(input.to)]
-      );
-      if (consent.rows[0]?.messaging_consent_status === "opted_out") {
-        throw new Error("Recipient has opted out of mobile messaging");
-      }
-    }
+    // Fail closed: if the number cannot be hashed (no key configured) this throws
+    // and nothing is sent, rather than silently skipping the consent check.
+    const hash = lookupHash(input.to);
+    const consent = await client.query(
+      `select
+         (select messaging_consent_status from phones
+           where lookup_hash=$1 and verified_at is not null
+           order by created_at desc limit 1) as phone_state,
+         (select state from sms_opt_outs where lookup_hash=$1) as registry_state`,
+      [hash]
+    );
+    const decision = mobileSendDecision({
+      notificationType: input.notificationType,
+      phoneState: consent.rows[0]?.phone_state ?? null,
+      registryState: consent.rows[0]?.registry_state ?? null,
+    });
+    if (!decision.allowed) throw new Error(decision.reason);
 
     const windowMinutes = input.notificationType === "otp" ? 15 : 60;
     const limit = input.notificationType === "otp" ? 5 : 20;

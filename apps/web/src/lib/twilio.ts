@@ -1,8 +1,5 @@
 import crypto from "node:crypto";
 import { getRedis } from "./redis";
-import { getDb } from "./db";
-import { lookupHash } from "./data-security";
-import { normalizePhoneInput } from "./phone-format";
 import { parseTwilioForm, type TwilioForm } from "./twilio-form";
 
 export { parseTwilioForm };
@@ -44,20 +41,16 @@ export async function markOnce(key: string, ttlSeconds = 86400) {
   return result === "OK";
 }
 
-export async function setSmsConsent(phone: string, state: "opted_in" | "opted_out") {
+// Best-effort operational mirror only. Postgres (sms_opt_outs + phones) is the
+// source of truth for whether a text may be sent; nothing reads this for sends.
+export async function mirrorSmsConsentToRedis(phone: string, state: "opted_in" | "opted_out") {
   const redis = getRedis();
-  if (!phone) return;
-  if(redis){
+  if (!phone || !redis) return;
+  try {
     if (redis.status === "wait") await redis.connect();
-    await redis.hset(`twilio:sms-consent:${phone}`, {
-      state,
-      updatedAt: new Date().toISOString(),
-    }).catch(()=>undefined);
-  }
-  const normalized=normalizePhoneInput(phone,"US");
-  const db=getDb();
-  if(db&&normalized&&process.env.LOOKUP_HASH_KEY){
-    await db.query(`update phones set messaging_consent_status=$1 where lookup_hash=$2 and verified_at is not null`,[state,lookupHash(normalized)]);
+    await redis.hset(`twilio:sms-consent:${phone}`, { state, updatedAt: new Date().toISOString() });
+  } catch {
+    // ignore: mirror only
   }
 }
 

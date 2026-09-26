@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { recordSmsConsent } from "@/lib/sms-consent";
 import { getDb } from "@/lib/db";
 import { decryptSensitive, encryptSensitive, lookupHash } from "@/lib/data-security";
 import { sendEmailNotification } from "@/lib/email-send";
@@ -270,6 +271,7 @@ export async function verifyOtp(input: {
   code: string;
   requestIp?: string | null;
   userAgent?: string | null;
+  smsConsent?: boolean;
 }) {
   const db = dbRequired();
   const verificationIpHash = input.requestIp ? digest(`ip:${input.requestIp}`) : null;
@@ -379,7 +381,7 @@ export async function verifyOtp(input: {
         const phone = normalizePhone(destination);
         await client.query(
           `insert into phones (person_id,e164_ciphertext,lookup_hash,verified_at,visibility,messaging_consent_status)
-           values ($1,$2,$3,now(),'hidden','opted_in')`,
+           values ($1,$2,$3,now(),'hidden','not_configured')`,
           [personId,encryptSensitive(phone),lookupHash(phone)]
         );
       }
@@ -397,6 +399,11 @@ export async function verifyOtp(input: {
         where correlation_id=$2 and notification_type='otp' and person_id is null`,
       [personId,challenge.id]
     );
+    // Verifying a number is not consent to ride texts. Only the separate,
+    // unchecked-by-default SMS checkbox opts the person in.
+    if (input.smsConsent === true && challenge.destination_type === "phone") {
+      await recordSmsConsent({ phone: destination, action: "opt_in", source: "signup_checkbox", personId, db: client });
+    }
     await client.query(`update auth_otp_challenges set consumed_at=now(),attempts=attempts+1 where id=$1`, [challenge.id]);
     await client.query(`update user_accounts set last_login_at=now(),updated_at=now() where id=$1`, [userAccountId]);
     await client.query(

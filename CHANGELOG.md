@@ -2,6 +2,10 @@
 
 ## v1.0.0-rc1 - Unreleased
 
+- SMS consent: verifying a phone number no longer opts a person in to ride texts. A separate, unchecked-by-default checkbox (signup and Notifications settings) records affirmative consent with the exact text shown.
+- SMS opt-outs: STOP/START are recorded in Postgres in a number-level registry (`sms_opt_outs`) that also covers numbers not yet on an account. Keyword fallback works even without Twilio Advanced Opt-Out, and a failed write returns 500 so Twilio retries.
+- The send path checks consent even when `LOOKUP_HASH_KEY` is unset (fails closed).
+
 - Completed the v1 ride, household, managed-student, driver, safety, pickup-verification, calendar, privacy, tenant, and operations contract.
 - Added organizer-created manual events; ordinary member publishing remains disabled for v1.
 - Added production readiness profiles that keep Twilio and Google as explicit FloMoGo launch gates.

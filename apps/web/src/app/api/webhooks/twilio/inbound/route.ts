@@ -1,4 +1,6 @@
-import { emptyTwiml, escapeXml, markOnce, parseTwilioForm, setSmsConsent, twiml, validateTwilioSignature,type TwilioForm } from "@/lib/twilio";
+import { emptyTwiml, escapeXml, markOnce, mirrorSmsConsentToRedis, parseTwilioForm, twiml, validateTwilioSignature,type TwilioForm } from "@/lib/twilio";
+import { recordSmsConsent } from "@/lib/sms-consent";
+import { classifyInboundConsent } from "@/lib/sms-consent-policy";
 import { confirmOrganizationDecommissionFromMessage } from "@/lib/organization-decommission-sms";
 
 export const runtime = "nodejs";
@@ -10,14 +12,26 @@ export async function POST(request: Request) {
     return new Response("Invalid Twilio signature", { status: 403 });
   }
 
+  // Consent is recorded before the dedupe marker. Recording is idempotent, and
+  // if it fails we return 500 so Twilio retries instead of the retry being
+  // swallowed by an already-set dedupe key.
+  const consentAction = classifyInboundConsent({ optOutType: form.OptOutType, body: form.Body });
+  if (consentAction && form.From) {
+    try {
+      await recordSmsConsent({
+        phone: form.From,
+        action: consentAction,
+        source: form.OptOutType ? "twilio_advanced_opt_out" : "carrier_keyword",
+      });
+    } catch (error) {
+      console.error("Twilio consent update failed", { messageSid: form.MessageSid, error: error instanceof Error ? error.message : "unknown" });
+      return new Response("Consent update failed", { status: 500 });
+    }
+    await mirrorSmsConsentToRedis(form.From, consentAction === "opt_out" ? "opted_out" : "opted_in");
+  }
+
   const sid = form.MessageSid || form.SmsSid || `${form.From}:${form.To}:${form.Body}`;
   if (!(await markOnce(`inbound:${sid}`))) return emptyTwiml();
-
-  // With Twilio Advanced Opt-Out enabled, Twilio supplies OptOutType and handles
-  // the carrier-facing STOP/START/HELP reply. We only mirror consent state here.
-  const optOutType = (form.OptOutType || "").toUpperCase();
-  if (optOutType === "STOP") await setSmsConsent(form.From, "opted_out");
-  if (optOutType === "START") await setSmsConsent(form.From, "opted_in");
 
   try {
     const decommission = await confirmOrganizationDecommissionFromMessage({ from: form.From || "", body: form.Body || "" });

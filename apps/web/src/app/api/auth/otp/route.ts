@@ -36,6 +36,7 @@ export async function POST(request: Request) {
         code: String(body.code || ""),
         requestIp: requestIp(request),
         userAgent: request.headers.get("user-agent"),
+        smsConsent: body.smsConsent === true,
       });
       const response = NextResponse.json({
         ok: true,
