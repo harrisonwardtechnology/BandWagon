@@ -28,7 +28,7 @@ const privacy = [
   "No ads, no ad trackers, and no behavioral analytics.",
   "No live GPS tracking of people or cars.",
   "No school roster, student ID, grades, or school records needed.",
-  "Phone numbers, exact addresses, and credentials are encrypted.",
+  "Profile phone numbers, exact addresses, and driver credentials are encrypted at rest.",
   "Each community's data is kept separate from every other community.",
   "Families can export or delete their data from their settings.",
   "Sponsors and donors never get participant data.",
@@ -68,7 +68,7 @@ export default function ProductHome() {
             <Link className="button ghost" href="/login">Sign in</Link>
           </div>
           <div className="hero-trust" aria-label="Platform commitments">
-            <span>Free to use</span><span>Guardian controlled</span><span>Never sells data</span><span>Open source</span>
+            <span>Free to use</span><span>Guardian controlled</span><span>Never sells data</span>
           </div>
         </div>
 

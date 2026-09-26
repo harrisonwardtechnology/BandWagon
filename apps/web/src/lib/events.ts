@@ -19,7 +19,7 @@ export async function updateOrganizationCalendarControls(input:{organizationId:s
     values($1,$2,$3,$4,$5) on conflict(organization_id) do update set google_sync_enabled=excluded.google_sync_enabled,
     microsoft_sync_enabled=excluded.microsoft_sync_enabled,conflict_mode=excluded.conflict_mode,updated_by_person_id=excluded.updated_by_person_id,updated_at=now() returning *`,
     [input.organizationId,input.googleSyncEnabled,input.microsoftSyncEnabled,mode,input.actorPersonId]);
-  await db.query(`insert into audit_events(organization_id,actor_person_id,action,target_type,target_id,metadata) values($1,$2,'organization.calendar_controls_updated','organization',$1,$3::jsonb)`,[input.organizationId,input.actorPersonId,JSON.stringify({googleSyncEnabled:input.googleSyncEnabled,microsoftSyncEnabled:input.microsoftSyncEnabled,conflictMode:mode})]);
+  await db.query(`insert into audit_events(organization_id,actor_person_id,action,target_type,target_id,metadata) values($1::uuid,$2,'organization.calendar_controls_updated','organization',$1::text,$3::jsonb)`,[input.organizationId,input.actorPersonId,JSON.stringify({googleSyncEnabled:input.googleSyncEnabled,microsoftSyncEnabled:input.microsoftSyncEnabled,conflictMode:mode})]);
   return result.rows[0];
 }
 
@@ -169,7 +169,7 @@ export async function createManualEvent(input: {
   );
   await db.query(
     `insert into audit_events(organization_id,actor_person_id,action,target_type,target_id,metadata)
-     values($1,$2,'organization.manual_event_created','event',$3,$4::jsonb)`,
+     values($1::uuid,$2,'organization.manual_event_created','event',$3,$4::jsonb)`,
     [input.organizationId,input.createdByPersonId||null,result.rows[0].id,JSON.stringify({visibility:input.visibility||"organization",rideCoordinationEnabled:input.rideCoordinationEnabled!==false,allDay:Boolean(input.allDay)})]
   );
   return result.rows[0];

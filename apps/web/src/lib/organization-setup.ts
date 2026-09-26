@@ -25,7 +25,7 @@ export async function getSetupChecklist(identity: SessionIdentity, organizationI
          (exists(select 1 from events where organization_id=$1)
            or exists(select 1 from google_connections where organization_id=$1 and status='active')
            or exists(select 1 from microsoft_connections where organization_id=$1 and status='active')) as events,
-         (exists(select 1 from organization_invitations where organization_id=$1 and revoked_at is null)
+         (exists(select 1 from organization_invitations where organization_id=$1 and revoked_at is null and (accepted_at is not null or expires_at>now()))
            or (select count(*) from memberships where organization_id=$1 and group_id is null and status='active' and role in ('owner','admin','manager'))>=2) as co_admin,
          exists(select 1 from rides where organization_id=$1) as test_ride,
          (select count(*)::int from organization_join_codes where organization_id=$1 and status='active') as active_join_codes`,

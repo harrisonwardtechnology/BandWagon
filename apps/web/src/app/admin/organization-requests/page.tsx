@@ -79,6 +79,7 @@ export default function OrganizationRequestsAdmin() {
         {open && <div style={{ marginTop: 14 }}>
           {dl("Requested address", <code>{r.requested_slug}</code>)}
           {dl("Requester", `${r.requester_name}${r.requester_email ? ` <${r.requester_email}>` : ""}`)}
+          {dl("Account type", r.requester_person_type==="adult"?"Adult":"Not an adult account (cannot be approved)")}
           {dl("Role", r.requester_role)}
           {dl("Sponsor", r.sponsoring_organization)}
           {dl("Website", r.website && <a href={r.website} target="_blank" rel="noreferrer noopener">{r.website}</a>)}

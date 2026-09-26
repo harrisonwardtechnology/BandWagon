@@ -1,6 +1,14 @@
 import { getDb } from "@/lib/db";
 import { sendEmailNotification } from "@/lib/email-send";
 
+// Inside a transaction a failed statement aborts everything after it, so
+// best-effort cleanup runs under a savepoint and is rolled back on its own.
+async function optionalStatement(tx:{query:(sql:string,params?:unknown[])=>Promise<unknown>},sql:string,params:unknown[]){
+  await tx.query('savepoint optional_step');
+  try{await tx.query(sql,params);await tx.query('release savepoint optional_step');}
+  catch{await tx.query('rollback to savepoint optional_step');}
+}
+
 const STATUSES=new Set(['new','triage','needs_info','accepted','duplicate','resolved','closed']);
 const BOUNTY_STATUSES=new Set(['not_reviewed','eligible','ineligible','awarded','paid']);
 
@@ -41,18 +49,18 @@ export async function updateSecurityReport(input:{reportId:string;actorUserAccou
   const internalNote=String(input.internalNote||'').trim().slice(0,12000)||null;
   const publicMessage=String(input.publicMessage||'').trim().slice(0,12000)||null;
   const remediationReference=input.remediationReference==null?current.remediation_reference:String(input.remediationReference||'').trim().slice(0,1000)||null;
-  await db.query('begin');
+  const tx=await db.connect();await tx.query('begin');
   try{
-    await db.query(`update security_reports set status=$2,bounty_status=$3,bounty_amount_cents=$4,assigned_to_user_account_id=$5,
+    await tx.query(`update security_reports set status=$2,bounty_status=$3,bounty_amount_cents=$4,assigned_to_user_account_id=$5,
       acknowledged_at=case when acknowledged_at is null and $2<>'new' then now() else acknowledged_at end,
       first_response_at=case when first_response_at is null and $6::boolean then now() else first_response_at end,
       resolved_at=case when $2='resolved' then coalesce(resolved_at,now()) else resolved_at end,
       closed_at=case when $2='closed' then coalesce(closed_at,now()) else closed_at end,
       remediation_reference=$7,updated_at=now() where id=$1`,[input.reportId,status,bountyStatus,bountyAmount,assignee,Boolean(publicMessage),remediationReference]);
-    await db.query(`insert into security_report_events(security_report_id,actor_user_account_id,event_type,public_message,internal_note,from_status,to_status,metadata) values($1,$2,$3,$4,$5,$6,$7,$8::jsonb)`,[input.reportId,input.actorUserAccountId,status!==current.status?'status_changed':publicMessage?'reporter_contacted':internalNote?'note_added':'updated',publicMessage,internalNote,current.status,status,JSON.stringify({bountyStatus,bountyAmountCents:bountyAmount,assignedToSelf:Boolean(input.assignToSelf),remediationReference})]);
-    await db.query(`insert into audit_events(actor_person_id,action,target_type,target_id,metadata) select ua.person_id,'security_report.updated','security_report',$1,$2::jsonb from user_accounts ua where ua.id=$3`,[input.reportId,JSON.stringify({trackingId:current.tracking_id,fromStatus:current.status,toStatus:status,bountyStatus}),input.actorUserAccountId]).catch(()=>{});
-    await db.query('commit');
-  }catch(error){await db.query('rollback');throw error;}
+    await tx.query(`insert into security_report_events(security_report_id,actor_user_account_id,event_type,public_message,internal_note,from_status,to_status,metadata) values($1,$2,$3,$4,$5,$6,$7,$8::jsonb)`,[input.reportId,input.actorUserAccountId,status!==current.status?'status_changed':publicMessage?'reporter_contacted':internalNote?'note_added':'updated',publicMessage,internalNote,current.status,status,JSON.stringify({bountyStatus,bountyAmountCents:bountyAmount,assignedToSelf:Boolean(input.assignToSelf),remediationReference})]);
+    await optionalStatement(tx,`insert into audit_events(actor_person_id,action,target_type,target_id,metadata) select ua.person_id,'security_report.updated','security_report',$1,$2::jsonb from user_accounts ua where ua.id=$3`,[input.reportId,JSON.stringify({trackingId:current.tracking_id,fromStatus:current.status,toStatus:status,bountyStatus}),input.actorUserAccountId]);
+    await tx.query('commit');
+  }catch(error){await tx.query('rollback').catch(()=>{});throw error;}finally{tx.release();}
   if(publicMessage){
     await sendEmailNotification({to:current.contact_email,subject:`BandWagon security report ${current.tracking_id}`,body:`Update from BandWagon Security\n\n${publicMessage}\n\nTracking ID: ${current.tracking_id}\n\nDo not send sensitive evidence by ordinary email. Use https://secret.harrisonward.com and reference the tracking ID.`,notificationType:'security_report_update',urgency:current.severity==='critical'?'critical':'important'}).catch(()=>{});
   }
