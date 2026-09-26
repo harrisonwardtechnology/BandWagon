@@ -46,6 +46,7 @@ export default function TenantsAdmin() {
     <section style={card}>
       <p><strong>Platform owner access required.</strong> Tenant administration uses your signed-in session.</p>
       <button onClick={refresh}>Refresh Organizations</button>
+      <p style={{marginBottom:0}}><a href="/admin/usage">Texting and AI usage by organization</a> · adjust each organization&apos;s monthly texting allowance.</p>
     </section>
 
     <section style={card}>

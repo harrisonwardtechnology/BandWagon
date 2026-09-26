@@ -49,6 +49,9 @@ const requiredTables = [
   "organization_requests",
   "organization_invitations",
   "organization_setup_progress",
+  "organization_messaging_limits",
+  "organization_messaging_alerts",
+  "organization_impact_settings",
 ];
 
 await client.connect();

@@ -4,6 +4,7 @@ import { getVerifiedPhone } from "@/lib/accounts";
 import { sendPushToSubscription,type PushPayload } from "@/lib/push";
 import { sendTwilioNotification } from "@/lib/twilio-send";
 import { sendEmailNotification } from "@/lib/email-send";
+import { ORG_TEXTING_LIMIT_ERROR } from "@/lib/org-messaging-cap-policy";
 
 export type NotificationUrgency="routine"|"important"|"critical";
 export type NotificationType=
@@ -56,7 +57,10 @@ export async function routeNotification(request:NotificationRequest){
   const pushAvailable=result.push.accepted>0;const sendSmsNow=policy.smsImmediate||(policy.smsFallback&&!pushAvailable);
   if(sendSmsNow&&smsAllowed&&context.phone){result.messaging.attempted=true;try{const outcome=await sendTwilioNotification({to:context.phone,body:request.body,mode:"auto",personId:request.personId,organizationId:request.organizationId,notificationType:request.notificationType,urgency:policy.urgency,correlationId});result.messaging.accepted=outcome.ok;result.messaging.sid=outcome.sid;result.messaging.estimatedCostCents=outcome.estimatedCostCents;}catch(error){result.messaging.error=error instanceof Error?error.message:"Messaging failed";}}
   else if(sendSmsNow&&!context.phone)result.messaging.skipped="No verified phone available";else if(sendSmsNow&&!smsAllowed)result.messaging.skipped="SMS/RCS disabled by notification preferences";
-  const shouldEmail=policy.emailFallback&&emailAllowed&&Boolean(context.email)&&(policy.emailAlways||!pushAvailable||policy.urgency==="critical");
+  // When the organization's monthly texting limit paused this text, email is
+  // used as a fallback (if the person allows email) so nobody is silently missed.
+  const smsPausedByOrgLimit=result.messaging.error===ORG_TEXTING_LIMIT_ERROR;if(smsPausedByOrgLimit)result.messaging.pausedByOrganizationLimit=true;
+  const shouldEmail=emailAllowed&&Boolean(context.email)&&((policy.emailFallback&&(policy.emailAlways||!pushAvailable||policy.urgency==="critical"))||(smsPausedByOrgLimit&&!pushAvailable));
   if(shouldEmail&&context.email){result.email.attempted=true;const emailOutcome=await sendEmailNotification({to:context.email,subject:request.title,body:request.body,personId:request.personId,organizationId:request.organizationId,notificationType:request.notificationType,urgency:policy.urgency,correlationId});result.email.accepted=Boolean(emailOutcome.ok);result.email.skipped=Boolean(emailOutcome.skipped);if(!emailOutcome.ok)result.email.reason=emailOutcome.reason;}
   return result;
 }
