@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { getDb } from "@/lib/db";
 import { routeNotification } from "@/lib/notification-router";
 import { lookupHash } from "@/lib/data-security";
+import { platformOrigin } from "@/lib/platform-hosts";
 
 async function count(db:any,sql:string,params:any[]){
   try{const r=await db.query(sql,params);return Number(r.rows?.[0]?.count||0);}catch{return 0;}
@@ -45,7 +46,7 @@ export async function createOrganizationDecommissionConfirmation(input:{organiza
     input.organizationId,input.requestedByPersonId,input.requestedByPlatformRole||null,input.reason.trim(),Boolean(input.emergency),input.confirmation.trim(),lookupHash(token),lookupHash(code),expiresAt
   ])).rows[0];
   const organizationName=preview.organization.display_name||preview.organization.name;
-  const base=(process.env.PUBLIC_APP_URL||process.env.NEXT_PUBLIC_APP_URL||"https://bandwagon.harrisonward.net").replace(/\/$/,"");
+  const base=(process.env.PUBLIC_APP_URL||process.env.NEXT_PUBLIC_APP_URL||platformOrigin()).replace(/\/$/,"");
   const confirmationUrl=`${base}/organization-decommission/confirm?token=${encodeURIComponent(token)}`;
   const delivery=await routeNotification({notificationType:"organization_decommission_confirmation",title:`Confirm removal of ${organizationName}`,body:`A request was made to remove ${organizationName} from BandWagon. Confirmation code: ${code}. Or confirm using this secure link: ${confirmationUrl}. This expires in 15 minutes. If you did not request this, do not confirm it and contact BandWagon Support.`,url:confirmationUrl,personId:input.requestedByPersonId,organizationId:input.organizationId,forceUrgency:"critical"});
   await db.query(`update organization_decommission_confirmations set delivery_result=$2::jsonb,updated_at=now() where id=$1`,[row.id,JSON.stringify(delivery)]);

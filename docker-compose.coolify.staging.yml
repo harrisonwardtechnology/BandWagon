@@ -1,0 +1,99 @@
+# BandWagon STAGING for Coolify. One app container (APP_ROLE=all) with its own
+# PostGIS and Redis. Never point this at production data or production secrets.
+#
+# Safety rails that are on by design:
+#   NEXT_PUBLIC_ENVIRONMENT=staging  red STAGING banner on every page, and the
+#                                    app forces the messaging sandbox on
+#   MESSAGING_SANDBOX=true           SMS and email go ONLY to the allowlists below;
+#                                    everyone else is recorded as sandbox_skipped
+#
+# Leave the Coolify "Domains" field empty; routing comes from the Traefik labels.
+# See docs/operations/STAGING.md.
+
+services:
+  app:
+    build:
+      context: ./apps/web
+      args:
+        NEXT_PUBLIC_ENVIRONMENT: staging
+        NEXT_PUBLIC_HELP_DESK_URL: ${NEXT_PUBLIC_HELP_DESK_URL:-}
+        NEXT_PUBLIC_STATUS_PAGE_URL: ${NEXT_PUBLIC_STATUS_PAGE_URL:-}
+    image: bandwagon-app:staging
+    restart: unless-stopped
+    command: ["sh", "-c", "node scripts/migrate.mjs && node server.js"]
+    environment:
+      NODE_ENV: production
+      APP_ROLE: all
+      NOTIFICATION_DELIVERY: queue
+      APP_URL: ${APP_URL:-https://staging.bandwagon.harrisonward.net}
+      # Staging answers on its own hostname as the product site.
+      PLATFORM_HOSTNAMES: ${PLATFORM_HOSTNAMES:-staging.bandwagon.harrisonward.net}
+      # Staging tenants live under their own parent domain, never production's.
+      TENANT_BASE_DOMAIN: ${TENANT_BASE_DOMAIN:-staging.harrisonward.org}
+      NEXT_PUBLIC_ENVIRONMENT: staging
+      APP_ENVIRONMENT: staging
+      MESSAGING_SANDBOX: "true"
+      SANDBOX_ALLOWED_PHONES: ${SANDBOX_ALLOWED_PHONES:-}
+      SANDBOX_ALLOWED_EMAILS: ${SANDBOX_ALLOWED_EMAILS:-}
+      DATABASE_URL: postgresql://bandwagon_staging:${STAGING_POSTGRES_PASSWORD}@postgres:5432/bandwagon_staging
+      DATABASE_SSL: "false"
+      REDIS_URL: redis://redis:6379
+      HEALTH_REQUIRE_REDIS: "false"
+      # Staging-only secrets. Generate new values; never copy production keys.
+      AUTH_SECRET: ${AUTH_SECRET}
+      DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY}
+      LOOKUP_HASH_KEY: ${LOOKUP_HASH_KEY}
+      # Use Twilio TEST credentials or a separate staging subaccount, a separate
+      # SMTP2GO sender, Stripe TEST keys, and a separate S3 bucket. Add them in
+      # Coolify. Leave any of them blank to turn that feature off in staging.
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health/ready >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.bandwagon-staging.rule: Host(`${STAGING_HOSTNAME:-staging.bandwagon.harrisonward.net}`)
+      traefik.http.routers.bandwagon-staging.entrypoints: https
+      traefik.http.routers.bandwagon-staging.tls: "true"
+      traefik.http.services.bandwagon-staging.loadbalancer.server.port: "3000"
+      # Keep staging out of search engines.
+      traefik.http.middlewares.bandwagon-staging-noindex.headers.customresponseheaders.X-Robots-Tag: "noindex, nofollow"
+      traefik.http.routers.bandwagon-staging.middlewares: bandwagon-staging-noindex
+
+  postgres:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bandwagon_staging
+      POSTGRES_USER: bandwagon_staging
+      POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD}
+    volumes:
+      - staging-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bandwagon_staging -d bandwagon_staging"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - staging-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  staging-postgres-data:
+  staging-redis-data:

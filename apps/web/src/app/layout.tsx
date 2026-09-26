@@ -6,6 +6,8 @@ import OfflineStatus from "./OfflineStatus";
 import { BrandLogo } from "@/components/brand-logo";
 import { PublicSiteHeader } from "@/components/public-site-header";
 import PrivacyConsentManager, { PrivacyPreferencesButton } from "@/components/privacy-consent-manager";
+import { StagingBanner } from "@/components/staging-banner";
+import { platformOrigin } from "@/lib/platform-hosts";
 
 export const viewport: Viewport = {
   themeColor: "#071a33",
@@ -14,7 +16,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://bandwagon.harrisonward.net"),
+  metadataBase: new URL(platformOrigin()),
   title: { default: "BandWagon", template: "%s | BandWagon" },
   description: "Privacy-first, open-source community ride coordination for families, teams, schools, and organizations.",
   applicationName: "BandWagon",
@@ -26,7 +28,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "BandWagon",
     description: "Privacy-first, open-source community ride coordination for families, teams, schools, and organizations.",
-    url: "https://bandwagon.harrisonward.net",
+    url: platformOrigin(),
     siteName: "BandWagon",
     images: [{ url: "/social/bandwagon-social.png", width: 1280, height: 640, alt: "BandWagon - Community-powered rides" }],
     type: "website",
@@ -41,12 +43,12 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const statusUrl=process.env.NEXT_PUBLIC_STATUS_URL||"https://status.harrisonward.org";
   const linkStyle={color:"#475569",textDecoration:"none",fontWeight:700,fontSize:13} as const;
   return (
     <html lang="en">
       <body>
         <a className="skip-link" href="#main-content">Skip to main content</a>
+        <StagingBanner />
         <PrivacyConsentManager />
         <PwaRegister />
         <OfflineStatus />
@@ -59,13 +61,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <nav aria-label="Footer" style={{display:"flex",gap:16,flexWrap:"wrap"}}>
               <a href="/help" style={linkStyle}>Help Center</a>
               <a href="/api/review-package" style={linkStyle}>Review Package</a>
-              <a href={statusUrl} target="_blank" rel="noreferrer" style={linkStyle}>Platform Status <span className="sr-only">(opens in a new tab)</span></a>
+              <a href="/status" style={linkStyle}>Platform Status</a>
               <a href="/security" style={linkStyle}>Security / Report a Bug</a>
               <a href="/support" style={linkStyle}>Support BandWagon</a>
               <a href="/privacy" style={linkStyle}>Privacy</a>
               <a href="/cookies" style={linkStyle}>Cookies</a>
               <PrivacyPreferencesButton />
               <a href="/terms" style={linkStyle}>Terms</a>
+              <a href="/legal" style={linkStyle}>Legal</a>
             </nav>
           </div>
         </footer>

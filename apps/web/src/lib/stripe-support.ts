@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { getDb } from "@/lib/db";
 import { safeHttpsUrlOrNull, SPONSOR_LIMITS } from "@/lib/sponsor-policy";
+import { platformOrigin } from "@/lib/platform-hosts";
 
 function stripeSecret() {
   const value = process.env.STRIPE_SECRET_KEY;
@@ -40,7 +41,7 @@ export async function createSupportCheckout(input: {
 }) {
   if (input.amountCents < 100) throw new Error("Minimum contribution is $1.00");
 
-  const appUrl = (process.env.APP_URL || "https://bandwagon.harrisonward.net").replace(/\/$/, "");
+  const appUrl = (process.env.APP_URL || platformOrigin()).replace(/\/$/, "");
   const params = new URLSearchParams();
 
   params.set("mode", "payment");

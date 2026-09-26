@@ -167,12 +167,20 @@ export default function TermsPage() {
           Questions, privacy requests, messaging assistance, or reports of misuse may
           be submitted using the contact method published on the BandWagon website.
         </p>
+        <p>
+          Organization leaders who request a community also accept the{" "}
+          <Link href="/legal/organization-agreement">Organization Agreement</Link>. Other legal
+          documents, including the <Link href="/legal/subprocessors">subprocessor list</Link> and the{" "}
+          <Link href="/legal/student-data">student data statement</Link>, are listed on the{" "}
+          <Link href="/legal">Legal</Link> page.
+        </p>
 
         <div className="legal-links">
           <Link href="/privacy">Privacy Policy</Link>
           <Link href="/cookies">Cookie Policy</Link>
           <Link href="/messaging">Messaging &amp; SMS Consent</Link>
           <Link href="/sms-opt-in">SMS Opt-In Example</Link>
+          <Link href="/legal">All Legal Documents</Link>
           <Link href="/">BandWagon Home</Link>
         </div>
       </article>

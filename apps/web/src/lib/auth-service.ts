@@ -217,7 +217,7 @@ export async function requestOtp(input: {
       });
       if (!delivery.ok) throw new Error(delivery.reason || "Email verification delivery failed");
     } else {
-      await sendTwilioNotification({
+      const sms = await sendTwilioNotification({
         to: normalized.destination,
         body: `BandWagon verification code: ${code}. Expires in ${OTP_TTL_MINUTES} minutes.`,
         mode: "auto",
@@ -226,6 +226,7 @@ export async function requestOtp(input: {
         personId: existing?.person_id || null,
         correlationId: id,
       });
+      if (!sms.ok) throw new Error(sms.reason || "SMS verification delivery failed");
     }
     deliveryAccepted = true;
   } catch {}

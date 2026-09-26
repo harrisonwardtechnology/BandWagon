@@ -13,6 +13,18 @@ export const envSchema = z.object({
   PLATFORM_URL: z.string().url().default("https://bandwagon.harrisonward.net"),
   PLATFORM_VENDOR_NAME: z.string().min(1).default("Harrison Ward Technology"),
   PLATFORM_VENDOR_URL: z.string().url().default("https://harrisonward.com"),
+  // Comma list of product (non-tenant) hostnames; first is primary.
+  PLATFORM_HOSTNAMES: z.string().default("bandwagon.harrisonward.net,www.bandwagon.harrisonward.net"),
+  // Parent domain for default tenant hostnames: <slug>.<TENANT_BASE_DOMAIN>.
+  TENANT_BASE_DOMAIN: z.string().default("harrisonward.org"),
+  // Public links (build time). Blank hides the link and falls back to email.
+  NEXT_PUBLIC_HELP_DESK_URL: z.string().url().optional().or(z.literal("")), // e.g. https://help.harrisonward.net
+  NEXT_PUBLIC_STATUS_PAGE_URL: z.string().url().optional().or(z.literal("")),
+  NEXT_PUBLIC_ENVIRONMENT: z.enum(["production", "staging", "development"]).default("production"),
+  // Staging safety. Staging forces the sandbox on even if this is false.
+  MESSAGING_SANDBOX: bool.default(false),
+  SANDBOX_ALLOWED_PHONES: z.string().optional(), // comma list of E.164 numbers
+  SANDBOX_ALLOWED_EMAILS: z.string().optional(), // comma list of addresses
   ALLOW_CUSTOM_DOMAINS: bool.default(true),
   DEFAULT_ORG_URL_MODE: z.enum(["path", "subdomain"]).default("path"),
 
