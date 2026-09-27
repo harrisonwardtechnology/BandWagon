@@ -45,7 +45,8 @@ The base domain comes from `TENANT_BASE_DOMAIN` (default `bandwagon.club`). Chan
 Passkey sign-in runs the same post-sign-in step as code sign-in (`completeSignIn` in `src/lib/auth-service.ts`: `last_login_at`, an `auth_events` row, and a normal `bw_session` cookie). Before that, `findSignInEligibleAccount` applies the same restrictions as email code sign-in:
 
 - the person and the user account must both be `active` (suspended, deleting, or deleted accounts cannot sign in);
-- a managed student can sign in only while guardian-enabled access and active guardian consent both exist. If a guardian turns access off, their passkeys stop working too.
+- a managed student can sign in only while guardian-enabled access and active guardian consent both exist, and only with a passkey added under the login email the guardian currently authorizes. Each managed student passkey records that email (`webauthn_credentials.login_email_id`, migration `062_passkey_login_email.sql`), and sign-in requires it to still equal `managed_student_account_access.login_email_id`, the same rule email code sign-in uses.
+- when a guardian turns a student's sign-in off, switches the authorized login email (for example because the old one was compromised), or revokes the last active consent, the student's passkeys are deleted. Migration 062 also removes managed student passkeys created before the column existed; those students sign in with a code and can add a new one.
 
 Support View cannot add, rename, or remove passkeys. Account deletion removes all passkeys, and the data export lists passkey names and dates (not keys).
 

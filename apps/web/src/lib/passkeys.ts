@@ -244,6 +244,28 @@ export async function passkeyAvailability(request: Request) {
 // ---------------------------------------------------------------------------
 // Registration (signed-in users only)
 
+/**
+ * For a managed student, the guardian-authorized login email the passkey is
+ * tied to (locks the access row). Null for everyone else. A managed student
+ * whose sign-in is disabled cannot add a passkey.
+ */
+async function managedStudentLoginEmailId(client: any, personId: string): Promise<string | null> {
+  const result = await client.query(
+    `select msa.login_email_id,msa.enabled
+       from managed_student_account_access msa
+       join people p on p.id=msa.person_id and p.person_type='minor'
+      where msa.person_id=$1
+      for update of msa`,
+    [personId]
+  );
+  const row = result.rows[0];
+  if (!row) return null;
+  if (!row.enabled || !row.login_email_id) {
+    throw new PasskeyError("A parent or guardian has not turned on sign-in for this account.", "managed_student_disabled", 403);
+  }
+  return row.login_email_id as string;
+}
+
 export async function startPasskeyRegistration(request: Request, identity: SessionIdentity) {
   assertEnabled();
   assertOwnAccount(identity);
@@ -321,10 +343,11 @@ export async function finishPasskeyRegistration(
   let credentialRowId: string;
   try {
     await client.query("BEGIN");
+    const loginEmailId = await managedStudentLoginEmailId(client, identity.personId);
     const inserted = await client.query(
       `insert into webauthn_credentials
-        (person_id,credential_id,public_key,counter,transports,device_type,backed_up,rp_id,nickname)
-       values ($1,$2,$3,$4,$5::text[],$6,$7,$8,$9)
+        (person_id,credential_id,public_key,counter,transports,device_type,backed_up,rp_id,nickname,login_email_id)
+       values ($1,$2,$3,$4,$5::text[],$6,$7,$8,$9,$10)
        on conflict (credential_id) do nothing
        returning id`,
       [
@@ -337,6 +360,7 @@ export async function finishPasskeyRegistration(
         info.credentialBackedUp,
         rp.rpId,
         nickname,
+        loginEmailId,
       ]
     );
     if (!inserted.rowCount) throw new PasskeyError("This passkey is already set up.", "duplicate_passkey");
@@ -546,7 +570,17 @@ export async function finishPasskeySignIn(
     await client.query("BEGIN");
     // Same account restrictions as code sign-in (active person and account,
     // guardian rules for managed students).
-    const account = await findSignInEligibleAccount(client, credential.person_id);
+    // Re-read the credential under lock so a concurrent removal (for example a
+    // guardian changing the student's login email) wins.
+    const locked = await client.query(
+      `select login_email_id from webauthn_credentials where id=$1 for update`,
+      [credential.id]
+    );
+    if (!locked.rowCount) {
+      await client.query("ROLLBACK");
+      return fail("unknown_credential");
+    }
+    const account = await findSignInEligibleAccount(client, credential.person_id, locked.rows[0].login_email_id || null);
     if (!account) {
       await client.query("ROLLBACK");
       return fail("account_restricted");

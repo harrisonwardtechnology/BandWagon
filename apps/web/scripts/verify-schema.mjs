@@ -158,6 +158,13 @@ try {
   );
   assert.equal(authIndexes.rowCount, 2, "Required authentication hardening indexes are missing");
 
+  // Managed-student passkeys are tied to the guardian-authorized login email.
+  const passkeyLoginEmail = await client.query(
+    `select 1 from information_schema.columns
+      where table_schema='public' and table_name='webauthn_credentials' and column_name='login_email_id'`
+  );
+  assert.equal(passkeyLoginEmail.rowCount, 1, "webauthn_credentials.login_email_id is missing");
+
   const organizationPolicyIndex = await client.query(
     `select 1 from pg_indexes
       where schemaname='public'

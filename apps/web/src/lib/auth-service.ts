@@ -296,7 +296,10 @@ export async function completeSignIn(client: any, input: {
  * only while guardian-enabled access and active guardian consent both exist.
  * Suspended, deleting, or deleted accounts never match.
  */
-export async function findSignInEligibleAccount(client: any, personId: string) {
+export async function findSignInEligibleAccount(client: any, personId: string, credentialLoginEmailId: string | null) {
+  // For a managed student, the credential must have been registered under the
+  // login email the guardian currently authorizes (email code sign-in has the
+  // same msa.login_email_id=e.id rule). A NULL credential email never matches.
   const result = await client.query(
     `select p.id as person_id,ua.id as user_account_id
        from people p join user_accounts ua on ua.person_id=p.id
@@ -307,13 +310,15 @@ export async function findSignInEligibleAccount(client: any, personId: string) {
           or exists(
             select 1 from managed_student_account_access msa
              where msa.person_id=p.id and msa.enabled=true
+               and msa.login_email_id=$2::uuid
+               and exists(select 1 from emails e where e.id=msa.login_email_id and e.person_id=p.id)
                and exists(select 1 from guardian_consents gc
                            where gc.minor_person_id=p.id and gc.consent_type='platform_minor_use' and gc.status='active')
           )
         )
       limit 1
       for update of ua`,
-    [personId]
+    [personId, credentialLoginEmailId]
   );
   return (result.rows[0] as { person_id: string; user_account_id: string } | undefined) || null;
 }

@@ -148,10 +148,19 @@ export async function setManagedStudentAccountAccess(input: {
         [input.studentPersonId]
       );
     }
+    // Passkeys are tied to the login email that was authorized when they were
+    // added. Turning sign-in off, or switching the authorized email (for
+    // example because the old one was compromised), removes them.
+    const removedPasskeys=await client.query(
+      `delete from webauthn_credentials
+        where person_id=$1 and ($2::boolean=false or login_email_id is distinct from $3::uuid)
+        returning id`,
+      [input.studentPersonId,input.enabled,emailId]
+    );
     await client.query(
       `insert into audit_events(actor_person_id,action,target_type,target_id,metadata)
        values($1,$2,'person',$3,$4::jsonb)`,
-      [input.managerPersonId,input.enabled?'guardian.student_account_enabled':'guardian.student_account_disabled',input.studentPersonId,JSON.stringify({ emailChanged:previous.rows[0]?.login_email_id!==emailId,previouslyEnabled:previous.rows[0]?.enabled??null })]
+      [input.managerPersonId,input.enabled?'guardian.student_account_enabled':'guardian.student_account_disabled',input.studentPersonId,JSON.stringify({ emailChanged:previous.rows[0]?.login_email_id!==emailId,previouslyEnabled:previous.rows[0]?.enabled??null,passkeysRemoved:removedPasskeys.rowCount||0 })]
     );
     await client.query("commit");
     return {studentPersonId:input.studentPersonId,enabled:input.enabled};
@@ -287,6 +296,7 @@ export async function updateManagedStudentSettings(input: {
             where user_account_id in(select id from user_accounts where person_id=$1) and revoked_at is null`,
           [input.studentPersonId]
         );
+        await client.query(`delete from webauthn_credentials where person_id=$1`,[input.studentPersonId]);
       }
     }
     await client.query(

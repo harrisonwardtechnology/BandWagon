@@ -180,3 +180,32 @@ test("passkey sign-in reuses the shared post-auth path and account rules", () =>
   assert.match(migration, /CREATE TABLE IF NOT EXISTS webauthn_credentials/);
   assert.match(migration, /credential_id text NOT NULL UNIQUE/);
 });
+
+test("managed student passkeys are tied to the guardian-authorized login email", () => {
+  const read = (file: string) => fs.readFileSync(new URL(file, import.meta.url), "utf8");
+  const service = read("../src/lib/auth-service.ts");
+  const passkeys = read("../src/lib/passkeys.ts");
+  const onboarding = read("../src/lib/onboarding.ts");
+
+  // Sign-in: the credential's recorded login email must still be the authorized one.
+  const eligibility = service.slice(service.indexOf("export async function findSignInEligibleAccount"));
+  assert.match(eligibility, /credentialLoginEmailId: string \| null/);
+  assert.match(eligibility, /msa\.login_email_id=\$2::uuid/);
+  assert.match(passkeys, /findSignInEligibleAccount\(client, credential\.person_id, locked\.rows\[0\]\.login_email_id \|\| null\)/);
+  assert.match(passkeys, /select login_email_id from webauthn_credentials where id=\$1 for update/);
+
+  // Registration records the authorized login email for managed students.
+  assert.match(passkeys, /managedStudentLoginEmailId\(client, identity\.personId\)/);
+  assert.match(passkeys, /rp_id,nickname,login_email_id\)/);
+
+  // Guardian changes: disabling sign-in or switching the login email removes passkeys.
+  assert.match(onboarding, /delete from webauthn_credentials\s+where person_id=\$1 and \(\$2::boolean=false or login_email_id is distinct from \$3::uuid\)/);
+  assert.match(onboarding, /delete from webauthn_credentials where person_id=\$1`,\[input\.studentPersonId\]/);
+
+  // Schema change ships in a new migration; 058 stays as released.
+  const m058 = read("../database/migrations/058_passkeys.sql");
+  const m062 = read("../database/migrations/062_passkey_login_email.sql");
+  assert.equal(m058.includes("login_email_id"), false);
+  assert.match(m062, /ADD COLUMN IF NOT EXISTS login_email_id uuid REFERENCES emails\(id\) ON DELETE CASCADE/);
+  assert.match(read("../scripts/verify-schema.mjs"), /webauthn_credentials\.login_email_id is missing/);
+});
