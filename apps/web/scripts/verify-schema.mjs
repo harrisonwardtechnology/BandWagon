@@ -52,6 +52,8 @@ const requiredTables = [
   "organization_messaging_limits",
   "organization_messaging_alerts",
   "organization_impact_settings",
+  "organization_event_proposal_settings",
+  "event_proposals",
 ];
 
 await client.connect();
