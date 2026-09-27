@@ -117,9 +117,15 @@ export default function HelpPage() {
         ))}
       </section>
 
+      <section style={{ ...card, marginBottom: 18, background: "#f5f3ff", borderColor: "#c4b5fd" }} aria-labelledby="ideas-title">
+        <h2 id="ideas-title" style={{ marginTop: 0 }}>Have an Idea?</h2>
+        <p style={{ color: "#475569" }}>Suggest a feature, vote for ideas from other families and drivers, and see what the BandWagon team is planning.</p>
+        <a href="/help/ideas" style={{ display: "inline-block", padding: "12px 16px", borderRadius: 10, background: "#101b33", color: "white", textDecoration: "none", fontWeight: 900 }}>Suggest a Feature</a>
+      </section>
+
       <section style={{ ...card, marginBottom:18 }} aria-labelledby="contact-support-title">
         <h2 id="contact-support-title" style={{ marginTop: 0 }}>Contact BandWagon Support</h2>
-        <p style={{color:"#475569"}}>Send an account, technical, organization, ride, event, or general question directly to BandWagon Support.</p>
+        <p style={{color:"#475569"}}>Send an account, technical, organization, ride, event, or general question directly to BandWagon Support. For a new feature idea, use <a href="/help/ideas"><strong>Suggest a Feature</strong></a> so others can vote on it.</p>
         {desk && <p style={{color:"#475569"}}>You can also open a ticket and follow replies in the <a href={desk} target="_blank" rel="noreferrer"><strong>BandWagon help desk</strong><span className="sr-only"> (opens in a new tab)</span></a>.</p>}
         <HelpContactForm />
       </section>
