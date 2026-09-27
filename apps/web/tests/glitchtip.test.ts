@@ -81,3 +81,11 @@ test("server errors, dead jobs, and failed scheduled tasks all report to GlitchT
   assert.match(await read("lib/worker.ts"), /if \(dead && !job\.kind\.startsWith\("scheduled:"\)\) reportErrorToGlitchTip/);
   assert.match(await read("instrumentation-node.ts"), /unhandledRejection/);
 });
+
+test("a dead Google sign-in pauses sync instead of failing every hour", async () => {
+  const google = await readFile(new URL("../src/lib/google.ts", import.meta.url), "utf8");
+  assert.match(google, /body\.error === "invalid_grant" && params\.get\("grant_type"\) === "refresh_token"/);
+  assert.match(google, /status='reconnect_required'/);
+  const tasks = await readFile(new URL("../src/lib/scheduled-tasks.ts", import.meta.url), "utf8");
+  assert.match(tasks, /No active Google Calendar connection/);
+});
