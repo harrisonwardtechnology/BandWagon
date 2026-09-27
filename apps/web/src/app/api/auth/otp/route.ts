@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requestOtp, verifyOtp } from "@/lib/auth-service";
-import { SESSION_COOKIE } from "@/lib/auth";
+import { SESSION_COOKIE, sessionCookieOptions } from "@/lib/auth";
 import { turnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
 
 export const runtime = "nodejs";
@@ -43,14 +43,7 @@ export async function POST(request: Request) {
         personId: result.personId,
         createdAccount: result.createdAccount,
       });
-      response.cookies.set(SESSION_COOKIE, result.token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        priority: "high",
-        path: "/",
-        expires: new Date(result.expiresAt),
-      });
+      response.cookies.set(SESSION_COOKIE, result.token, sessionCookieOptions(result.expiresAt));
       response.headers.set("cache-control", "no-store, private");
       return response;
     }

@@ -179,6 +179,10 @@ async function purgeExpiredAuthArtifacts() {
       where coalesce(revoked_at,expires_at)<now()-interval '30 days'
       returning id`
   );
+  // Passkey challenges are single use and short lived; rate-limit counters
+  // only matter for about an hour.
+  await db.query(`delete from webauthn_challenges where expires_at<now()`).catch(() => undefined);
+  await db.query(`delete from auth_rate_limit_events where created_at<now()-interval '1 day'`).catch(() => undefined);
   return {
     challengesDeleted: challenges.rowCount || 0,
     otpDeliveriesRedacted: redactedDeliveries.rowCount || 0,
@@ -400,6 +404,7 @@ async function anonymizeAccount(request: any) {
       [row.person_id]
     );
     await client.query(`delete from auth_otp_challenges where person_id=$1 or user_account_id=$2`, [row.person_id,row.user_account_id]);
+    await client.query(`delete from webauthn_credentials where person_id=$1`, [row.person_id]);
     await client.query(
       `update auth_events set user_account_id=null,person_id=null,metadata='{"redacted":true}'::jsonb
         where person_id=$1 or user_account_id=$2`,

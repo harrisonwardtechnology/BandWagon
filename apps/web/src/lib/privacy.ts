@@ -265,6 +265,13 @@ export async function buildMyDataExport(identity: SessionIdentity) {
       db.query(`select purpose,provider_path,model_alias,status,confidence,human_review_required,prompt_version,input_tokens,output_tokens,estimated_cost_microusd,policy_decision,fallback_reason,timed_out,created_at,completed_at from ai_jobs where person_id=$1 order by created_at`,[identity.personId]),
       db.query(`select purpose,decision,reason,monthly_budget_microusd,committed_and_reserved_microusd,requested_reservation_microusd,occurred_at from ai_policy_events where person_id=$1 order by occurred_at`,[identity.personId]),
     ]);
+    // Passkey metadata only. Public keys and credential IDs are not personal
+    // content and are left out.
+    const passkeys = await db.query(
+      `select nickname,rp_id,device_type,backed_up,created_at,last_used_at
+         from webauthn_credentials where person_id=$1 order by created_at`,
+      [identity.personId]
+    );
 
     const exportData = {
       schemaVersion: "bandwagon-user-export-v1",
@@ -297,6 +304,7 @@ export async function buildMyDataExport(identity: SessionIdentity) {
       organizationPolicyAcknowledgements: organizationPolicyAcknowledgements.rows,
       activityEvents: activity.rows,
       authenticationEvents: authEvents.rows,
+      passkeys: passkeys.rows,
       privacyRequests: privacyRequests.rows,
       aiJobs: aiJobs.rows,
       aiPolicyEvents: aiPolicyEvents.rows,

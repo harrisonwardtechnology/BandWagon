@@ -54,6 +54,9 @@ const requiredTables = [
   "organization_impact_settings",
   "feature_requests",
   "feature_request_votes",
+  "webauthn_credentials",
+  "webauthn_challenges",
+  "auth_rate_limit_events",
 ];
 
 await client.connect();
