@@ -2,6 +2,9 @@
 
 ## v1.0.0-rc1 - Unreleased
 
+- Domain: BandWagon moves to `bandwagon.club` (product site) and `<slug>.bandwagon.club` (communities). Old `bandwagon.harrisonward.net` and `<slug>.harrisonward.org` page visits redirect (308); API calls and webhooks on old hosts keep working, and Twilio signatures validate for both. `npm run tenants:move-domain` moves existing communities. Runbook: `docs/operations/MOVE-TO-BANDWAGON-CLUB.md`.
+- HA compose web router now matches every hostname at the lowest priority, so tenant subdomains and custom domains reach the app.
+
 - High availability: one image now runs as `APP_ROLE=web`, `worker`, or `all` (default, unchanged behavior). New `docker-compose.coolify.ha.yml` runs a one-shot migrate, two load-balanced web containers, and two workers. See `docs/operations/HIGH-AVAILABILITY.md`.
 - Durable job queue (`background_jobs`): SKIP LOCKED claims, renewable leases (crashed workers' jobs are retaken in ~90s), backoff retries, dead-lettering, and dedupe keys.
 - Built-in scheduler replaces external cron timers; each task fires once per interval across all workers and runs under an advisory lock (also applied to `/api/cron/*`).

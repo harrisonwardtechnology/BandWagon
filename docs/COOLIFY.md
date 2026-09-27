@@ -39,8 +39,8 @@
 | `NEXT_PUBLIC_STATUS_PAGE_URL` | your Uptime Kuma status page | Shown on `/status` when set. `/status` always shows a live readiness check. Build-time value. (`NEXT_PUBLIC_STATUS_URL` is still read as a fallback.) |
 | `NEXT_PUBLIC_ENVIRONMENT` | `production` or `staging` | `staging` shows a red banner and forces the messaging sandbox on. Build-time and runtime. |
 | `MESSAGING_SANDBOX` | `false` | `true` sends SMS and email only to `SANDBOX_ALLOWED_PHONES` and `SANDBOX_ALLOWED_EMAILS`. Never true in production; the readiness check fails if it is. |
-| `PLATFORM_HOSTNAMES` | `bandwagon.harrisonward.net,www.bandwagon.harrisonward.net` | Product-site hostnames, primary first. |
-| `TENANT_BASE_DOMAIN` | `harrisonward.org` | Parent domain for new tenant hostnames. |
+| `PLATFORM_HOSTNAMES` | `bandwagon.club,www.bandwagon.club` | Product-site hostnames, primary first. |
+| `TENANT_BASE_DOMAIN` | `bandwagon.club` | Parent domain for new tenant hostnames. |
 
 For a staging copy, see [operations/STAGING.md](operations/STAGING.md). To move domains, see [operations/CHANGING-TENANT-DOMAIN.md](operations/CHANGING-TENANT-DOMAIN.md).
 

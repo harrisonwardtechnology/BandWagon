@@ -10,13 +10,15 @@ export const envSchema = z.object({
   DEFAULT_TIMEZONE: z.string().min(1).default("America/Chicago"),
 
   PLATFORM_NAME: z.string().min(1).default("BandWagon"),
-  PLATFORM_URL: z.string().url().default("https://bandwagon.harrisonward.net"),
+  PLATFORM_URL: z.string().url().default("https://bandwagon.club"),
   PLATFORM_VENDOR_NAME: z.string().min(1).default("Harrison Ward Technology"),
   PLATFORM_VENDOR_URL: z.string().url().default("https://harrisonward.com"),
   // Comma list of product (non-tenant) hostnames; first is primary.
-  PLATFORM_HOSTNAMES: z.string().default("bandwagon.harrisonward.net,www.bandwagon.harrisonward.net"),
+  PLATFORM_HOSTNAMES: z.string().default("bandwagon.club,www.bandwagon.club"),
   // Parent domain for default tenant hostnames: <slug>.<TENANT_BASE_DOMAIN>.
-  TENANT_BASE_DOMAIN: z.string().default("harrisonward.org"),
+  TENANT_BASE_DOMAIN: z.string().default("bandwagon.club"),
+  LEGACY_PLATFORM_HOSTNAMES: z.string().default("bandwagon.harrisonward.net,www.bandwagon.harrisonward.net"), // page visits redirect to the platform host
+  LEGACY_TENANT_BASE_DOMAINS: z.string().default("harrisonward.org"), // <slug>.harrisonward.org redirects to <slug>.bandwagon.club
   // Public links (build time). Blank hides the link and falls back to email.
   NEXT_PUBLIC_HELP_DESK_URL: z.string().url().optional().or(z.literal("")), // e.g. https://help.harrisonward.net
   NEXT_PUBLIC_STATUS_PAGE_URL: z.string().url().optional().or(z.literal("")),

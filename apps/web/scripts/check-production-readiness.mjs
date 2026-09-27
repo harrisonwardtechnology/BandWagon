@@ -119,12 +119,25 @@ for (const name of ["NEXT_PUBLIC_HELP_DESK_URL", "NEXT_PUBLIC_STATUS_PAGE_URL"])
   else warnings.push(`${name} is not set; ${name === "NEXT_PUBLIC_HELP_DESK_URL" ? "support links fall back to email" : "/status shows only the live check"}.`);
 }
 
-// Optional domain settings. Defaults keep the current production hostnames.
+// Domain settings. Defaults are bandwagon.club (platform + tenants).
 for (const host of value("PLATFORM_HOSTNAMES").split(",").map((h) => h.trim()).filter(Boolean)) {
   if (!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(host)) failures.push(`PLATFORM_HOSTNAMES: invalid hostname "${host}"`);
 }
 if (value("TENANT_BASE_DOMAIN") && !/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(value("TENANT_BASE_DOMAIN"))) {
   failures.push("TENANT_BASE_DOMAIN: invalid domain");
+}
+// APP_URL drives OAuth redirects, Twilio signatures, and email links, so it must
+// be the primary product host.
+{
+  const primary = (value("PLATFORM_HOSTNAMES").split(",")[0] || "bandwagon.club").trim().toLowerCase();
+  let appHost = "";
+  try { appHost = new URL(value("APP_URL")).hostname.toLowerCase(); } catch {}
+  if (appHost && appHost !== primary && !["localhost", "127.0.0.1"].includes(appHost)) {
+    const message = `APP_URL host "${appHost}" does not match the primary platform host "${primary}"`;
+    // Hard failure once PLATFORM_HOSTNAMES is set explicitly; a warning while it is left at the default.
+    if (value("PLATFORM_HOSTNAMES")) failures.push(message);
+    else warnings.push(`${message}. Set PLATFORM_HOSTNAMES to match.`);
+  }
 }
 
 // Staging safety: the sandbox must never be on in production, and staging must

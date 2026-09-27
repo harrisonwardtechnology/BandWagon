@@ -26,9 +26,9 @@ Key settings baked into the file:
 | `NEXT_PUBLIC_ENVIRONMENT` | `staging` | Shows the STAGING banner. The app also forces the messaging sandbox on when this is `staging`. Set as a build arg and a runtime variable. |
 | `MESSAGING_SANDBOX` | `true` | SMS and email go only to the allowlists. |
 | `NOTIFICATION_DELIVERY` | `queue` | Exercises the same job queue path as production. |
-| `APP_URL` | `https://staging.bandwagon.harrisonward.net` by default | Used for links, Twilio status callbacks, and Stripe return URLs. |
+| `APP_URL` | `https://staging.bandwagon.club` by default | Used for links, Twilio status callbacks, and Stripe return URLs. |
 | `PLATFORM_HOSTNAMES` | the staging hostname | Staging answers as the product site on its own hostname. |
-| `TENANT_BASE_DOMAIN` | `staging.harrisonward.org` by default | Staging tenants never share production's tenant domain. |
+| `TENANT_BASE_DOMAIN` | `staging.bandwagon.club` by default | Staging tenants never share production's tenant domain. |
 
 ## How the messaging sandbox works
 
@@ -47,8 +47,8 @@ Key settings baked into the file:
 1. **Create a separate Coolify project** (or at least a separate environment) named `BandWagon Staging`. Do not add staging resources to the production project.
 2. **Add a resource** from the GitHub repo using the **Docker Compose** build pack, and set the compose file to `docker-compose.coolify.staging.yml`.
 3. **Pick the branch.** Point staging at the branch you want to test (for example `main`, or a release branch).
-4. **Leave the Domains field empty.** Routing comes from the Traefik labels. Set `STAGING_HOSTNAME` if you use a hostname other than `staging.bandwagon.harrisonward.net`.
-5. **DNS.** Add a DNS record for the staging hostname pointing at the Coolify server. If you test tenant hostnames, add a wildcard for `*.staging.harrisonward.org` too.
+4. **Leave the Domains field empty.** Routing comes from the Traefik labels. Set `STAGING_HOSTNAME` if you use a hostname other than `staging.bandwagon.club`.
+5. **DNS.** Add a DNS record for the staging hostname pointing at the Coolify server. If you test tenant hostnames, add a wildcard for `*.staging.bandwagon.club` too.
 6. **Environment variables** in Coolify:
    - `STAGING_POSTGRES_PASSWORD` (new random value)
    - `AUTH_SECRET`, `DATA_ENCRYPTION_KEY`, `LOOKUP_HASH_KEY` (new random values, 32+ characters, all different)

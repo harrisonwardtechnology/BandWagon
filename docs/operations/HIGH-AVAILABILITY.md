@@ -77,7 +77,7 @@ Retries cover crashes, database errors, and timeouts. A single channel failing i
 1. Deploy the migration PR first, with the current single container and `APP_ROLE` unset (`all`). Nothing changes yet.
 2. In Coolify, create a new **Docker Compose** resource from this repo using `docker-compose.coolify.ha.yml`.
 3. Copy every production variable from the current BandWagon app into it.
-4. Leave the **Domains** field empty on every service. Routing comes from the Traefik labels, so `web-1` and `web-2` share one load balancer. Set `APP_HOSTNAME` if it isn't `bandwagon.harrisonward.net`.
+4. Leave the **Domains** field empty on every service. Routing comes from the Traefik labels, so `web-1` and `web-2` share one load balancer. The web router matches any hostname at the lowest priority, so the platform host, every tenant subdomain, custom domains, and the old redirecting hosts all reach it.
 5. Optional: in Uptime Kuma, add a **Push** monitor with a 60s heartbeat. Put its URL in `WORKER_KUMA_PUSH_URL`.
 6. Deploy. Check:
    - `/api/health/ready` returns `"role":"web"`.
@@ -92,8 +92,8 @@ Retries cover crashes, database errors, and timeouts. A single channel failing i
 
 ### Kuma monitors to add
 
-- HTTP: `https://bandwagon.harrisonward.net/api/health/ready`, every 60s
-- HTTP: `https://bandwagon.harrisonward.net/api/health/deep`, every 5 min (returns 503 when anything has failed, including "no live worker")
+- HTTP: `https://bandwagon.club/api/health/ready`, every 60s
+- HTTP: `https://bandwagon.club/api/health/deep`, every 5 min (returns 503 when anything has failed, including "no live worker")
 - Push: `WORKER_KUMA_PUSH_URL`, heartbeat 60s
 
 ## Stage 2: a second server

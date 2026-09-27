@@ -69,3 +69,52 @@ test("app code and UI copy take the product domain from settings", () => {
     assert.doesNotMatch(source, /bandwagon\.harrisonward\.net/, `${file} must not hardcode the platform host`);
   }
 });
+
+import { legacyRedirectTarget, legacyPlatformHostnames, legacyTenantBaseDomains } from "../src/lib/platform-hosts.ts";
+
+const moved = (host: string, pathname = "/", method = "GET", search = "") =>
+  legacyRedirectTarget({
+    host, pathname, search, method,
+    platformHosts: ["bandwagon.club", "www.bandwagon.club"],
+    tenantBase: "bandwagon.club",
+    legacyPlatformHosts: ["bandwagon.harrisonward.net", "www.bandwagon.harrisonward.net"],
+    legacyTenantBases: ["harrisonward.org"],
+  });
+
+test("bandwagon.club is the default product and tenant domain", () => {
+  assert.deepEqual(parsePlatformHostnames(undefined), ["bandwagon.club", "www.bandwagon.club"]);
+  assert.equal(parseTenantBaseDomain(undefined), "bandwagon.club");
+  assert.deepEqual(legacyPlatformHostnames(undefined), ["bandwagon.harrisonward.net", "www.bandwagon.harrisonward.net"]);
+  assert.deepEqual(legacyTenantBaseDomains(undefined), ["harrisonward.org"]);
+  assert.deepEqual(legacyTenantBaseDomains(""), [], "an empty value turns legacy redirects off");
+});
+
+test("old page visits redirect to bandwagon.club, keeping path and query", () => {
+  assert.equal(moved("bandwagon.harrisonward.net", "/login", "GET", "?next=/app"), "https://bandwagon.club/login?next=/app");
+  assert.equal(moved("www.bandwagon.harrisonward.net"), "https://bandwagon.club/");
+  assert.equal(moved("flomogo.harrisonward.org", "/app/rides"), "https://flomogo.bandwagon.club/app/rides");
+  assert.equal(moved("FloMoGo.HarrisonWard.org:443", "/"), "https://flomogo.bandwagon.club/");
+});
+
+test("webhooks, API calls, and non-GET requests are never redirected", () => {
+  assert.equal(moved("bandwagon.harrisonward.net", "/api/webhooks/twilio/inbound", "POST"), null);
+  assert.equal(moved("bandwagon.harrisonward.net", "/api/health/ready", "GET"), null);
+  assert.equal(moved("bandwagon.harrisonward.net", "/.well-known/security.txt", "GET"), null);
+  assert.equal(moved("bandwagon.harrisonward.net", "/login", "POST"), null);
+});
+
+test("new hosts, custom domains, and deeper names are left alone", () => {
+  assert.equal(moved("bandwagon.club"), null);
+  assert.equal(moved("flomogo.bandwagon.club"), null);
+  assert.equal(moved("flomogo.app"), null);
+  assert.equal(moved("a.b.harrisonward.org"), null);
+  assert.equal(moved("harrisonward.org"), null);
+  assert.equal(moved("help.harrisonward.net"), null, "other harrisonward.net apps are not touched");
+});
+
+test("Twilio signatures validate for the new host and the old host", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const source = await readFile(new URL("../src/lib/twilio.ts", import.meta.url), "utf8");
+  assert.match(source, /legacyPlatformHostnames\(\)/);
+  assert.match(source, /candidates\.some/);
+});

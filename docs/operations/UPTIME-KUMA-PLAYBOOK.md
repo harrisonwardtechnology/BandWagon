@@ -104,7 +104,7 @@ BandWagon exposes three health levels.
 ### Liveness
 
 ```text
-GET https://bandwagon.harrisonward.net/api/health/live
+GET https://bandwagon.club/api/health/live
 ```
 
 Purpose: confirms the web process is alive.
@@ -114,7 +114,7 @@ Use for low-level troubleshooting. A successful liveness response does **not** m
 ### Readiness
 
 ```text
-GET https://bandwagon.harrisonward.net/api/health/ready
+GET https://bandwagon.club/api/health/ready
 ```
 
 Purpose: confirms BandWagon is ready to serve core application traffic.
@@ -124,7 +124,7 @@ This is the primary uptime / SLA monitor and the same endpoint used by the BandW
 ### Deep Health
 
 ```text
-GET https://bandwagon.harrisonward.net/api/health/deep
+GET https://bandwagon.club/api/health/deep
 ```
 
 Purpose: operator-level health summary for integrations and scheduled services.
@@ -145,7 +145,7 @@ Expected Value: healthy
 | BandWagon Core Readiness | HTTP(s) | `/api/health/ready` | 60 sec | 2 | Yes | Primary platform uptime |
 | BandWagon Liveness | HTTP(s) | `/api/health/live` | 30 sec | 2 | No | Process-level troubleshooting |
 | BandWagon Deep Health | HTTP(s) JSON Query | `/api/health/deep` | 300 sec | 2 | No | Integration / cron degradation |
-| BandWagon Web Experience | HTTP(s) Keyword | `https://bandwagon.harrisonward.net/` | 60 sec | 2 | Yes | Confirms the public application renders |
+| BandWagon Web Experience | HTTP(s) Keyword | `https://bandwagon.club/` | 60 sec | 2 | Yes | Confirms the public application renders |
 | FloMoGo Web Experience | HTTP(s) Keyword | `https://flomogo.app/` | 60 sec | 2 | Yes | First production community availability |
 
 For the keyword monitors, use stable product text such as `BandWagon` or `FloMoGo`, not transient page copy.

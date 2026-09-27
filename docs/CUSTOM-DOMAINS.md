@@ -2,7 +2,7 @@
 
 Every organization always has a canonical BandWagon URL such as:
 
-`https://bandwagon.harrisonward.net/o/flomogo`
+`https://bandwagon.club/o/flomogo`
 
 An organization may also use a verified custom hostname such as:
 
@@ -70,7 +70,7 @@ For a root such as `flomogo.app`, use an `A`/`AAAA` record pointing to the BandW
 
 For a hostname such as `rides.example.org`, use either:
 
-- `CNAME rides.example.org -> bandwagon.harrisonward.net`, when appropriate for the deployment; or
+- `CNAME rides.example.org -> bandwagon.club`, when appropriate for the deployment; or
 - an `A`/`AAAA` record to the BandWagon server.
 
 Coolify's current DNS guidance supports pointing multiple domains to the same server IP, and Coolify can route multiple HTTPS domains to one application.
@@ -149,7 +149,7 @@ organization_domains
 For every request:
 
 1. Normalize and validate the Host header.
-2. If host equals `bandwagon.harrisonward.net`, resolve organization from the `/o/<slug>` route when appropriate.
+2. If host equals `bandwagon.club`, resolve organization from the `/o/<slug>` route when appropriate.
 3. Otherwise look up `organization_domains.normalized_hostname` where `status=ACTIVE`.
 4. If no ACTIVE match exists, return a neutral unknown-domain page. Never guess a tenant.
 5. Pass the resolved organization ID into server-side authorization.
@@ -170,7 +170,7 @@ Temporary DNS or certificate failures should generate warnings and retry. Do not
 
 ```text
 Service name: FloMoGo
-Canonical URL: https://bandwagon.harrisonward.net/o/flomogo
+Canonical URL: https://bandwagon.club/o/flomogo
 Custom primary: https://flomogo.app
 Verification: TXT _bandwagon.flomogo.app
 Platform: BandWagon

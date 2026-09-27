@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { getRedis } from "./redis";
+import { legacyPlatformHostnames, platformHostnames } from "./platform-hosts";
 import { parseTwilioForm, type TwilioForm } from "./twilio-form";
 
 export { parseTwilioForm };
@@ -16,21 +17,23 @@ export function validateTwilioSignature(request: Request, params: TwilioForm) {
   const supplied = request.headers.get("x-twilio-signature");
   if (!supplied) return false;
 
-  // APP_URL is used because reverse proxies may alter the request's apparent origin.
-  const configuredBase = (process.env.APP_URL || "").replace(/\/$/, "");
+  // Twilio signs the exact public URL it called. Reverse proxies change the
+  // apparent origin, so check against the configured public hosts instead:
+  // APP_URL, the platform hosts, and the legacy hosts (webhooks registered on
+  // the old domain keep validating during and after the domain move).
   const incoming = new URL(request.url);
-  const publicUrl = configuredBase
-    ? `${configuredBase}${incoming.pathname}${incoming.search}`
-    : request.url;
-
-  const expected = crypto
-    .createHmac("sha1", authToken)
-    .update(signatureBase(publicUrl, params), "utf8")
-    .digest("base64");
+  const suffix = `${incoming.pathname}${incoming.search}`;
+  const bases = new Set<string>();
+  const configuredBase = (process.env.APP_URL || "").replace(/\/$/, "");
+  if (configuredBase) bases.add(configuredBase);
+  for (const host of [...platformHostnames(), ...legacyPlatformHostnames()]) bases.add(`https://${host}`);
+  const candidates = bases.size ? [...bases].map((base) => `${base}${suffix}`) : [request.url];
 
   const a = Buffer.from(supplied);
-  const b = Buffer.from(expected);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+  return candidates.some((url) => {
+    const b = Buffer.from(crypto.createHmac("sha1", authToken).update(signatureBase(url, params), "utf8").digest("base64"));
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+  });
 }
 
 export async function markOnce(key: string, ttlSeconds = 86400) {

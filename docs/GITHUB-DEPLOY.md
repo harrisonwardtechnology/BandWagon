@@ -57,11 +57,11 @@ Do not represent this static demo as the production service.
 
 Create DNS for:
 
-`bandwagon.harrisonward.net`
+`bandwagon.club`
 
 Point it to the Coolify server per your DNS provider/Coolify setup. In Coolify, add:
 
-`https://bandwagon.harrisonward.net`
+`https://bandwagon.club`
 
 Coolify automatically handles proxy configuration and HTTPS for configured HTTPS domains.
 
@@ -97,7 +97,7 @@ Copy `.env.example` into Coolify's Environment Variables screen and set real val
 
 At minimum configure:
 
-- `APP_URL=https://bandwagon.harrisonward.net`
+- `APP_URL=https://bandwagon.club`
 - `DATABASE_URL`
 - `REDIS_URL`
 - `AUTH_SECRET`
