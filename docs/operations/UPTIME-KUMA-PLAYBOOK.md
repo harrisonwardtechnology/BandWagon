@@ -37,6 +37,8 @@ Recommended:
 
 If different domains are selected, keep the operator dashboard protected and the public status page intentionally public.
 
+Set `NEXT_PUBLIC_STATUS_PAGE_URL` to the public status page URL (for example `https://status.harrisonward.org`) as a build variable. BandWagon's `/status` page links to it and also shows a live up or down check from `/api/health/ready`. The footer's Platform Status link goes to `/status`.
+
 ## Deploy Uptime Kuma
 
 Current recommended container image:

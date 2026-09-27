@@ -1,4 +1,6 @@
 import HelpContactForm from "@/components/help-contact-form";
+import { SupportContact } from "@/components/support-contact";
+import { helpDeskUrl } from "@/lib/public-links";
 
 const reviewPackageUrl = "/api/review-package";
 
@@ -56,6 +58,7 @@ const review = [
 ];
 
 export default function HelpPage() {
+  const desk = helpDeskUrl();
   const card = { background: "white", border: "1px solid #e2e8f0", borderRadius: 16, padding: 18 } as const;
   return (
     <main style={{ maxWidth: 1120, margin: "32px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif", background: "#f8fafc" }}>
@@ -86,6 +89,7 @@ export default function HelpPage() {
                 <p style={{ color: "#475569", lineHeight: 1.55, marginBottom: 0 }}>{body}</p>
                 {title === "Review and Approval" && <p><a href={reviewPackageUrl} download><strong>Download the proposal and evidence package</strong></a></p>}
                 {title === "Report a Security Issue" && <p><a href="/security"><strong>Open Security Reporting</strong></a></p>}
+                {title === "Check Platform Status" && <p><a href="/status"><strong>Open Platform Status</strong></a></p>}
               </details>
             ))}
           </div>
@@ -106,12 +110,13 @@ export default function HelpPage() {
       <section style={{ ...card, marginBottom:18 }} aria-labelledby="contact-support-title">
         <h2 id="contact-support-title" style={{ marginTop: 0 }}>Contact BandWagon Support</h2>
         <p style={{color:"#475569"}}>Send an account, technical, organization, ride, event, or general question directly to BandWagon Support.</p>
+        {desk && <p style={{color:"#475569"}}>You can also open a ticket and follow replies in the <a href={desk} target="_blank" rel="noreferrer"><strong>BandWagon help desk</strong><span className="sr-only"> (opens in a new tab)</span></a>.</p>}
         <HelpContactForm />
       </section>
 
       <section style={{ ...card, background: "#eff6ff", borderColor: "#bfdbfe" }}>
         <h2 style={{ marginTop: 0 }}>Still stuck?</h2>
-        <p>Use your organization admin for organization-specific questions. Use BandWagon Support for account, privacy, or technical problems. Never send passwords, one-time codes, full payment-card details, or sensitive documents in a support message. For sensitive security evidence, use <a href="https://secret.harrisonward.com" target="_blank" rel="noreferrer"><strong>secret.harrisonward.com</strong></a>.</p>
+        <p>Use your organization admin for organization-specific questions. Use BandWagon Support (<SupportContact />) for account, privacy, or technical problems. Never send passwords, one-time codes, full payment-card details, or sensitive documents in a support message. For sensitive security evidence, use <a href="https://secret.harrisonward.com" target="_blank" rel="noreferrer"><strong>secret.harrisonward.com</strong></a>.</p>
       </section>
     </main>
   );

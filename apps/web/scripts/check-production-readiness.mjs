@@ -113,6 +113,31 @@ if (value("AI_RUNTIME_ENABLED").toLowerCase() === "true") {
   warnings.push("AI runtime is disabled; AI-assisted intake and document processing will use manual fallback.");
 }
 
+// Optional public links. Blank is allowed; a set value must be a real HTTPS URL.
+for (const name of ["NEXT_PUBLIC_HELP_DESK_URL", "NEXT_PUBLIC_STATUS_PAGE_URL"]) {
+  if (value(name)) requireUrl(name, { https: true });
+  else warnings.push(`${name} is not set; ${name === "NEXT_PUBLIC_HELP_DESK_URL" ? "support links fall back to email" : "/status shows only the live check"}.`);
+}
+
+// Optional domain settings. Defaults keep the current production hostnames.
+for (const host of value("PLATFORM_HOSTNAMES").split(",").map((h) => h.trim()).filter(Boolean)) {
+  if (!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(host)) failures.push(`PLATFORM_HOSTNAMES: invalid hostname "${host}"`);
+}
+if (value("TENANT_BASE_DOMAIN") && !/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(value("TENANT_BASE_DOMAIN"))) {
+  failures.push("TENANT_BASE_DOMAIN: invalid domain");
+}
+
+// Staging safety: the sandbox must never be on in production, and staging must
+// never run without it (the app forces it on for staging, this makes it explicit).
+const environment = value("NEXT_PUBLIC_ENVIRONMENT").toLowerCase() || "production";
+const sandbox = ["true", "1", "yes", "on"].includes(value("MESSAGING_SANDBOX").toLowerCase());
+if (environment === "production" && sandbox) {
+  failures.push("MESSAGING_SANDBOX: must not be true in production (real members would not receive messages)");
+}
+if (environment === "staging" && !sandbox) {
+  warnings.push("NEXT_PUBLIC_ENVIRONMENT=staging forces the messaging sandbox on; set MESSAGING_SANDBOX=true to make that explicit.");
+}
+
 console.log(`BandWagon production readiness: ${requestedProfile} profile`);
 console.log(`Checked ${new Set(checked).size} configured controls without printing secret values.`);
 for (const warning of warnings) console.log(`WARN: ${warning}`);

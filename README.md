@@ -136,6 +136,8 @@ The demo never calls production APIs, uses production credentials, sends real no
 - [Custom organization domains](docs/CUSTOM-DOMAINS.md)
 - [Production security](docs/SECURITY-DEPLOYMENT.md)
 - [Messaging abuse controls](docs/MESSAGING-ABUSE-CONTROLS.md)
+- [Staging environment](docs/operations/STAGING.md)
+- [Changing the tenant domain](docs/operations/CHANGING-TENANT-DOMAIN.md)
 
 Before a FloMoGo production release, run `npm run release:check-env:flomogo` from `apps/web`. The checker reports missing controls without printing secret values.
 

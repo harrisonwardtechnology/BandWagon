@@ -1,23 +1,21 @@
 import crypto from "node:crypto";
 import type { PoolClient } from "pg";
 import { getDb } from "@/lib/db";
+import { tenantBaseDomain } from "@/lib/platform-hosts";
 import { isReservedTenantSlug, normalizeSlug, TENANT_SLUG_MAX, TENANT_SLUG_MIN } from "@/lib/organization-onboarding-policy";
 
 export { isReservedTenantSlug, normalizeSlug } from "@/lib/organization-onboarding-policy";
 
-const TENANT_BASE_DOMAIN = (process.env.TENANT_BASE_DOMAIN || "harrisonward.org").toLowerCase();
 
 export function normalizeHostname(value: string) {
   return value.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "").split(":")[0];
 }
 
 export function tenantHostnameForSlug(slug: string) {
-  return `${normalizeSlug(slug)}.${TENANT_BASE_DOMAIN}`;
+  return `${normalizeSlug(slug)}.${tenantBaseDomain()}`;
 }
 
-export function tenantBaseDomain() {
-  return TENANT_BASE_DOMAIN;
-}
+export { tenantBaseDomain };
 
 /** True when no organization already uses the slug or its platform hostname. */
 export async function isTenantSlugAvailable(slugValue: string, client?: Pick<PoolClient, "query">) {
@@ -166,8 +164,9 @@ export async function requestCustomDomain(input: { organizationId: string; hostn
   if (!db) throw new Error("Database is not configured");
   const hostname = normalizeHostname(input.hostname);
   if (!hostname.includes(".")) throw new Error("Enter a fully qualified hostname");
-  if (hostname.endsWith(`.${TENANT_BASE_DOMAIN}`) || hostname === TENANT_BASE_DOMAIN) {
-    throw new Error("Use the tenant hostname for HarrisonWard.org addresses; custom domains must be external");
+  const baseDomain = tenantBaseDomain();
+  if (hostname.endsWith(`.${baseDomain}`) || hostname === baseDomain) {
+    throw new Error(`Use the tenant hostname for ${baseDomain} addresses; custom domains must be external`);
   }
 
   const org = await getOrganizationById(input.organizationId);

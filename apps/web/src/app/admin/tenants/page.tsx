@@ -12,6 +12,7 @@ export default function TenantsAdmin() {
   const [setupMode,setSetupMode]=useState<"automatic"|"manual">("automatic");
   const [message,setMessage]=useState("");
   const [result,setResult]=useState<any>(null);
+  const [baseDomain,setBaseDomain]=useState("");
 
   const headers={"content-type":"application/json"};
   const input={display:"block",width:"100%",padding:12,margin:"8px 0 14px",border:"1px solid #cbd5e1",borderRadius:8} as const;
@@ -22,7 +23,7 @@ export default function TenantsAdmin() {
     const r=await fetch("/api/admin/tenants");
     const d=await r.json().catch(()=>({}));
     if(!r.ok)return setMessage(d.error||"Unable to load organizations");
-    setOrganizations(d.organizations||[]);setDomainSetup(d.domainSetup||{automaticAvailable:false,manualAvailable:true});
+    setOrganizations(d.organizations||[]);if(d.tenantBaseDomain)setBaseDomain(d.tenantBaseDomain);setDomainSetup(d.domainSetup||{automaticAvailable:false,manualAvailable:true});
     if(!d.domainSetup?.automaticAvailable)setSetupMode("manual");
     if(!selectedOrg && d.organizations?.[0]?.id)setSelectedOrg(d.organizations[0].id);
   }
@@ -39,7 +40,7 @@ export default function TenantsAdmin() {
     <section style={{background:"#101b33",color:"white",padding:28,borderRadius:22}}>
       <div style={{fontSize:13,fontWeight:800,letterSpacing:1}}>PLATFORM ADMIN</div>
       <h1 style={{fontSize:38,margin:"6px 0"}}>SaaS Tenants</h1>
-      <p style={{margin:0,opacity:.9}}>Every organization gets <strong>tenant.harrisonward.org</strong>, with an optional custom domain.</p>
+      <p style={{margin:0,opacity:.9}}>Every organization gets <strong>tenant.{baseDomain||"<tenant base domain>"}</strong>, with an optional custom domain.</p>
       <p style={{margin:"10px 0 0"}}><a href="/admin/organization-requests" style={{color:"white",fontWeight:800}}>Review community requests</a></p>
     </section>
 
@@ -53,7 +54,7 @@ export default function TenantsAdmin() {
       <h2>Create Organization</h2>
       <label>Name</label><input value={name} onChange={e=>setName(e.target.value)} style={input}/>
       <label>Tenant slug</label><input value={slug} onChange={e=>setSlug(e.target.value)} style={input}/>
-      <p>Default URL: <code>{slug||"tenant"}.harrisonward.org</code></p>
+      <p>Default URL: <code>{slug||"tenant"}.{baseDomain||"<tenant base domain>"}</code></p>
       <button onClick={()=>act({action:"create",name,slug})}>Create Tenant</button>
     </section>
 

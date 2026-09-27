@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { resolveOrganizationByHostname } from "@/lib/saas-tenants";
+import { platformHostSet } from "@/lib/platform-hosts";
 
 export type TenantResolution =
   | { type: "platform"; hostname: string }
@@ -15,12 +16,11 @@ export type TenantResolution =
       settings: Record<string, unknown>;
     };
 
-const PLATFORM_HOSTS = new Set([
-  "bandwagon.harrisonward.net",
-  "www.bandwagon.harrisonward.net",
-  "localhost",
-  "127.0.0.1",
-]);
+// Product (non-tenant) hostnames come from PLATFORM_HOSTNAMES, with the
+// current production hosts as the default. localhost is always included.
+function platformHosts() {
+  return platformHostSet(process.env.PLATFORM_HOSTNAMES);
+}
 
 export async function resolveTenant(): Promise<TenantResolution> {
   const h = await headers();
@@ -28,7 +28,7 @@ export async function resolveTenant(): Promise<TenantResolution> {
     .split(":")[0]
     .toLowerCase();
 
-  if (PLATFORM_HOSTS.has(hostname)) {
+  if (platformHosts().has(hostname)) {
     return { type: "platform", hostname };
   }
 

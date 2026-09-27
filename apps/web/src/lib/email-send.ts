@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/db";
+import { SANDBOX_SKIPPED_STATUS, sandboxDeliveryDecision } from "@/lib/messaging-sandbox-policy";
 
 export async function sendEmailNotification(input: {
   to: string;
@@ -10,6 +11,35 @@ export async function sendEmailNotification(input: {
   urgency: "routine" | "important" | "critical";
   correlationId?: string | null;
 }) {
+  // Staging and test environments: only allowlisted addresses reach SMTP2GO.
+  const sandbox = sandboxDeliveryDecision({ channel: "email", to: input.to, env: process.env });
+  if (!sandbox.send) {
+    const skipDb = getDb();
+    if (skipDb) {
+      await skipDb.query(
+        `insert into notification_deliveries
+          (person_id, organization_id, notification_type, channel, destination_ref,
+           status, estimated_cost_cents, metadata, urgency, correlation_id)
+         values ($1,$2,$3,'email',$4,$5,0,$6::jsonb,$7,$8)`,
+        [
+          input.personId || null,
+          input.organizationId || null,
+          input.notificationType,
+          input.to,
+          SANDBOX_SKIPPED_STATUS,
+          JSON.stringify({ sandbox: true, reason: sandbox.reason }),
+          input.urgency,
+          input.correlationId || null,
+        ]
+      ).catch((error) => {
+        console.error("Unable to record sandbox-skipped email", {
+          error: error instanceof Error ? error.message : "Database insert failed",
+        });
+      });
+    }
+    return { ok: false, skipped: true, reason: sandbox.reason };
+  }
+
   const apiKey = process.env.SMTP2GO_API_KEY;
   const sender = process.env.EMAIL_FROM || process.env.SUPPORT_EMAIL;
   if (!apiKey || !sender) {

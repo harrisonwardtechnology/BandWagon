@@ -1,5 +1,6 @@
 import { requirePlatformRole } from "@/lib/auth";
 import { getDb } from "@/lib/db";
+import { tenantBaseDomain } from "@/lib/platform-hosts";
 import { createAutomaticDomainSetup, domainSetupCapabilities } from "@/lib/domain-setup-provider";
 import {
   createOrganization,
@@ -15,7 +16,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   try { await requirePlatformRole(["owner","support","readonly"]); }
   catch (error) { return Response.json({error:error instanceof Error?error.message:"Platform administrator access is required"},{status:403}); }
-  return Response.json({ organizations: await listOrganizations(), domainSetup: domainSetupCapabilities() });
+  return Response.json({ organizations: await listOrganizations(), domainSetup: domainSetupCapabilities(), tenantBaseDomain: tenantBaseDomain() });
 }
 
 export async function POST(request: Request) {

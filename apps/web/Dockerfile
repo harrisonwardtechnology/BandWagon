@@ -6,6 +6,14 @@ RUN npm install --omit=dev=false
 FROM node:22-alpine AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+# NEXT_PUBLIC_* values are baked into the build. Pass them as build args
+# (docker compose build.args, or Coolify build variables). Blank is fine.
+ARG NEXT_PUBLIC_ENVIRONMENT=production
+ARG NEXT_PUBLIC_HELP_DESK_URL=
+ARG NEXT_PUBLIC_STATUS_PAGE_URL=
+ENV NEXT_PUBLIC_ENVIRONMENT=$NEXT_PUBLIC_ENVIRONMENT \
+    NEXT_PUBLIC_HELP_DESK_URL=$NEXT_PUBLIC_HELP_DESK_URL \
+    NEXT_PUBLIC_STATUS_PAGE_URL=$NEXT_PUBLIC_STATUS_PAGE_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

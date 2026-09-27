@@ -1,10 +1,44 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { floMoGoBrand, platformBrand } from "@/lib/branding";
 import { resolveTenant } from "@/lib/tenant";
+import ProductHome from "./ProductHome";
+
+const productTitle = "BandWagon for Organizations: private carpools for trusted groups";
+const productDescription =
+  "Free, privacy-first carpool coordination for school bands, teams, troops, and other trusted groups. Guardian controlled, no live tracking, and never sells data.";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const tenant = await resolveTenant();
+  // Tenant hosts keep the layout defaults. Only the product site gets the
+  // "For Organizations" title and share card.
+  if (tenant.type === "organization") return {};
+  return {
+    title: { absolute: productTitle },
+    description: productDescription,
+    alternates: { canonical: "/" },
+    openGraph: {
+      title: productTitle,
+      description: productDescription,
+      url: "/",
+      siteName: "BandWagon",
+      images: [{ url: "/social/bandwagon-social.png", width: 1280, height: 640, alt: "BandWagon - Community-powered rides" }],
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: productTitle,
+      description: productDescription,
+      images: ["/social/bandwagon-social.png"],
+    },
+  };
+}
 
 export default async function Home() {
   const tenant = await resolveTenant();
-  const org = tenant.type === "organization" ? floMoGoBrand : undefined;
+  // The platform host is the public product site for organizations.
+  if (tenant.type !== "organization") return <ProductHome />;
+  const org = floMoGoBrand;
 
   return (
     <main className="home-shell">
@@ -12,8 +46,8 @@ export default async function Home() {
         <div className="hero-copy">
           <div className="hero-kicker"><span aria-hidden="true">●</span> Privacy-first community transportation</div>
           <div className="eyebrow">A {platformBrand.vendorName} product</div>
-          <h1 id="home-heading">{org?.name || "Community rides, without the logistics web."}</h1>
-          <p className="hero-lede">{org?.tagline || "Bring families, drivers, events, and ride details together—without public addresses, live tracking, or chaotic group messages."}</p>
+          <h1 id="home-heading">{org.name}</h1>
+          <p className="hero-lede">{org.tagline}</p>
           <div className="actions">
             <Link className="button" href="/login">Get started <span aria-hidden="true">→</span></Link>
             <Link className="button ghost" href="/help">See how it works</Link>

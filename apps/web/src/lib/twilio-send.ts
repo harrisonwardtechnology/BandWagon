@@ -4,6 +4,7 @@ import { enforceMobileMessageIntent } from "@/lib/messaging-policy";
 import { mobileSendDecision } from "@/lib/sms-consent-policy";
 import { decideOrgMobileCap, ORG_TEXTING_LIMIT_ERROR, utcMonthWindow } from "@/lib/org-messaging-cap-policy";
 import { evaluateOrgMessagingAlerts, orgMobileCapCents, recordOrgCapBlocked } from "@/lib/org-messaging-limits";
+import { SANDBOX_SKIPPED_STATUS, sandboxDeliveryDecision } from "@/lib/messaging-sandbox-policy";
 
 export type TwilioDeliveryMode = "auto" | "sms";
 
@@ -146,6 +147,44 @@ async function reserveMobileDelivery(input: {
   }
 }
 
+async function recordSandboxSkip(input: {
+  to: string;
+  personId?: string | null;
+  organizationId?: string | null;
+  notificationType: string;
+  urgency: "routine" | "important" | "critical";
+  correlationId?: string | null;
+  mode: TwilioDeliveryMode;
+  segments: number;
+  reason: string;
+}) {
+  const db = getDb();
+  if (!db) return;
+  await db
+    .query(
+      `insert into notification_deliveries
+        (person_id, organization_id, notification_type, channel, destination_ref,
+         status, estimated_cost_cents, metadata, urgency, correlation_id)
+       select $1,$2,$3,$4,$5,$6,0,$7::jsonb,$8,$9`,
+      [
+        input.personId || null,
+        input.organizationId || null,
+        input.notificationType,
+        input.mode === "sms" ? "sms" : "rcs",
+        input.to,
+        SANDBOX_SKIPPED_STATUS,
+        JSON.stringify({ sandbox: true, reason: input.reason, requestedMode: input.mode, segments: input.segments }),
+        input.urgency,
+        input.correlationId || null,
+      ]
+    )
+    .catch((error) => {
+      console.error("Unable to record sandbox-skipped message", {
+        error: error instanceof Error ? error.message : "Database insert failed",
+      });
+    });
+}
+
 export async function sendTwilioNotification(input: {
   to: string;
   body: string;
@@ -161,16 +200,33 @@ export async function sendTwilioNotification(input: {
   const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
   const phoneNumber = process.env.TWILIO_PHONE_NUMBER;
 
-  if (!accountSid || !authToken || !messagingServiceSid) {
-    throw new Error("Twilio production configuration is incomplete");
-  }
-
   const to = normalizePhone(input.to);
   if (!to) throw new Error("Recipient must be a valid E.164 phone number");
 
   const { body } = enforceMobileMessageIntent(input);
 
   const mode = input.mode || "auto";
+
+  // Staging and test environments: only allowlisted phones reach Twilio.
+  // Checked before the credential check so a sandbox never needs live creds.
+  const sandbox = sandboxDeliveryDecision({ channel: "sms", to, env: process.env });
+  if (!sandbox.send) {
+    await recordSandboxSkip({ ...input, to, mode, segments: estimatedSegments(body), reason: sandbox.reason });
+    return {
+      ok: false,
+      skipped: true,
+      reason: sandbox.reason,
+      sid: null as string | null,
+      status: SANDBOX_SKIPPED_STATUS,
+      requestedMode: mode,
+      estimatedCostCents: 0,
+      segments: estimatedSegments(body),
+    };
+  }
+
+  if (!accountSid || !authToken || !messagingServiceSid) {
+    throw new Error("Twilio production configuration is incomplete");
+  }
   if (mode === "sms" && !phoneNumber) {
     throw new Error("TWILIO_PHONE_NUMBER is required to force SMS");
   }
@@ -290,7 +346,9 @@ export async function sendTwilioNotification(input: {
 
   return {
     ok: true,
-    sid: twilio.sid as string,
+    skipped: false,
+    reason: null as string | null,
+    sid: twilio.sid as string | null,
     status: twilio.status as string,
     requestedMode: mode,
     estimatedCostCents,

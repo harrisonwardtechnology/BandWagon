@@ -69,7 +69,8 @@ With Cloudflare for SaaS configured, BandWagon can request the custom hostname a
 
 Optional runtime variables:
 
-- `TENANT_BASE_DOMAIN=harrisonward.org`
+- `TENANT_BASE_DOMAIN=harrisonward.org` (default; parent domain for new tenant hostnames)
+- `PLATFORM_HOSTNAMES=bandwagon.harrisonward.net,www.bandwagon.harrisonward.net` (default; hosts that serve the product site instead of a tenant, primary first)
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_SAAS_ZONE_ID`
 
@@ -88,3 +89,7 @@ The API token should be narrowly scoped to the SaaS zone/custom-hostname actions
 ## Security boundary
 
 Tenant resolution occurs only after a database lookup against an active domain and active organization. Never derive tenant authorization from the hostname string alone.
+
+## Moving to a new domain
+
+Both domains are settings, not code. See [operations/CHANGING-TENANT-DOMAIN.md](operations/CHANGING-TENANT-DOMAIN.md) for the full move: wildcard DNS and certificates, new domain rows for existing communities, provider URLs, and redirects.

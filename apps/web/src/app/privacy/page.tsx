@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SupportContact } from "@/components/support-contact";
 
 export const metadata = {
   title: "Privacy Policy | BandWagon",
@@ -72,7 +73,7 @@ export default function PrivacyPage() {
       <p>BandWagon does not sell personal information. It does not share personal information for cross-context behavioral advertising and does not use personal information for targeted advertising.</p>
 
       <h2>10. Service Providers</h2>
-      <p>Current provider categories include IONOS and Coolify-managed infrastructure, PostgreSQL and private object storage, Cloudflare security/Turnstile, Twilio SMS/RCS, email delivery providers, Google Maps/Routes and Google Calendar, Microsoft Graph Calendar, Stripe-hosted Checkout, and platform monitoring services. A provider receives only the information necessary for its function and is subject to applicable contractual, confidentiality, security, and data-protection requirements.</p>
+      <p>Current provider categories include IONOS and Coolify-managed infrastructure, PostgreSQL and private object storage, Cloudflare security/Turnstile, Twilio SMS/RCS, email delivery providers, Google Maps/Routes and Google Calendar, Microsoft Graph Calendar, Stripe-hosted Checkout, and platform monitoring services. The current list, with what each provider receives and when, is on the <Link href="/legal/subprocessors">Subprocessors</Link> page. A provider receives only the information necessary for its function and is subject to applicable contractual, confidentiality, security, and data-protection requirements.</p>
 
       <h2>11. Cookies and Similar Technology</h2>
       <p>BandWagon uses essential cookies for authentication, security, temporary support mode, and remembering privacy choices. Optional functional storage for the offline PWA shell remains off until allowed. BandWagon does not currently use advertising cookies, cross-site tracking, session replay, or behavioral analytics. Exact names, durations, providers, and controls appear in the <Link href="/cookies">Cookie and Similar Technologies Policy</Link>.</p>
@@ -105,9 +106,9 @@ export default function PrivacyPage() {
       <p>Material policy changes may require renewed acknowledgement or consent. A new optional cookie/storage category, materially different purpose, or new tracking provider will not be authorized by an old functional-storage choice; BandWagon will update the policy version and ask again before activation where consent is required.</p>
 
       <h2>18. Contact and Complaints</h2>
-      <p><strong>Controller:</strong> Harrison Ward Technology, Flower Mound, Texas, United States<br/><strong>Privacy:</strong> <a href="mailto:help+privacy@harrisonward.com">help+privacy@harrisonward.com</a> or the <Link href="/help">Help Center</Link><br/><strong>Security:</strong> <a href="mailto:help+security@harrisonward.com">help+security@harrisonward.com</a> or the <Link href="/security">Security Report</Link> process<br/><strong>Support:</strong> <a href="mailto:help+support@harrisonward.com">help+support@harrisonward.com</a></p>
+      <p><strong>Controller:</strong> Harrison Ward Technology, Flower Mound, Texas, United States<br/><strong>Privacy:</strong> <a href="mailto:help+privacy@harrisonward.com">help+privacy@harrisonward.com</a> or the <Link href="/help">Help Center</Link><br/><strong>Security:</strong> <a href="mailto:help+security@harrisonward.com">help+security@harrisonward.com</a> or the <Link href="/security">Security Report</Link> process<br/><strong>Support:</strong> <SupportContact /></p>
 
-      <div className="legal-links"><Link href="/cookies">Cookie Policy</Link><Link href="/terms">Terms of Use</Link><Link href="/messaging">Messaging &amp; SMS Consent</Link><Link href="/help">Privacy Request</Link><Link href="/">BandWagon Home</Link></div>
+      <div className="legal-links"><Link href="/cookies">Cookie Policy</Link><Link href="/terms">Terms of Use</Link><Link href="/messaging">Messaging &amp; SMS Consent</Link><Link href="/help">Privacy Request</Link><Link href="/legal/subprocessors">Subprocessors</Link><Link href="/legal/student-data">Student Data</Link><Link href="/">BandWagon Home</Link></div>
     </article>
   </main>;
 }

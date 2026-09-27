@@ -1,11 +1,15 @@
 import { escapeXml, parseTwilioForm, twiml, validateTwilioSignature } from "@/lib/twilio";
+import { primaryPlatformHostname, spokenHostname } from "@/lib/platform-hosts";
 
 export const runtime = "nodejs";
 
-const GREETING =
-  "Thanks for calling BandWagon. This number is used for automated ride coordination and notifications. " +
-  "For help, visit bandwagon dot harrisonward dot net, or reply HELP to one of our text messages. " +
-  "This number does not accept voice calls. Goodbye.";
+function greeting() {
+  return (
+    "Thanks for calling BandWagon. This number is used for automated ride coordination and notifications. " +
+    `For help, visit ${spokenHostname(primaryPlatformHostname())}, or reply HELP to one of our text messages. ` +
+    "This number does not accept voice calls. Goodbye."
+  );
+}
 
 export async function POST(request: Request) {
   const form = await parseTwilioForm(request);
@@ -24,7 +28,7 @@ export async function POST(request: Request) {
   // The final pause keeps Twilio from hanging up immediately after "Goodbye."
   return twiml(
     `<Pause length="1"/>` +
-    `<Say voice="Polly.Joanna-Neural">${escapeXml(GREETING)}</Say>` +
+    `<Say voice="Polly.Joanna-Neural">${escapeXml(greeting())}</Say>` +
     `<Pause length="2"/>` +
     `<Hangup/>`
   );
