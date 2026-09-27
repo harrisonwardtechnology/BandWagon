@@ -7,6 +7,18 @@ import { sessionIdleDays } from "@/lib/auth-policy";
 export const SESSION_COOKIE = "bw_session";
 export const SUPPORT_COOKIE = "bw_support";
 
+/** Cookie settings for a new sign-in session. Shared by code and passkey sign-in. */
+export function sessionCookieOptions(expiresAt: Date | string) {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    priority: "high" as const,
+    path: "/",
+    expires: new Date(expiresAt),
+  };
+}
+
 export type SupportModeContext = {
   supportSessionId: string;
   operatorUserAccountId: string;

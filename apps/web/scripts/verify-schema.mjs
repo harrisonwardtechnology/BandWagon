@@ -52,6 +52,9 @@ const requiredTables = [
   "organization_messaging_limits",
   "organization_messaging_alerts",
   "organization_impact_settings",
+  "webauthn_credentials",
+  "webauthn_challenges",
+  "auth_rate_limit_events",
 ];
 
 await client.connect();

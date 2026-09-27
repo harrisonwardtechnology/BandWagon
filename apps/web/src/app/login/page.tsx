@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { browserSupportsWebAuthn, browserSupportsWebAuthnAutofill, startAuthentication } from "@simplewebauthn/browser";
 import TurnstileWidget from "@/components/turnstile-widget";
 import PhoneNumberInput from "@/components/phone-number-input";
 import { SMS_CONSENT_TEXT } from "@/lib/sms-consent-policy";
+import { PASSKEY_EXPLAINER, safeNextPath } from "@/lib/passkey-policy";
 
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
@@ -23,6 +25,57 @@ export default function LoginPage() {
   const [working,setWorking] = useState(false);
   const [turnstileToken,setTurnstileToken]=useState("");
   const [turnstileReset,setTurnstileReset]=useState(0);
+  const [passkeyReady,setPasskeyReady]=useState(false);
+  const autofillStarted=useRef(false);
+
+  function nextPath() {
+    return safeNextPath(new URLSearchParams(window.location.search).get("next"));
+  }
+
+  useEffect(() => {
+    let cancelled=false;
+    (async () => {
+      if (!browserSupportsWebAuthn()) return;
+      const r=await fetch("/api/auth/passkey",{cache:"no-store"}).catch(()=>null);
+      const d=r?await r.json().catch(()=>({})):{};
+      if (cancelled || !d.enabled) return;
+      setPasskeyReady(true);
+      // Conditional UI: offer saved passkeys in the email field's autofill list.
+      if (!autofillStarted.current && await browserSupportsWebAuthnAutofill().catch(()=>false)) {
+        autofillStarted.current=true;
+        void signInWithPasskey(true);
+      }
+    })();
+    return () => { cancelled=true; };
+  }, []);
+
+  async function signInWithPasskey(autofill=false) {
+    let busy=!autofill;
+    if (busy) { setWorking(true); setMessage(""); }
+    try {
+      const o=await fetch("/api/auth/passkey",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"options"})});
+      const od=await o.json().catch(()=>({}));
+      if (!o.ok || !od.options) { if (!autofill) setMessage(od.error || "Passkey sign-in is not available right now."); return; }
+      let assertion;
+      try {
+        assertion=await startAuthentication({ optionsJSON: od.options, useBrowserAutofill: autofill });
+      } catch (error) {
+        const name=error instanceof Error ? error.name : "";
+        // Starting the button flow cancels the autofill flow. Stay quiet about that.
+        if (autofill || name==="AbortError") return;
+        setMessage(name==="NotAllowedError" ? "Passkey sign-in was canceled. You can try again or use a code." : "This device could not use a passkey. You can use a code instead.");
+        return;
+      }
+      busy=true;
+      setWorking(true);
+      const v=await fetch("/api/auth/passkey",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"verify",response:assertion})});
+      const vd=await v.json().catch(()=>({}));
+      if (!v.ok) { setMessage(vd.error || "We could not sign you in with that passkey."); return; }
+      window.location.href=nextPath();
+    } finally {
+      if (busy) setWorking(false);
+    }
+  }
 
   async function requestCode() {
     setWorking(true); setMessage("");
@@ -52,7 +105,7 @@ export default function LoginPage() {
     const d = await r.json().catch(()=>({}));
     setWorking(false);
     if (!r.ok) { setMessage(d.error || "Verification failed"); return; }
-    window.location.href = "/app";
+    window.location.href = nextPath();
   }
 
   const input = { width:"100%",padding:"12px 14px",border:"1px solid #cbd5e1",borderRadius:10,fontSize:16,boxSizing:"border-box" as const };
@@ -69,6 +122,11 @@ export default function LoginPage() {
           <button type="button" aria-pressed={mode==="sign_in"} onClick={()=>{setMode("sign_in");setMessage("");}} style={{padding:10,borderRadius:9,border:"1px solid #cbd5e1",background:mode==="sign_in"?"#101b33":"white",color:mode==="sign_in"?"white":"#334155",fontWeight:800,cursor:"pointer"}}>Sign in</button>
           <button type="button" aria-pressed={mode==="create_account"} onClick={()=>{setMode("create_account");setMessage("");}} style={{padding:10,borderRadius:9,border:"1px solid #cbd5e1",background:mode==="create_account"?"#101b33":"white",color:mode==="create_account"?"white":"#334155",fontWeight:800,cursor:"pointer"}}>Create account</button>
         </div>
+        {mode==="sign_in" && passkeyReady && <div style={{marginBottom:18}}>
+          <button type="button" disabled={working} onClick={()=>void signInWithPasskey(false)} style={{...button,background:"white",color:"#101b33",border:"2px solid #101b33",opacity:working ? .65 : 1}}>Sign in with a passkey</button>
+          <p style={{fontSize:13,color:"#64748b",margin:"8px 0 0",textAlign:"center"}}>{PASSKEY_EXPLAINER}</p>
+          <div role="separator" style={{display:"flex",alignItems:"center",gap:10,margin:"16px 0 0",color:"#94a3b8",fontSize:13}}><span style={{flex:1,height:1,background:"#e2e8f0"}}/>or get a code<span style={{flex:1,height:1,background:"#e2e8f0"}}/></div>
+        </div>}
         <fieldset style={{border:0,padding:0,margin:"0 0 16px"}}>
           <legend style={{fontWeight:700,marginBottom:7}}>How should we send your code?</legend>
           <div className="contact-method-tabs">
@@ -78,7 +136,7 @@ export default function LoginPage() {
         </fieldset>
         {contactMethod==="email" ? <>
           <label htmlFor="login-email" style={{fontWeight:700}}>Email address</label>
-          <input id="login-email" type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" style={{...input,margin:"7px 0 16px"}} />
+          <input id="login-email" type="email" autoComplete="username webauthn" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" style={{...input,margin:"7px 0 16px"}} />
         </> : <>
           <label htmlFor="login-phone" style={{display:"block",fontWeight:700,marginBottom:7}}>Mobile number</label>
           <PhoneNumberInput id="login-phone" value={phone} onChange={setPhone} required />
