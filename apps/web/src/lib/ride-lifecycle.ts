@@ -1,5 +1,6 @@
 import { getDb } from "@/lib/db";
 import { queueNotification } from "@/lib/notification-queue";
+import { afterDelegateRideAction, canActForChild, notifyChildDelegates } from "@/lib/child-access";
 import {
   assertRideTransition,
   canActorTransitionRide,
@@ -17,8 +18,8 @@ export async function transitionRide(input:{rideId:string;actorPersonId:string;t
       from rides r join ride_requests rr on rr.id=r.ride_request_id where r.id=$1 for update`,[input.rideId]);
     if(!current.rowCount)throw new Error('Ride not found');const ride=current.rows[0];
     assertRideTransition(ride.status,input.toStatus);
-    const guardianResult=await client.query(`select 1 from guardian_relationships where guardian_person_id=$1 and minor_person_id=$2 and can_approve_rides=true limit 1`,[input.actorPersonId,ride.passenger_person_id]);
-    const guardian=(guardianResult.rowCount??0)>0;
+    const access=input.actorPersonId===ride.driver_person_id||input.actorPersonId===ride.requester_person_id?null:await canActForChild(input.actorPersonId,ride.passenger_person_id,'manage_ride_request',{organizationId:ride.organization_id,client});
+    const guardian=Boolean(access?.allowed);
     const actorIsDriver=input.actorPersonId===ride.driver_person_id,actorManagesPrimary=input.actorPersonId===ride.requester_person_id||guardian;
     if(!canActorTransitionRide({actorIsDriver,actorManagesPrimary,toStatus:input.toStatus})){
       if(!actorIsDriver&&!actorManagesPrimary)throw new Error('Person is not authorized to update this ride');
@@ -72,6 +73,11 @@ export async function transitionRide(input:{rideId:string;actorPersonId:string;t
     await client.query(`insert into ride_status_events(ride_id,ride_request_id,actor_person_id,event_type,from_status,to_status,metadata) values($1,$2,$3,'ride_status_changed',$4,$5,$6::jsonb)`,[ride.id,ride.ride_request_id,input.actorPersonId,ride.status,input.toStatus,JSON.stringify({reason:input.reason||null,pooledAssignmentCount:assignments.length,cancelledBy:input.toStatus==='cancelled'?(actorIsDriver?'driver':'requester'):null})]);
     await client.query('COMMIT');
 
+    if(input.toStatus==='driver_en_route'||input.toStatus==='arrived'||input.toStatus==='cancelled'){
+      const text=input.toStatus==='driver_en_route'?'The driver is on the way for a child you help with.':input.toStatus==='arrived'?'The driver has arrived for a child you help with.':'A ride for a child you help with was cancelled.';
+      await notifyChildDelegates({childId:ride.passenger_person_id,organizationId:ride.organization_id,notificationType:input.toStatus==='cancelled'?'last_minute_cancellation':'driver_arriving',title:'Ride update',body:text,excludePersonIds:[ride.requester_person_id,ride.driver_person_id,input.actorPersonId]});
+    }
+    await afterDelegateRideAction({decision:access,kind:input.toStatus==='cancelled'?'cancelled':'managed',actorPersonId:input.actorPersonId,childId:ride.passenger_person_id,organizationId:ride.organization_id,targetType:'ride',targetId:ride.id});
     if(input.toStatus==='driver_en_route'||input.toStatus==='arrived'){
       await queueNotification({notificationType:'driver_arriving',title:'Driver update',body:input.toStatus==='driver_en_route'?'Your driver is on the way.':'Your driver has arrived.',personId:ride.requester_person_id,organizationId:ride.organization_id,url:`/rides/${ride.public_ref}`}).catch(()=>{});
     }else if(input.toStatus==='cancelled'){

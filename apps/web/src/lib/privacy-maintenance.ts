@@ -386,6 +386,9 @@ async function anonymizeAccount(request: any) {
     await client.query(`delete from organization_join_events where person_id=$1`, [row.person_id]);
     await client.query(`delete from guardian_consents where guardian_person_id=$1 or minor_person_id=$1`, [row.person_id]);
     await client.query(`delete from guardian_relationships where guardian_person_id=$1 or minor_person_id=$1`, [row.person_id]);
+    await client.query(`delete from household_delegate_children where child_person_id=$1`, [row.person_id]);
+    await client.query(`update household_delegates set status='revoked',revoked_at=coalesce(revoked_at,now()),updated_at=now() where delegate_person_id=$1 and status<>'revoked'`, [row.person_id]);
+    await client.query(`update household_delegate_invitations set revoked_at=coalesce(revoked_at,now()) where invited_by_person_id=$1 and accepted_at is null and revoked_at is null`, [row.person_id]);
     await client.query(`delete from household_members where person_id=$1`, [row.person_id]);
     await client.query(`delete from memberships where person_id=$1`, [row.person_id]);
     await client.query(`delete from emails where person_id=$1`, [row.person_id]);

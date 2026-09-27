@@ -52,6 +52,9 @@ const requiredTables = [
   "organization_messaging_limits",
   "organization_messaging_alerts",
   "organization_impact_settings",
+  "household_delegates",
+  "household_delegate_children",
+  "household_delegate_invitations",
 ];
 
 await client.connect();
