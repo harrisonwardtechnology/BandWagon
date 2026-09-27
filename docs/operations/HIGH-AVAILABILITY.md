@@ -43,6 +43,7 @@ Every worker runs the scheduler. Each task is enqueued with the key `task:timeSl
 
 | Task | Every |
 |---|---|
+| ride-waitlists (standby offer safety net) | 5 min |
 | ride-reminders | 15 min |
 | status-monitoring | 10 min |
 | organization-decommission | 30 min |
@@ -55,6 +56,8 @@ Every worker runs the scheduler. Each task is enqueued with the key `task:timeSl
 To turn tasks off, set `SCHEDULER_DISABLED_TASKS=google-calendar-sync,microsoft-calendar-sync`. The `/api/cron/*` endpoints still work, so you can remove the old Coolify scheduled tasks whenever you like.
 
 ### Notifications
+
+Waitlists add two job kinds: `waitlist.process_ride` (a seat may have opened) and `waitlist.offer_expire` (scheduled at an offer's expiry, dedupe key `waitlist-offer-expire:<entry>:<round>`). Both lock the ride row, so any number of workers can run them.
 
 With `NOTIFICATION_DELIVERY=queue`, ride actions (match, pool, driver arriving, cancel, no-show, new-ride alerts to drivers) write a job and return right away. A worker does the push, text, and email.
 

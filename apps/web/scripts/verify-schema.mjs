@@ -57,6 +57,8 @@ const requiredTables = [
   "webauthn_credentials",
   "webauthn_challenges",
   "auth_rate_limit_events",
+  "organization_waitlist_settings",
+  "ride_waitlist_entries",
 ];
 
 await client.connect();
