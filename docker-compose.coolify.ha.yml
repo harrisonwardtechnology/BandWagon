@@ -45,7 +45,13 @@ x-app: &app
 
 x-web-labels: &web-labels
   traefik.enable: "true"
-  traefik.http.routers.bandwagon-web.rule: Host(`${APP_HOSTNAME:-bandwagon.harrisonward.net}`)
+  # BandWagon answers for many hostnames: bandwagon.club, every <slug>.bandwagon.club
+  # tenant, customer custom domains (flomogo.app), and the old harrisonward hosts
+  # that redirect. So the router matches any host at the LOWEST priority: other
+  # Coolify apps with explicit Host() rules still win, and only hostnames your
+  # Cloudflare Tunnel sends here reach it.
+  traefik.http.routers.bandwagon-web.rule: HostRegexp(`.+`)
+  traefik.http.routers.bandwagon-web.priority: "1"
   traefik.http.routers.bandwagon-web.entrypoints: https
   traefik.http.routers.bandwagon-web.tls: "true"
   traefik.http.routers.bandwagon-web.service: bandwagon-web

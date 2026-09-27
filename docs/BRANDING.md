@@ -6,7 +6,7 @@
 2. **BandWagon** - open-source community ride-coordination platform.
 3. **FloMoGo** - Flower Mound community service powered by BandWagon.
 
-Default platform URL: `bandwagon.harrisonward.net`. FloMoGo primary URL: `flomogo.app`.
+Default platform URL: `bandwagon.club`. FloMoGo primary URL: `flomogo.app`.
 
 Organizations may customize name, logo, icon, tagline, welcome text, visual theme and verified custom domain. They may not remove the independent-third-party disclosure or required BandWagon/Harrison Ward Technology operator attribution.
 

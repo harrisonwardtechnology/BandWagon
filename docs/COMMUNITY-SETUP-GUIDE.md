@@ -11,7 +11,7 @@ This guide is written for a non-technical community organizer. You should not ne
 
 BandWagon automatically creates the organization, its platform hostname, the platform domain record, monitoring-registration record, audit record, and default safety/privacy configuration.
 
-Example: a community with slug `flomogo` receives `https://flomogo.harrisonward.org`.
+Example: a community with slug `flomogo` receives `https://flomogo.bandwagon.club`.
 
 ## 2. Complete the Organization Profile
 

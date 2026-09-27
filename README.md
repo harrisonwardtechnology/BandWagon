@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="https://bandwagon.harrisonward.net">Platform</a> ·
+  <a href="https://bandwagon.club">Platform</a> ·
   <a href="https://flomogo.app">FloMoGo</a> ·
   <a href="https://bandwagon-demo.harrisonward.net/">Interactive demo</a> ·
   <a href="docs/ROADMAP-TO-V1.md">Roadmap</a> ·

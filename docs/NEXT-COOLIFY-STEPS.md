@@ -6,13 +6,13 @@
 4. Build pack: Dockerfile.
 5. Base directory: `/apps/web`.
 6. Container/exposed port: `3000`.
-7. Domain: `https://bandwagon.harrisonward.net`.
-8. Because traffic comes through the existing Cloudflare Tunnel wildcard `*.harrisonward.net -> http://localhost:80`, disable Coolify's HTTP-to-HTTPS redirect for this application.
+7. Domain: `https://bandwagon.club`.
+8. Because traffic comes through the existing Cloudflare Tunnel public hostnames `bandwagon.club` and `*.bandwagon.club -> http://localhost:80`, disable Coolify's HTTP-to-HTTPS redirect for this application.
 9. Add initial environment variables:
    - `NODE_ENV=production`
    - `APP_NAME=BandWagon`
    - `APP_TAGLINE=Community-powered rides.`
-   - `APP_URL=https://bandwagon.harrisonward.net`
+   - `APP_URL=https://bandwagon.club`
    - `PLATFORM_VENDOR_NAME=Harrison Ward Technology`
    - `PLATFORM_VENDOR_URL=https://harrisonward.com`
    - `DEFAULT_TIMEZONE=America/Chicago`
@@ -20,5 +20,5 @@
    - `HEALTH_REQUIRE_DATABASE=false`
    - `HEALTH_REQUIRE_REDIS=false`
 10. Deploy.
-11. Confirm `https://bandwagon.harrisonward.net/api/health` returns `status: ok`.
+11. Confirm `https://bandwagon.club/api/health` returns `status: ok`.
 12. Then create PostGIS and Redis resources and wire them in.

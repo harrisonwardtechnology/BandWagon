@@ -11,7 +11,7 @@ In Coolify:
 - Base directory: `/apps/web`
 - Build pack: Dockerfile
 - Container port: `3000`
-- Domain: `https://bandwagon.harrisonward.net`
+- Domain: `https://bandwagon.club`
 - When behind the existing Cloudflare Tunnel, keep Coolify HTTP-to-HTTPS redirect disabled.
 
 Start with only the Core environment values from `.env.example`. Leave `HEALTH_REQUIRE_DATABASE=false` and `HEALTH_REQUIRE_REDIS=false` until the services exist.

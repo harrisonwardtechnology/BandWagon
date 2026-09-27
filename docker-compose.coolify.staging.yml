@@ -25,11 +25,18 @@ services:
       NODE_ENV: production
       APP_ROLE: all
       NOTIFICATION_DELIVERY: queue
-      APP_URL: ${APP_URL:-https://staging.bandwagon.harrisonward.net}
+      APP_URL: ${APP_URL:-https://staging.bandwagon.club}
       # Staging answers on its own hostname as the product site.
-      PLATFORM_HOSTNAMES: ${PLATFORM_HOSTNAMES:-staging.bandwagon.harrisonward.net}
+      PLATFORM_HOSTNAMES: ${PLATFORM_HOSTNAMES:-staging.bandwagon.club}
       # Staging tenants live under their own parent domain, never production's.
-      TENANT_BASE_DOMAIN: ${TENANT_BASE_DOMAIN:-staging.harrisonward.org}
+      # Test tenants live at <slug>.staging.bandwagon.club. That is two levels deep,
+      # so Cloudflare's free certificate (which covers *.bandwagon.club only) does
+      # not cover it: add an Advanced Certificate for *.staging.bandwagon.club, or
+      # test tenants on a custom domain instead.
+      TENANT_BASE_DOMAIN: ${TENANT_BASE_DOMAIN:-staging.bandwagon.club}
+      # Staging never redirects the old production hostnames.
+      LEGACY_PLATFORM_HOSTNAMES: ""
+      LEGACY_TENANT_BASE_DOMAINS: ""
       NEXT_PUBLIC_ENVIRONMENT: staging
       APP_ENVIRONMENT: staging
       MESSAGING_SANDBOX: "true"
@@ -59,7 +66,7 @@ services:
       retries: 3
     labels:
       traefik.enable: "true"
-      traefik.http.routers.bandwagon-staging.rule: Host(`${STAGING_HOSTNAME:-staging.bandwagon.harrisonward.net}`)
+      traefik.http.routers.bandwagon-staging.rule: Host(`${STAGING_HOSTNAME:-staging.bandwagon.club}`)
       traefik.http.routers.bandwagon-staging.entrypoints: https
       traefik.http.routers.bandwagon-staging.tls: "true"
       traefik.http.services.bandwagon-staging.loadbalancer.server.port: "3000"

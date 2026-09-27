@@ -1,16 +1,17 @@
 # Changing the Product and Tenant Domains
 
-BandWagon has two domain settings. Today they default to Harrison Ward Technology domains. Use this guide when BandWagon moves to its own product domain.
+BandWagon has two domain settings. They default to `bandwagon.club` (moved from the Harrison Ward Technology domains on 2026-09-27; that specific move is in [MOVE-TO-BANDWAGON-CLUB.md](MOVE-TO-BANDWAGON-CLUB.md)). Use this general guide for any future domain change.
 
 | Setting | Default | What it controls |
 |---|---|---|
-| `PLATFORM_HOSTNAMES` | `bandwagon.harrisonward.net,www.bandwagon.harrisonward.net` | Hostnames that serve the product site instead of a tenant. The first one is the primary host, used for metadata, the phone greeting, and link fallbacks. `localhost` and `127.0.0.1` are always included. |
-| `TENANT_BASE_DOMAIN` | `harrisonward.org` | Parent domain for new default tenant hostnames: `<slug>.<TENANT_BASE_DOMAIN>`. Also blocks custom domains under this parent. |
+| `PLATFORM_HOSTNAMES` | `bandwagon.club,www.bandwagon.club` | Hostnames that serve the product site instead of a tenant. The first one is the primary host, used for metadata, the phone greeting, and link fallbacks. `localhost` and `127.0.0.1` are always included. |
+| `TENANT_BASE_DOMAIN` | `bandwagon.club` | Parent domain for new default tenant hostnames: `<slug>.<TENANT_BASE_DOMAIN>`. Also blocks custom domains under this parent. |
+| `LEGACY_PLATFORM_HOSTNAMES` / `LEGACY_TENANT_BASE_DOMAINS` | the old harrisonward hosts | Old hosts whose page visits redirect to the new ones. API calls and webhooks on them are still served. Set to empty to turn off. |
 | `APP_URL` | none | Canonical public URL used for Twilio callbacks, Stripe return URLs, OAuth, and email links. |
 
 Both settings live in `apps/web/src/lib/platform-hosts.ts`. Nothing in the app hardcodes the old domains except those defaults.
 
-**Important:** changing `TENANT_BASE_DOMAIN` only affects communities created afterward. Existing communities keep their `organizations.tenant_hostname` and their `organization_domains` rows. You move them on purpose, below. The FloMoGo seed migration is left as is.
+**Important:** changing `TENANT_BASE_DOMAIN` only affects communities created afterward. Existing communities keep their `organizations.tenant_hostname` and their `organization_domains` rows. Move them with `npm run tenants:move-domain -- --from <old> --to <new>` (dry run first, then `--apply`). The FloMoGo seed migration is left as is.
 
 ## Example
 

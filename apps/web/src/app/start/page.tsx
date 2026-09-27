@@ -22,7 +22,7 @@ function slugify(value: string) {
 export default function StartCommunityPage() {
   const [loaded, setLoaded] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
-  const [meta, setMeta] = useState<Row>({ baseDomain: "harrisonward.org", turnstileRequired: false });
+  const [meta, setMeta] = useState<Row>({ baseDomain: "bandwagon.club", turnstileRequired: false });
   const [requests, setRequests] = useState<Row[]>([]);
   const [form, setForm] = useState<Row>({ organizationName: "", slug: "", organizationType: "school_band", city: "", state: "TX", approximateFamilies: "", requesterRole: "", sponsoringOrganization: "", website: "", rideDescription: "", agreementAccepted: false });
   const [slugTouched, setSlugTouched] = useState(false);
@@ -37,7 +37,7 @@ export default function StartCommunityPage() {
   async function load() {
     const r = await fetch("/api/organization-requests", { cache: "no-store" });
     const d = await r.json().catch(() => ({}));
-    setMeta({ baseDomain: d.baseDomain || "harrisonward.org", turnstileRequired: Boolean(d.turnstileRequired), agreementVersion: d.agreementVersion });
+    setMeta({ baseDomain: d.baseDomain || "bandwagon.club", turnstileRequired: Boolean(d.turnstileRequired), agreementVersion: d.agreementVersion });
     setSignedIn(r.ok && d.signedIn === true);
     setRequests(d.requests || []);
     setLoaded(true);

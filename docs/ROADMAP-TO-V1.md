@@ -105,7 +105,7 @@ BLUE COW                    BLUE COW
 **Goal:** Turn the working product into a repeatable multi-tenant SaaS and production candidate.
 
 ### SaaS / tenant onboarding
-- `{tenant}.harrisonward.org` activation workflow
+- `{tenant}.bandwagon.club` activation workflow
 - verified custom domains
 - org branding / logo / support settings
 - tenant administrator onboarding

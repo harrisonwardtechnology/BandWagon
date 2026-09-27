@@ -6,17 +6,17 @@ BandWagon is a multi-tenant SaaS platform.
 
 Platform/admin:
 
-`bandwagon.harrisonward.net`
+`bandwagon.club`
 
 Default tenant URLs:
 
-`{tenant}.harrisonward.org`
+`{tenant}.bandwagon.club`
 
 Examples:
 
-- `flomogo.harrisonward.org`
-- `exampleband.harrisonward.org`
-- `troop123.harrisonward.org`
+- `flomogo.bandwagon.club`
+- `exampleband.bandwagon.club`
+- `troop123.bandwagon.club`
 
 Optional customer custom hostname:
 
@@ -24,19 +24,21 @@ Optional customer custom hostname:
 
 Customer DNS:
 
-`CNAME rides.customer.org -> exampleband.harrisonward.org`
+`CNAME rides.customer.org -> exampleband.bandwagon.club`
 
-## Why HarrisonWard.org
+## Why bandwagon.club
 
-The root domain is dedicated to tenant routing, so every tenant stays exactly one DNS level deep and can be covered by a normal wildcard:
+The product site lives on the apex (`bandwagon.club`, plus `www`) and every tenant sits exactly one DNS level below it, so one wildcard covers all of them, including Cloudflare's free certificate:
 
-`*.harrisonward.org`
+`*.bandwagon.club`
 
-No nested `tenant.bandwagon.harrisonward.net` hostnames are required.
+Tenants must never be nested deeper (for example `band.school.bandwagon.club`), because a single wildcard certificate does not cover two levels.
+
+Until 2026-09-27 tenants lived at `{tenant}.harrisonward.org` and the product at `bandwagon.harrisonward.net`. Those hosts still resolve and redirect. See [operations/MOVE-TO-BANDWAGON-CLUB.md](operations/MOVE-TO-BANDWAGON-CLUB.md).
 
 ## Required DNS / Coolify setup
 
-Create a wildcard DNS record for HarrisonWard.org that points all tenant hostnames at the BandWagon application/proxy.
+Create a wildcard DNS record for bandwagon.club that points all tenant hostnames at the BandWagon application/proxy.
 
 Recommended Cloudflare record:
 
@@ -52,7 +54,7 @@ The application resolves the incoming `Host` only against active `organization_d
 Migration `006_saas_tenants.sql` creates/updates FloMoGo as tenant #1:
 
 - slug: `flomogo`
-- default tenant hostname: `flomogo.harrisonward.org`
+- default tenant hostname: `flomogo.bandwagon.club`
 - custom domain planned: `flomogo.app`
 
 ## Custom domains
@@ -69,8 +71,8 @@ With Cloudflare for SaaS configured, BandWagon can request the custom hostname a
 
 Optional runtime variables:
 
-- `TENANT_BASE_DOMAIN=harrisonward.org` (default; parent domain for new tenant hostnames)
-- `PLATFORM_HOSTNAMES=bandwagon.harrisonward.net,www.bandwagon.harrisonward.net` (default; hosts that serve the product site instead of a tenant, primary first)
+- `TENANT_BASE_DOMAIN=bandwagon.club` (default; parent domain for new tenant hostnames)
+- `PLATFORM_HOSTNAMES=bandwagon.club,www.bandwagon.club` (default; hosts that serve the product site instead of a tenant, primary first)
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_SAAS_ZONE_ID`
 
@@ -79,12 +81,12 @@ The API token should be narrowly scoped to the SaaS zone/custom-hostname actions
 ## Tenant lifecycle
 
 1. Create organization.
-2. BandWagon assigns `{slug}.harrisonward.org` immediately.
+2. BandWagon assigns `{slug}.bandwagon.club` immediately.
 3. Organization configures branding, calendars, users, notification settings, and rides.
 4. Organization optionally requests a custom hostname.
 5. BandWagon displays the required CNAME.
 6. DNS and SSL are verified.
-7. Custom hostname may be promoted to primary while the HarrisonWard.org hostname remains a fallback.
+7. Custom hostname may be promoted to primary while the bandwagon.club hostname remains a fallback.
 
 ## Security boundary
 
