@@ -52,6 +52,8 @@ const requiredTables = [
   "organization_messaging_limits",
   "organization_messaging_alerts",
   "organization_impact_settings",
+  "organization_waitlist_settings",
+  "ride_waitlist_entries",
 ];
 
 await client.connect();

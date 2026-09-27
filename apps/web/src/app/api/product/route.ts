@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireSessionIdentity } from "@/lib/auth";
 import { resolveTenant } from "@/lib/tenant";
-import { acceptOfferAsCurrentUser, createUserRideRequest, getProductDashboard, offerRideAsCurrentUser, refreshUserMatches, transitionRideAsCurrentUser, viewRideLocation } from "@/lib/product";
+import { acceptOfferAsCurrentUser, createUserRideRequest, joinWaitlistAsCurrentUser, leaveWaitlistAsCurrentUser, respondToStandbyOfferAsCurrentUser, updateRideSeatsAsCurrentUser, getProductDashboard, offerRideAsCurrentUser, refreshUserMatches, transitionRideAsCurrentUser, viewRideLocation } from "@/lib/product";
 import { refreshRouteAssistRecommendations,notifyRouteAssistMatches,setRouteAssistRecommendationStatus } from "@/lib/route-assist";
 export const runtime="nodejs";export const dynamic="force-dynamic";
 async function organizationScope(){const tenant=await resolveTenant();return tenant.type==="organization"?tenant.organizationId:null;}
@@ -15,5 +15,10 @@ case"transition_ride":result=await transitionRideAsCurrentUser(identity,{rideId:
 case"refresh_matches":result=await refreshUserMatches(identity,String(body.rideRequestId),scope);break;
 case"refresh_route_assist":{const organizationId=String(body.organizationId);assertOrg(identity,scope,organizationId);result=await refreshRouteAssistRecommendations(organizationId,identity.personId);if(body.notify===true)await notifyRouteAssistMatches(organizationId,identity.personId);break;}
 case"dismiss_route_assist":{const organizationId=String(body.organizationId);assertOrg(identity,scope,organizationId);result=await setRouteAssistRecommendationStatus({recommendationId:String(body.recommendationId),organizationId,driverPersonId:identity.personId,status:'dismissed'});break;}
+case"join_waitlist":result=await joinWaitlistAsCurrentUser(identity,{rideId:String(body.rideId),passengerPersonId:String(body.passengerPersonId),organizationScopeId:scope});break;
+case"leave_waitlist":result=await leaveWaitlistAsCurrentUser(identity,{entryId:String(body.entryId),organizationScopeId:scope});break;
+case"accept_standby":result=await respondToStandbyOfferAsCurrentUser(identity,{entryId:String(body.entryId),accept:true,organizationScopeId:scope});break;
+case"decline_standby":result=await respondToStandbyOfferAsCurrentUser(identity,{entryId:String(body.entryId),accept:false,organizationScopeId:scope});break;
+case"update_ride_seats":result=await updateRideSeatsAsCurrentUser(identity,{rideId:String(body.rideId),seats:Number(body.seats),organizationScopeId:scope});break;
 case"view_location":result=await viewRideLocation(identity,{locationId:String(body.locationId),rideId:body.rideId||null,organizationScopeId:scope});return NextResponse.json({ok:true,result});
 default:return NextResponse.json({error:"Unknown action"},{status:400});}return NextResponse.json({ok:true,result,dashboard:await getProductDashboard(identity,scope)});}catch(error){const message=error instanceof Error?error.message:"Ride action failed";return NextResponse.json({error:message},{status:message==="Authentication required"?401:400});}}

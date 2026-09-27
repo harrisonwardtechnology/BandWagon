@@ -19,6 +19,11 @@ export const SCHEDULED_TASKS: ScheduledTask[] = [
     run: async () => (await import("@/lib/ride-reminders")).dispatchRideReminders(),
   },
   {
+    // Safety net for standby offers: expiry jobs normally handle this on time.
+    key: "ride-waitlists", everyMinutes: 5, expectedMaxAgeMinutes: 20,
+    run: async () => (await import("@/lib/ride-waitlists")).sweepRideWaitlists(),
+  },
+  {
     key: "status-monitoring", everyMinutes: 10, expectedMaxAgeMinutes: 30,
     run: async () => (await import("@/lib/status-monitoring")).syncStatusMonitoring(75),
   },

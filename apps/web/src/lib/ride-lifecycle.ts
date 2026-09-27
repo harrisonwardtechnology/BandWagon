@@ -1,5 +1,6 @@
 import { getDb } from "@/lib/db";
 import { queueNotification } from "@/lib/notification-queue";
+import { requestWaitlistProcessing } from "@/lib/ride-waitlist-queue";
 import {
   assertRideTransition,
   canActorTransitionRide,
@@ -71,6 +72,8 @@ export async function transitionRide(input:{rideId:string;actorPersonId:string;t
       no_show_reason=case when $1='no_show' then $2 else no_show_reason end,updated_at=now() where id=$4 returning *`,[input.toStatus,input.reason||null,input.actorPersonId,input.rideId]);
     await client.query(`insert into ride_status_events(ride_id,ride_request_id,actor_person_id,event_type,from_status,to_status,metadata) values($1,$2,$3,'ride_status_changed',$4,$5,$6::jsonb)`,[ride.id,ride.ride_request_id,input.actorPersonId,ride.status,input.toStatus,JSON.stringify({reason:input.reason||null,pooledAssignmentCount:assignments.length,cancelledBy:input.toStatus==='cancelled'?(actorIsDriver?'driver':'requester'):null})]);
     await client.query('COMMIT');
+    // Leaving, finishing, or cancelling closes the waitlist (riders are told why).
+    if(input.toStatus!=='arrived')await requestWaitlistProcessing(ride.id,`ride_${input.toStatus}`);
 
     if(input.toStatus==='driver_en_route'||input.toStatus==='arrived'){
       await queueNotification({notificationType:'driver_arriving',title:'Driver update',body:input.toStatus==='driver_en_route'?'Your driver is on the way.':'Your driver has arrived.',personId:ride.requester_person_id,organizationId:ride.organization_id,url:`/rides/${ride.public_ref}`}).catch(()=>{});

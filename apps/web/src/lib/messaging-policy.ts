@@ -14,6 +14,8 @@ export const MOBILE_NOTIFICATION_TYPES = [
   "organization_decommission_confirmation",
   "otp",
   "platform_test",
+  "waitlist_offer",
+  "waitlist_update",
 ] as const;
 
 export type MobileNotificationType = typeof MOBILE_NOTIFICATION_TYPES[number];
