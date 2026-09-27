@@ -88,7 +88,7 @@ export async function evaluateOrgMessagingAlerts(organizationId: string) {
        values($1,$2,$3,$4,$5,'pending',now())
        on conflict(organization_id,usage_month,threshold_percent) do update
          set observed_cost_cents=excluded.observed_cost_cents,cap_cents=excluded.cap_cents,status='pending',error_message=null,last_attempt_at=now()
-         where organization_messaging_alerts.status='failed' and organization_messaging_alerts.last_attempt_at<now()-interval '1 hour'
+         where organization_messaging_alerts.status in ('failed','pending') and organization_messaging_alerts.last_attempt_at<now()-interval '1 hour'
        returning id`,
       [organizationId, usage.month.monthKey, threshold, usage.usedCents, capCents]
     );

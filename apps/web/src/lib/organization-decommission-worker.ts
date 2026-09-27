@@ -2,6 +2,14 @@ import { getDb } from "@/lib/db";
 import { cleanupOrganizationInfrastructure } from "@/lib/organization-infrastructure-cleanup";
 import { sendEmailNotification } from "@/lib/email-send";
 
+// Inside a transaction a failed statement aborts everything after it, so
+// best-effort cleanup runs under a savepoint and is rolled back on its own.
+async function optionalStatement(tx:{query:(sql:string,params?:unknown[])=>Promise<unknown>},sql:string,params:unknown[]){
+  await tx.query('savepoint optional_step');
+  try{await tx.query(sql,params);await tx.query('release savepoint optional_step');}
+  catch{await tx.query('rollback to savepoint optional_step');}
+}
+
 function dbRequired(){const db=getDb();if(!db)throw new Error('Database is not configured');return db;}
 
 export async function processOrganizationDecommissions(limit=10){
@@ -18,7 +26,7 @@ export async function processOrganizationDecommissions(limit=10){
       const cleanup=await cleanupOrganizationInfrastructure(row.organization_id);
       const allClean=Boolean(cleanup.ok)&&!(cleanup.monitoring as any)?.error;
       await db.query(`update organization_decommissions set external_cleanup=$2::jsonb,status=$3,last_error=$4,updated_at=now() where id=$1`,[row.id,JSON.stringify(cleanup),allClean?'retention':'external_cleanup',allClean?null:'One or more external cleanup steps require retry']);
-      if(allClean){await db.query(`insert into audit_events(organization_id,action,target_type,target_id,metadata) values($1,'organization.decommission.external_cleanup_complete','organization',$1,$2::jsonb)`,[row.organization_id,JSON.stringify({decommissionId:row.id})]).catch(()=>{});}
+      if(allClean){await db.query(`insert into audit_events(organization_id,action,target_type,target_id,metadata) values($1::uuid,'organization.decommission.external_cleanup_complete','organization',$1::text,$2::jsonb)`,[row.organization_id,JSON.stringify({decommissionId:row.id})]).catch(()=>{});}
       results.push({id:row.id,status:allClean?'retention':'external_cleanup',cleanup});
     }catch(error){const message=error instanceof Error?error.message:'Decommission cleanup failed';await db.query(`update organization_decommissions set status='external_cleanup',last_error=$2,updated_at=now() where id=$1`,[row.id,message]).catch(()=>{});results.push({id:row.id,status:'failed_attempt',error:message});}
   }
@@ -41,22 +49,22 @@ export async function purgeDueOrganizationData(limit=10){
         }
       }
       const householdIds=(await db.query(`select distinct p.household_id from organization_decommission_members dm join people p on p.id=dm.person_id where dm.decommission_id=$1 and p.household_id is not null`,[d.id])).rows.map((r:any)=>r.household_id);
-      await db.query('begin');
+      const tx=await db.connect();await tx.query('begin');
       try{
         // Tables introduced before tenant foreign keys were normalized do not all cascade from organizations.
-        await db.query(`delete from calendar_events where organization_id=$1`,[d.organization_id]).catch(()=>{});
-        await db.query(`delete from google_connections where organization_id=$1`,[d.organization_id]).catch(()=>{});
-        await db.query(`delete from organizations where id=$1`,[d.organization_id]);
+        await optionalStatement(tx,`delete from calendar_events where organization_id=$1`,[d.organization_id]);
+        await optionalStatement(tx,`delete from google_connections where organization_id=$1`,[d.organization_id]);
+        await tx.query(`delete from organizations where id=$1`,[d.organization_id]);
         for(const m of members){
           if(m.disposition!=='remove_account_after_retention'||!m.person_id)continue;
-          const remaining=(await db.query(`select count(*)::int as count from memberships where person_id=$1 and status in ('active','pending')`,[m.person_id])).rows[0]?.count||0;
-          if(Number(remaining)===0){await db.query(`delete from people where id=$1`,[m.person_id]);}
+          const remaining=(await tx.query(`select count(*)::int as count from memberships where person_id=$1 and status in ('active','pending')`,[m.person_id])).rows[0]?.count||0;
+          if(Number(remaining)===0){await tx.query(`delete from people where id=$1`,[m.person_id]);}
         }
-        for(const householdId of householdIds){await db.query(`delete from households h where h.id=$1 and not exists(select 1 from people p where p.household_id=h.id)`,[householdId]).catch(()=>{});}
-        await db.query(`update organization_decommission_members set data_cleanup_status='completed',data_cleanup_completed_at=now(),updated_at=now() where decommission_id=$1`,[d.id]);
-        await db.query(`update organization_decommissions set organization_id=null,status='completed',completed_at=now(),last_error=null,updated_at=now() where id=$1`,[d.id]);
-        await db.query('commit');
-      }catch(error){await db.query('rollback');throw error;}
+        for(const householdId of householdIds){await optionalStatement(tx,`delete from households h where h.id=$1 and not exists(select 1 from people p where p.household_id=h.id)`,[householdId]);}
+        await tx.query(`update organization_decommission_members set data_cleanup_status='completed',data_cleanup_completed_at=now(),updated_at=now() where decommission_id=$1`,[d.id]);
+        await tx.query(`update organization_decommissions set organization_id=null,status='completed',completed_at=now(),last_error=null,updated_at=now() where id=$1`,[d.id]);
+        await tx.query('commit');
+      }catch(error){await tx.query('rollback').catch(()=>{});throw error;}finally{tx.release();}
       results.push({id:d.id,status:'completed'});
     }catch(error){const message=error instanceof Error?error.message:'Retention purge failed';await db.query(`update organization_decommissions set status='failed',last_error=$2,updated_at=now() where id=$1`,[d.id,message]).catch(()=>{});await db.query(`update organization_decommission_members set data_cleanup_status='failed',updated_at=now() where decommission_id=$1 and data_cleanup_status='scheduled'`,[d.id]).catch(()=>{});results.push({id:d.id,status:'failed',error:message});}
   }

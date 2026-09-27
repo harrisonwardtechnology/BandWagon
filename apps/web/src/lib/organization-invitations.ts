@@ -79,6 +79,18 @@ export async function createInvitation(identity: SessionIdentity, input: { organ
   const email = normalizeInviteEmail(input.email);
   const db = dbRequired();
 
+  // Invitations send email from BandWagon's sender. Cap volume so one account
+  // cannot use it to mass-mail (sender reputation, phishing).
+  const recent = await db.query(
+    `select count(*) filter (where organization_id=$1)::int as org_count,
+            count(*) filter (where invited_by_person_id=$2)::int as inviter_count
+       from organization_invitations where created_at>now()-interval '1 hour'`,
+    [input.organizationId, identity.personId]
+  );
+  if (Number(recent.rows[0]?.org_count || 0) >= 20 || Number(recent.rows[0]?.inviter_count || 0) >= 10) {
+    throw new Error("Too many invitations sent in the last hour. Try again later.");
+  }
+
   const existing = await db.query(
     `select m.role from emails e
        join memberships m on m.person_id=e.person_id and m.organization_id=$2 and m.group_id is null and m.status='active'
@@ -190,6 +202,7 @@ export async function previewInvitation(token: string) {
 
 export async function acceptInvitation(identity: SessionIdentity, token: string) {
   if (identity.supportMode) throw new Error("Support View cannot accept invitations");
+  if (identity.personType !== "adult") throw new Error("Only adult accounts can become organization admins or managers");
   if (!looksLikeInvitationToken(token)) throw new Error("This invitation link is not valid");
   const db = dbRequired();
   const verifiedEmails = await verifiedEmailsForPerson(identity.personId);

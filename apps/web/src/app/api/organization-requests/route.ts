@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     if (turnstileConfigured() && !await verifyTurnstileToken(request, body.turnstileToken, "organization_request").catch(() => false)) {
       return Response.json({ error: "The security check was unsuccessful. Please try again." }, { status: 400, headers: privateHeaders });
     }
-    if (!await requestAllowed(request, identity.personId).catch(() => false)) {
+    if (!await requestAllowed(request, identity.personId).catch(() => true)) {
       return Response.json({ error: "Too many requests were sent recently. Please wait before trying again." }, { status: 429, headers: privateHeaders });
     }
     const created = await createOrganizationRequest(identity, validation.value, clientIp(request));

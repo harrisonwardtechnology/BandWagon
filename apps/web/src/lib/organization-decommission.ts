@@ -4,6 +4,14 @@ import { routeNotification } from "@/lib/notification-router";
 import { lookupHash } from "@/lib/data-security";
 import { platformOrigin } from "@/lib/platform-hosts";
 
+// Inside a transaction a failed statement aborts everything after it, so
+// best-effort cleanup runs under a savepoint and is rolled back on its own.
+async function optionalStatement(tx:{query:(sql:string,params?:unknown[])=>Promise<unknown>},sql:string,params:unknown[]){
+  await tx.query('savepoint optional_step');
+  try{await tx.query(sql,params);await tx.query('release savepoint optional_step');}
+  catch{await tx.query('rollback to savepoint optional_step');}
+}
+
 async function count(db:any,sql:string,params:any[]){
   try{const r=await db.query(sql,params);return Number(r.rows?.[0]?.count||0);}catch{return 0;}
 }
@@ -50,7 +58,7 @@ export async function createOrganizationDecommissionConfirmation(input:{organiza
   const confirmationUrl=`${base}/organization-decommission/confirm?token=${encodeURIComponent(token)}`;
   const delivery=await routeNotification({notificationType:"organization_decommission_confirmation",title:`Confirm removal of ${organizationName}`,body:`A request was made to remove ${organizationName} from BandWagon. Confirmation code: ${code}. Or confirm using this secure link: ${confirmationUrl}. This expires in 15 minutes. If you did not request this, do not confirm it and contact BandWagon Support.`,url:confirmationUrl,personId:input.requestedByPersonId,organizationId:input.organizationId,forceUrgency:"critical"});
   await db.query(`update organization_decommission_confirmations set delivery_result=$2::jsonb,updated_at=now() where id=$1`,[row.id,JSON.stringify(delivery)]);
-  await db.query(`insert into audit_events(organization_id,actor_person_id,action,target_type,target_id,metadata) values($1,$2,'organization.decommission.confirmation_sent','organization',$1,$3::jsonb)`,[input.organizationId,input.requestedByPersonId,JSON.stringify({confirmationId:row.id,expiresAt:expiresAt.toISOString()})]);
+  await db.query(`insert into audit_events(organization_id,actor_person_id,action,target_type,target_id,metadata) values($1::uuid,$2,'organization.decommission.confirmation_sent','organization',$1::text,$3::jsonb)`,[input.organizationId,input.requestedByPersonId,JSON.stringify({confirmationId:row.id,expiresAt:expiresAt.toISOString()})]);
   return{confirmationId:row.id,expiresAt:expiresAt.toISOString(),delivery:{push:Boolean(delivery.push?.accepted),email:Boolean(delivery.email?.accepted),messaging:Boolean(delivery.messaging?.accepted)}};
 }
 
@@ -82,27 +90,27 @@ export async function requestOrganizationDecommission(input:{organizationId:stri
   const purgeAfter=new Date(Date.now()+retentionDays*86400000);
   const cleanup={dodomain:"pending",cloudflare:"pending",uptimeKuma:"pending",calendars:"pending",webhooks:"pending",tenantHostname:"pending"};
   const retentionPlan={retentionDays,purgeAfter:purgeAfter.toISOString(),sharedIdentityPolicy:"preserve_people_used_by_other_orgs",exclusiveIdentityPolicy:"delete_after_retention_unless_required_hold",auditPolicy:"preserve_minimum_decommission_evidence"};
-  await db.query("begin");
+  const tx=await db.connect();await tx.query("begin");
   let decommission:any;
   try{
-    const row=await db.query(`insert into organization_decommissions
+    const row=await tx.query(`insert into organization_decommissions
       (organization_id,organization_slug,organization_name,requested_by_person_id,requested_by_platform_role,reason,mode,status,active_ride_count,member_count,custom_domain_count,external_cleanup,retention_plan,blockers,started_at)
       values ($1,$2,$3,$4,$5,$6,$7,'quiescing',$8,$9,$10,$11::jsonb,$12::jsonb,$13::jsonb,now()) returning *`,[
       input.organizationId,preview.organization.slug,preview.organization.display_name||preview.organization.name,input.requestedByPersonId||null,input.requestedByPlatformRole||null,input.reason.trim(),input.emergency?"emergency":"standard",preview.counts.activeRideCount,preview.counts.memberCount,preview.counts.customDomainCount,JSON.stringify(cleanup),JSON.stringify(retentionPlan),JSON.stringify(preview.blockers)
     ]);decommission=row.rows[0];
     for(const member of preview.members){
-      await db.query(`insert into organization_decommission_members
+      await tx.query(`insert into organization_decommission_members
         (decommission_id,organization_id,person_id,person_display_name,verified_email_snapshot,other_active_org_count,disposition,data_cleanup_status)
         values ($1,$2,$3,$4,$5,$6,$7,$8) on conflict (decommission_id,person_id) do nothing`,[
         decommission.id,input.organizationId,member.id,member.display_name,member.email||null,Number(member.other_active_org_count||0),member.disposition,member.disposition==="remove_org_data_keep_account"?"retained_shared":"scheduled"
       ]);
     }
-    await db.query(`update organizations set status='decommissioning',discoverability='unlisted',decommission_requested_at=now(),decommission_started_at=now(),decommission_reason=$2,purge_after=$3,updated_at=now() where id=$1`,[input.organizationId,input.reason.trim(),purgeAfter]);
-    await db.query(`update organization_domains set status='suspended',updated_at=now() where organization_id=$1`,[input.organizationId]);
-    await db.query(`update ride_requests set status='cancelled' where organization_id=$1 and status='open'`,[input.organizationId]).catch(()=>{});
-    await db.query(`insert into audit_events (organization_id,actor_person_id,action,target_type,target_id,metadata) values ($1,$2,'organization.decommission.requested','organization',$1,$3::jsonb)`,[input.organizationId,input.requestedByPersonId||null,JSON.stringify({reason:input.reason.trim(),mode:input.emergency?"emergency":"standard",purgeAfter:purgeAfter.toISOString(),counts:preview.counts})]);
-    await db.query("commit");
-  }catch(error){await db.query("rollback");throw error;}
+    await tx.query(`update organizations set status='decommissioning',discoverability='unlisted',decommission_requested_at=now(),decommission_started_at=now(),decommission_reason=$2,purge_after=$3,updated_at=now() where id=$1`,[input.organizationId,input.reason.trim(),purgeAfter]);
+    await tx.query(`update organization_domains set status='suspended',updated_at=now() where organization_id=$1`,[input.organizationId]);
+    await optionalStatement(tx,`update ride_requests set status='cancelled' where organization_id=$1 and status='open'`,[input.organizationId]);
+    await tx.query(`insert into audit_events (organization_id,actor_person_id,action,target_type,target_id,metadata) values ($1::uuid,$2,'organization.decommission.requested','organization',$1::text,$3::jsonb)`,[input.organizationId,input.requestedByPersonId||null,JSON.stringify({reason:input.reason.trim(),mode:input.emergency?"emergency":"standard",purgeAfter:purgeAfter.toISOString(),counts:preview.counts})]);
+    await tx.query("commit");
+  }catch(error){await tx.query("rollback").catch(()=>{});throw error;}finally{tx.release();}
 
   const organizationName=preview.organization.display_name||preview.organization.name;
   for(const member of preview.members){

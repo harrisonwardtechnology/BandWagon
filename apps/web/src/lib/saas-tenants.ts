@@ -263,18 +263,20 @@ export async function verifyCustomDomain(domainId: string) {
 export async function setPrimaryDomain(organizationId: string, domainId: string) {
   const db = getDb();
   if (!db) throw new Error("Database is not configured");
-  await db.query("begin");
+  const tx=await db.connect();await tx.query("begin");
   try {
-    const selected = await db.query(
+    const selected = await tx.query(
       `select id from organization_domains where id=$1 and organization_id=$2 and status='active' limit 1`,
       [domainId, organizationId]
     );
     if (!selected.rowCount) throw new Error("Domain must be active before it can be primary");
-    await db.query(`update organization_domains set is_primary=false,updated_at=now() where organization_id=$1`, [organizationId]);
-    await db.query(`update organization_domains set is_primary=true,updated_at=now() where id=$1`, [domainId]);
-    await db.query("commit");
+    await tx.query(`update organization_domains set is_primary=false,updated_at=now() where organization_id=$1`, [organizationId]);
+    await tx.query(`update organization_domains set is_primary=true,updated_at=now() where id=$1`, [domainId]);
+    await tx.query("commit");
   } catch (error) {
-    await db.query("rollback");
+    await tx.query("rollback").catch(() => {});
     throw error;
+  } finally {
+    tx.release();
   }
 }

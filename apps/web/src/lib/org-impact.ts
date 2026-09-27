@@ -174,8 +174,9 @@ export async function getPublicImpact(slug: string) {
     organization: { name: report.organization.name, slug: report.organization.slug },
     generatedAt: report.generatedAt,
     formulas: report.formulas,
-    // Public view: school year and all time only (a single month is too granular for a public page).
-    rows: report.rows.filter((row) => row.key !== "month"),
+    // Public view: all time only. Showing two overlapping periods would let anyone
+    // subtract them and recover counts under 5 that are meant to be hidden.
+    rows: report.rows.filter((row) => row.key === "all_time"),
     sponsors: await listPublicSponsors(org.id),
   };
 }

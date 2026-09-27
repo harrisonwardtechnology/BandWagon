@@ -53,7 +53,7 @@ export default async function Home() {
             <Link className="button ghost" href="/help">See how it works</Link>
           </div>
           <div className="hero-trust" aria-label="Platform commitments">
-            <span>Open source</span><span>Organization isolated</span><span>Guardian controlled</span>
+            <span>Organization isolated</span><span>Guardian controlled</span>
           </div>
         </div>
 

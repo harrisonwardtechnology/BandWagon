@@ -20,7 +20,7 @@ const vendors: Vendor[] = [
   {
     name: "IONOS",
     purpose: "Cloud servers that run BandWagon, its database, and its cache. S3-compatible private object storage for driver documents and other uploaded files.",
-    data: "All service data, including account, household, event, and ride records. Sensitive fields such as phone numbers, exact addresses, and credentials are encrypted before storage. Uploaded driver documents.",
+    data: "All service data, including account, household, event, and ride records. Sensitive profile fields such as phone numbers, exact addresses, and credentials are encrypted before storage. Message delivery logs record the number or email address each message was sent to, for troubleshooting and abuse limits. Uploaded driver documents.",
     when: "Always.",
     always: true,
   },

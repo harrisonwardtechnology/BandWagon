@@ -216,7 +216,10 @@ async function applyStripeEvent(db: NonNullable<ReturnType<typeof getDb>>, event
       await db.query(
         `insert into organization_sponsors
           (organization_id, contribution_id, sponsor_name, sponsor_website, public_display, status)
-         values ($1,$2,$3,$4,true,'active')
+         -- Hidden until an org admin approves it in /admin/sponsors: public checkout
+         -- needs no sign-in, so anyone could otherwise put text and a link on a
+         -- youth organization's public page for $1.
+         values ($1,$2,$3,$4,false,'active')
          on conflict do nothing`,
         [
           contribution.organization_id,

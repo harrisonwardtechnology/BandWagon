@@ -111,7 +111,7 @@ export default function SponsorsAdmin() {
       {sponsors.map(s => <div key={s.id} style={{ display: "flex", gap: 14, alignItems: "center", padding: "12px 0", borderBottom: "1px solid #eef2f7", flexWrap: "wrap" }}>
         {/^https:\/\//i.test(s.logo_url || "") ? <img src={s.logo_url} alt="" referrerPolicy="no-referrer" style={{ width: 56, height: 56, objectFit: "contain", border: "1px solid #dbe3ef", borderRadius: 8 }} /> : <div style={{ width: 56, height: 56, borderRadius: 8, background: "#f1f5f9" }} />}
         <div style={{ flex: 1, minWidth: 220 }}>
-          <strong>{s.sponsor_name}</strong>{s.tier_label ? ` · ${s.tier_label}` : ""} · {s.status === "active" ? (s.public_display ? "shown publicly" : "not shown publicly") : "ended"}
+          <strong>{s.sponsor_name}</strong>{s.tier_label ? ` · ${s.tier_label}` : ""} · {s.status === "active" ? (s.public_display ? "shown publicly" : s.contribution_id ? "paid online, review and edit to show publicly" : "not shown publicly") : "ended"}
           <div style={{ fontSize: 14, color: "#475569" }}>{day(s.starts_at)}{s.ends_at ? ` to ${day(s.ends_at)}` : " onward"}{/^https:\/\//i.test(s.sponsor_website || "") ? <> · <a href={s.sponsor_website} target="_blank" rel="noopener noreferrer nofollow">{s.sponsor_website}</a></> : null}</div>
           {s.internal_notes && <div style={{ fontSize: 13, color: "#64748b", marginTop: 4 }}>Note: {s.internal_notes}</div>}
         </div>

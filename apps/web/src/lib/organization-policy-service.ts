@@ -104,7 +104,7 @@ export async function acceptOrganizationPolicies(identity: SessionIdentity, inpu
     if (!result.rowCount) throw new Error("The current policies have already been accepted for this organization");
     await client.query(
       `insert into audit_events(organization_id,actor_person_id,action,target_type,target_id,metadata)
-       values($1,$2,'organization.policies_accepted','organization',$1,$3::jsonb)`,
+       values($1::uuid,$2,'organization.policies_accepted','organization',$1::text,$3::jsonb)`,
       [input.organizationId, identity.personId, JSON.stringify({
         termsVersion: ORGANIZATION_TERMS_VERSION,
         privacyVersion: ORGANIZATION_PRIVACY_VERSION,

@@ -30,7 +30,7 @@ export async function processCredentialExpirations(){
     if(duplicate.rowCount)continue;
     const label=String(row.requirement_type).replaceAll("_"," ");
     await routeNotification({notificationType:"credential_expiring",title:"BandWagon Driver Credential",body:`Your ${label} for ${row.organization_name} ${row.days_remaining===0?"expires today":`expires in ${row.days_remaining} days`}. Update it in BandWagon to keep your driver eligibility current.`,personId:row.driver_person_id,organizationId:row.organization_id,url:"/app/driver/credentials"}).catch(()=>null);
-    await db.query(`insert into audit_events (organization_id,actor_person_id,action,target_type,target_id,metadata) values ($1,$2,'credential_expiration_notified','person',$2,$3::jsonb)`,[row.organization_id,row.driver_person_id,JSON.stringify({key,requirementType:row.requirement_type,expiresAt:row.expires_at,daysRemaining:row.days_remaining})]);notified++;
+    await db.query(`insert into audit_events (organization_id,actor_person_id,action,target_type,target_id,metadata) values ($1,$2::uuid,'credential_expiration_notified','person',$2::text,$3::jsonb)`,[row.organization_id,row.driver_person_id,JSON.stringify({key,requirementType:row.requirement_type,expiresAt:row.expires_at,daysRemaining:row.days_remaining})]);notified++;
   }
   return {expired:expired.rowCount||0,upcoming:upcoming.rowCount||0,notified};
 }

@@ -341,7 +341,7 @@ export async function verifyOtp(input: {
       await client.query(`update emails set verified_at=coalesce(verified_at,now()) where id=$1`,[eligible.rows[0].login_email_id]);
       await client.query(
         `insert into audit_events(actor_person_id,action,target_type,target_id,metadata)
-         values($1,'guardian.student_account_claimed','person',$1,$2::jsonb)`,
+         values($1::uuid,'guardian.student_account_claimed','person',$1::text,$2::jsonb)`,
         [personId,JSON.stringify({ destinationType:"email" })]
       );
     } else if (challenge.purpose === "sign_up") {

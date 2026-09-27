@@ -24,7 +24,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ ok: true, organizations, overview, canEditLimits }, { headers });
     }
     await assertIdentityOrganizationAdmin(identity, organizationId, { write: false, allowPlatformRoles: PLATFORM_VIEW_ROLES });
-    return NextResponse.json({ ok: true, usage: await getOrgUsage(organizationId), canEditLimits }, { headers });
+    const usage: any = await getOrgUsage(organizationId);
+    // The platform owner's note on a limit is internal; org admins see usage only.
+    if (!identity.platformRole && usage?.texting) usage.texting = { ...usage.texting, notes: null };
+    return NextResponse.json({ ok: true, usage, canEditLimits }, { headers });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Administrator access required" }, { status: 403, headers });
   }

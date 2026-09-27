@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import type { SessionIdentity } from "@/lib/auth";
 import { getDb } from "@/lib/db";
+import { platformOrigin } from "@/lib/platform-hosts";
 import { sendEmailNotification } from "@/lib/email-send";
 import {
   ORGANIZATION_AGREEMENT_VERSION,
@@ -26,7 +27,7 @@ function dbRequired() {
 }
 
 export function appBaseUrl() {
-  return (process.env.APP_URL || "https://bandwagon.harrisonward.net").replace(/\/$/, "");
+  return (process.env.APP_URL || platformOrigin()).replace(/\/$/, "");
 }
 
 export function privateHash(value: string) {
@@ -79,6 +80,8 @@ export async function listRequestsForPerson(personId: string) {
 
 export async function createOrganizationRequest(identity: SessionIdentity, input: OrganizationRequestInput, sourceIp: string | null) {
   if (identity.supportMode) throw new Error("Support View cannot submit requests");
+  // Organization owners manage other families' data, including minors'. Adults only.
+  if (identity.personType !== "adult") throw new Error("Only adults can start a community. Ask a parent, director, or sponsor to request it.");
   const db = dbRequired();
   const open = await db.query(`select count(*)::int as count from organization_requests where requester_person_id=$1 and status='pending'`, [identity.personId]);
   if (openRequestLimitReached(Number(open.rows[0]?.count || 0))) {
@@ -156,7 +159,7 @@ export async function listOrganizationRequests(status: string | null) {
   const db = dbRequired();
   const filter = ["pending", "approved", "rejected", "withdrawn"].includes(String(status)) ? status : null;
   const result = await db.query(
-    `select r.*,p.display_name as requester_name,
+    `select r.*,p.display_name as requester_name,p.person_type as requester_person_type,
             (select e.normalized_email from emails e where e.person_id=r.requester_person_id and e.verified_at is not null order by e.created_at limit 1) as requester_email,
             reviewer.display_name as reviewer_name,o.tenant_hostname
        from organization_requests r
@@ -194,6 +197,11 @@ export async function decideOrganizationRequest(
     if (error) throw new Error(error);
 
     if (input.decision === "approve") {
+      // Re-check at approval time: the requester becomes owner.
+      const requester = await client.query(`select person_type,status from people where id=$1`, [request.requester_person_id]);
+      if (requester.rows[0]?.person_type !== "adult" || requester.rows[0]?.status !== "active") {
+        throw new Error("The requester is not an active adult account, so they cannot own a community");
+      }
       organization = await createOrganizationWithClient(client, {
         name: request.organization_name,
         slug: request.requested_slug,
