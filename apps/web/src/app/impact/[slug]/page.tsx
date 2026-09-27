@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { getPublicImpact } from "@/lib/org-impact";
+import { NOINDEX, publicPageMetadata } from "@/lib/seo";
 
 // Public impact page. Shown only when the organization admin turns it on.
 // Aggregate totals only, with small-number suppression. No names, rides,
@@ -8,7 +11,21 @@ import { getPublicImpact } from "@/lib/org-impact";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export const metadata = { robots: { index: false, follow: false } };
+// One lookup per request, shared by generateMetadata and the page.
+const loadImpact = cache((slug: string) => getPublicImpact(slug).catch(() => null));
+
+// Indexable only while the organization has the public page turned on.
+// Canonical is always the product host, even when opened on a community host.
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const data = await loadImpact(slug);
+  if (!data) return { title: "Community impact", robots: NOINDEX };
+  return publicPageMetadata({
+    title: `${data.organization.name} community impact`,
+    description: `How families in ${data.organization.name} share rides with BandWagon: completed carpools, car trips avoided, and estimated miles and CO2 saved. Totals only.`,
+    path: `/impact/${data.organization.slug}`,
+  });
+}
 
 const METRICS: Array<[string, string]> = [
   ["completedRides", "Completed rides"],
@@ -24,7 +41,7 @@ const METRICS: Array<[string, string]> = [
 
 export default async function PublicImpactPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const data = await getPublicImpact(slug).catch(() => null);
+  const data = await loadImpact(slug);
   if (!data) notFound();
   const rows = data.rows as Array<{ key: string; label: string; display: Record<string, string> }>;
 

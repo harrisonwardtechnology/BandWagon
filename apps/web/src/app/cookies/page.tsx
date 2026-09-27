@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { publicPageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Cookie Policy | BandWagon",
-  description: "Explicit details about BandWagon cookies, browser storage, security technology, and privacy choices."
-};
+export const metadata = publicPageMetadata({
+  title: "Cookie Policy",
+  description: "Explicit details about BandWagon cookies, browser storage, security technology, and privacy choices. No ad trackers.",
+  path: "/cookies",
+});
 
 export default function CookiePolicyPage() {
   return <main className="shell legal-shell">

@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { JsonLd } from "@/components/json-ld";
+import { productJsonLd } from "@/lib/json-ld";
+import { siteOrigin } from "@/lib/seo";
 
 // Public "For Organizations" front door shown on the platform host.
 // Tenant hosts keep their own community homepage (see page.tsx).
@@ -6,6 +9,13 @@ import Link from "next/link";
 // docs/ORGANIZATION-REVIEW-GUIDE.md, docs/LOCATION-PRIVACY.md).
 
 export const DEMO_URL = "https://bandwagon-demo.harrisonward.net/";
+
+const audiences = [
+  ["School bands and marching bands", "Rides to rehearsals, football games, competitions, and concerts, planned around your band calendar."],
+  ["Sports teams", "Practices, home and away games, and tournaments for school and youth sports teams."],
+  ["Clubs and activities", "Theatre, robotics, debate, choir, and other school clubs with events after hours or off campus."],
+  ["Scouting and faith groups", "Troop meetings, campouts, youth group events, and service projects."],
+] as const;
 
 const steps = [
   ["Request a community", "Tell us about your group and who will run it. We set up a private BandWagon space with its own web address."],
@@ -53,13 +63,14 @@ const grid = (min: number) => ({ display: "grid", gridTemplateColumns: `repeat(a
 export default function ProductHome() {
   return (
     <main className="home-shell">
+      <JsonLd data={productJsonLd(siteOrigin())} />
       <section className="home-hero" aria-labelledby="home-heading">
         <div className="hero-copy">
           <div className="hero-kicker"><span aria-hidden="true">●</span> For bands, teams, troops, and other trusted groups</div>
           <div className="eyebrow">BandWagon for organizations</div>
-          <h1 id="home-heading">Private carpools for your community.</h1>
+          <h1 id="home-heading">Free, private carpools for bands, teams, and school groups.</h1>
           <p className="hero-lede">
-            BandWagon helps families in your group share rides to rehearsals, games, and events. No public addresses. No live tracking. No messy group texts.
+            BandWagon is a free carpool app for community groups. It helps families in your group share rides to rehearsals, games, and events. No public addresses. No live tracking. No messy group texts.
             Free for organizations and families.
           </p>
           <div className="actions">
@@ -90,6 +101,25 @@ export default function ProductHome() {
           <strong>Carpool coordination, not transportation.</strong> BandWagon is not a rideshare company, a taxi service, or school transportation.
           It helps people who already belong to your group arrange rides with each other. It does not provide, supervise, track, or guarantee rides.
         </div>
+      </section>
+
+      <section className="feature-section" aria-labelledby="audience-heading">
+        <div className="section-heading">
+          <div className="eyebrow">Who it is for</div>
+          <h2 id="audience-heading">Built for groups whose families already know each other.</h2>
+          <p>
+            BandWagon is a carpool organizer for parents and volunteer drivers in the same group. A band director, booster club, coach, troop leader,
+            or parent volunteer starts a private community, and families in that group use it to find and offer seats.
+          </p>
+        </div>
+        <ul style={{ ...grid(220), listStyle: "none", padding: 0, margin: 0 }}>
+          {audiences.map(([title, body]) => (
+            <li key={title} style={card}>
+              <h3 style={{ margin: "0 0 8px", fontSize: 20 }}>{title}</h3>
+              <p style={{ margin: 0, color: "#5b6a7e", lineHeight: 1.6 }}>{body}</p>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="feature-section" aria-labelledby="how-heading">

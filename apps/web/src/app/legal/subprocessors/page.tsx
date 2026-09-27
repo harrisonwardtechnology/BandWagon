@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalDraftBanner } from "@/components/legal-draft-banner";
+import { publicPageMetadata } from "@/lib/seo";
 import { SupportContact } from "@/components/support-contact";
 import { SUBPROCESSOR_LIST_VERSION } from "@/lib/legal-versions";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: "Subprocessors (Draft)",
   description: "The outside services that help run BandWagon, what data each one receives, and when it is used.",
-  alternates: { canonical: "/legal/subprocessors" },
-};
+  path: "/legal/subprocessors",
+});
 
 type Vendor = { name: string; purpose: string; data: string; when: string; always: boolean };
 

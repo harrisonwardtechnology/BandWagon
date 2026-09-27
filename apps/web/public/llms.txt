@@ -1,0 +1,32 @@
+# BandWagon
+
+> BandWagon is a free, privacy-first carpool coordination platform for school bands, sports teams, clubs, scout troops, faith groups, and other trusted community groups. Families in a group use it to request and offer seats for rehearsals, games, and events. It is funded by optional donations and local sponsors, and is made by Harrison Ward Technology.
+
+Key facts:
+
+- Free for organizations and families. No ride payments and no paid drivers.
+- Not a rideshare company, taxi service, or school transportation. BandWagon does not provide, supervise, track, or guarantee rides. Families decide whether to accept each ride.
+- Each organization runs its own private community (for example `<name>.bandwagon.club`) and sets its own driver requirements, such as license, insurance, minimum age, and admin approval. BandWagon does not run background checks or certify drivers.
+- Guardians control student profiles. Students do not need accounts.
+- No live GPS tracking, no ads, no ad trackers, and personal information is never sold. Sponsors never receive participant data.
+- Works in any modern browser and can be installed on iOS and Android as a web app (PWA).
+
+## Public pages
+
+- [Home](https://bandwagon.club/): what BandWagon is, who it is for, how it works, and FAQ
+- [Start a community](https://bandwagon.club/start): request a free community for your group
+- [Help Center](https://bandwagon.club/help): guides for admins, parents, and drivers
+- [Platform status](https://bandwagon.club/status)
+- [Security and responsible disclosure](https://bandwagon.club/security)
+
+## Policies
+
+- [Privacy Policy](https://bandwagon.club/privacy)
+- [Terms of Use](https://bandwagon.club/terms)
+- [Cookie Policy](https://bandwagon.club/cookies)
+- [Legal documents](https://bandwagon.club/legal): organization agreement, subprocessors, and student data statement
+- [SMS opt-in example](https://bandwagon.club/sms-opt-in)
+
+## Not for crawling
+
+Signed-in areas (`/app`, `/admin`), sign-in and invitation links, and community (tenant) sites other than their landing page contain private member information and are excluded from indexing. Please do not attempt to access them.

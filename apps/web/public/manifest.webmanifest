@@ -1,8 +1,10 @@
 {
-  "name": "BandWagon",
+  "name": "BandWagon: Community Carpools",
   "short_name": "BandWagon",
   "id": "/app",
-  "description": "Privacy-first community ride coordination.",
+  "description": "Free, privacy-first carpool coordination for school bands, teams, clubs, and other trusted groups.",
+  "lang": "en-US",
+  "dir": "ltr",
   "start_url": "/app",
   "scope": "/",
   "display": "standalone",

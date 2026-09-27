@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { SMS_CONSENT_TEXT } from "@/lib/sms-consent-policy";
+import { publicPageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "SMS Opt-In | BandWagon",
-  description: "Public example of the BandWagon SMS consent experience."
-};
+export const metadata = publicPageMetadata({
+  title: "SMS Opt-In",
+  description: "Public example of the BandWagon SMS consent experience: what members agree to, how often messages are sent, and how to opt out.",
+  path: "/sms-opt-in",
+});
 
 export default function SmsOptInPage() {
   return (

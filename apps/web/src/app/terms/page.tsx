@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { publicPageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Terms of Use | BandWagon",
-  description: "Terms of Use and messaging terms for BandWagon and FloMoGo."
-};
+export const metadata = publicPageMetadata({
+  title: "Terms of Use",
+  description: "Terms of Use and messaging terms for BandWagon, the free community carpool coordination platform.",
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (

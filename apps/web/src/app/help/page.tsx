@@ -1,6 +1,15 @@
 import HelpContactForm from "@/components/help-contact-form";
 import { SupportContact } from "@/components/support-contact";
+import { JsonLd } from "@/components/json-ld";
+import { faqJsonLd } from "@/lib/json-ld";
 import { helpDeskUrl } from "@/lib/public-links";
+import { publicPageMetadata } from "@/lib/seo";
+
+export const metadata = publicPageMetadata({
+  title: "Help Center",
+  description: "Plain-language help for BandWagon community admins, parents, and volunteer drivers: starting a community, requesting rides, driver requirements, privacy, and support.",
+  path: "/help",
+});
 
 const reviewPackageUrl = "/api/review-package";
 
@@ -62,6 +71,7 @@ export default function HelpPage() {
   const card = { background: "white", border: "1px solid #e2e8f0", borderRadius: 16, padding: 18 } as const;
   return (
     <main style={{ maxWidth: 1120, margin: "32px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif", background: "#f8fafc" }}>
+      <JsonLd data={faqJsonLd(review)} />
       <header style={{ background: "#101b33", color: "white", padding: 30, borderRadius: 22, marginBottom: 18 }}>
         <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1 }}>BANDWAGON HELP CENTER</div>
         <h1 style={{ fontSize: 40, margin: "6px 0" }}>What are you trying to do?</h1>

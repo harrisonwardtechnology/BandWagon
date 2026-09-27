@@ -1,8 +1,12 @@
 import Link from "next/link";
+import { NOINDEX } from "@/lib/seo";
 
+// Reachable by anyone (carrier and Twilio reviewers use it), but kept out of
+// search results. The public, indexable consent example is /sms-opt-in.
 export const metadata = {
-  title: "Messaging & SMS Consent | BandWagon",
-  description: "How BandWagon users opt in, opt out, and manage SMS and RCS messaging."
+  title: "Messaging & SMS Consent",
+  description: "How BandWagon users opt in, opt out, and manage SMS and RCS messaging.",
+  robots: NOINDEX,
 };
 
 export default function MessagingPage() {

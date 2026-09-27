@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalDraftBanner } from "@/components/legal-draft-banner";
+import { publicPageMetadata } from "@/lib/seo";
 import { SupportContact } from "@/components/support-contact";
 import { PRIVACY_EMAIL_FALLBACK } from "@/lib/public-links";
 import { STUDENT_DATA_STATEMENT_VERSION } from "@/lib/legal-versions";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: "Student Data Statement (Draft)",
   description: "What BandWagon does and does not collect about students, and how guardians stay in control. For school and district reviewers.",
-  alternates: { canonical: "/legal/student-data" },
-};
+  path: "/legal/student-data",
+});
 
 export default function StudentDataPage() {
   return (

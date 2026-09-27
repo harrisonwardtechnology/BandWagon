@@ -1,0 +1,9 @@
+import { OG_ALT, OG_SIZE, renderOgCard } from "@/components/og-card";
+
+export const alt = OG_ALT;
+export const size = OG_SIZE;
+export const contentType = "image/png";
+
+export default function OpenGraphImage() {
+  return renderOgCard();
+}
