@@ -34,7 +34,9 @@ export const SCHEDULED_TASKS: ScheduledTask[] = [
     key: "google-calendar-sync", everyMinutes: 60, expectedMaxAgeMinutes: 180,
     run: async () => {
       if (!process.env.GOOGLE_CLIENT_ID) return { skipped: true, reason: "Google Calendar is not configured" };
-      const [{ syncSelectedGoogleCalendars }, { normalizeImportedCalendarEvents }] = await Promise.all([import("@/lib/google"), import("@/lib/events")]);
+      const [{ syncSelectedGoogleCalendars, getActiveGoogleConnection }, { normalizeImportedCalendarEvents }] = await Promise.all([import("@/lib/google"), import("@/lib/events")]);
+      // Nothing connected (or the last connection needs reconnecting): nothing to sync, not a failure.
+      if (!(await getActiveGoogleConnection())) return { skipped: true, reason: "No active Google Calendar connection" };
       const sync = await syncSelectedGoogleCalendars();
       return { ...sync, normalized: await normalizeImportedCalendarEvents() };
     },

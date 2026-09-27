@@ -57,10 +57,18 @@ export function googleAuthorizationUrl() {
   return url.toString();
 }
 
+export const GOOGLE_RECONNECT_REQUIRED = "Google Calendar needs to be reconnected by an organization admin";
+
+/** Google rejected the saved sign-in (expired, revoked, or the OAuth app is still in Testing, where refresh tokens last 7 days). */
+export class GoogleReconnectRequiredError extends Error {
+  constructor() { super(GOOGLE_RECONNECT_REQUIRED); this.name = "GoogleReconnectRequiredError"; }
+}
+
 async function tokenRequest(params: URLSearchParams) {
   const response = await fetch(GOOGLE_TOKEN_URL, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: params, cache: "no-store" });
   const body = await response.json();
-  if (!response.ok) throw new Error(body.error_description || body.error || "Google token request failed");
+  if (!response.ok && body.error === "invalid_grant" && params.get("grant_type") === "refresh_token") throw new GoogleReconnectRequiredError();
+  if (!response.ok) throw new Error(body.error_description && body.error ? `${body.error}: ${body.error_description}` : body.error_description || body.error || "Google token request failed");
   return body as { access_token: string; refresh_token?: string; expires_in?: number; scope?: string };
 }
 
@@ -99,7 +107,16 @@ export async function getGoogleAccessToken() {
   const conn = await getActiveGoogleConnection();
   if (!conn) throw new Error("No active Google Calendar connection");
   if (conn.access_token_encrypted && conn.access_token_expires_at && new Date(conn.access_token_expires_at).getTime() > Date.now() + 60_000) return decryptSecret(conn.access_token_encrypted);
-  const refreshed = await refreshAccessToken(decryptSecret(conn.refresh_token_encrypted));
+  let refreshed: Awaited<ReturnType<typeof refreshAccessToken>>;
+  try {
+    refreshed = await refreshAccessToken(decryptSecret(conn.refresh_token_encrypted));
+  } catch (error) {
+    if (error instanceof GoogleReconnectRequiredError) {
+      // Stop retrying a dead sign-in every hour; an admin reconnects from Integrations.
+      await db.query(`update google_connections set status='reconnect_required', updated_at=now() where id=$1 and status='active'`, [conn.id]);
+    }
+    throw error;
+  }
   const expiresAt = refreshed.expires_in ? new Date(Date.now() + refreshed.expires_in * 1000) : null;
   await db.query(`update google_connections set access_token_encrypted=$1, access_token_expires_at=$2, updated_at=now() where id=$3`, [encryptSecret(refreshed.access_token), expiresAt, conn.id]);
   return refreshed.access_token;
@@ -173,6 +190,8 @@ export async function syncSelectedGoogleCalendars() {
 export async function googleIntegrationStatus() {
   const db = getDb(); if (!db) return { configured: false, database: false };
   const conn = await getActiveGoogleConnection();
+  const latest = (await db.query(`select status from google_connections order by updated_at desc limit 1`)).rows[0];
+  const reconnectRequired = !conn && latest?.status === "reconnect_required";
   const calendars = conn ? await db.query(`select external_calendar_id,summary,selected,last_sync_at,sync_error from google_calendars where connection_id=$1 order by summary`, [conn.id]) : { rows: [] };
-  return { configured: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REDIRECT_URI), browserMapsConfigured: Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY), serverMapsConfigured: Boolean(process.env.GOOGLE_MAPS_SERVER_API_KEY), connected: Boolean(conn), account: conn ? { email: conn.email, displayName: conn.display_name, updatedAt: conn.updated_at } : null, calendars: calendars.rows };
+  return { reconnectRequired, configured: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REDIRECT_URI), browserMapsConfigured: Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY), serverMapsConfigured: Boolean(process.env.GOOGLE_MAPS_SERVER_API_KEY), connected: Boolean(conn), account: conn ? { email: conn.email, displayName: conn.display_name, updatedAt: conn.updated_at } : null, calendars: calendars.rows };
 }
