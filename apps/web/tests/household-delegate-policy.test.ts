@@ -8,6 +8,8 @@ import {
   DELEGATE_INVITE_TTL_DAYS,
   delegateEligibility,
   delegateGrantAllows,
+  delegateGrantRightsError,
+  delegateInviteAcceptBlock,
   delegateGrantInputError,
   delegateGrantState,
   delegateInviteAcceptError,
@@ -271,5 +273,60 @@ test("ride request and approval checks all go through canActForChild", async () 
     // Any "is this person a guardian of this child" lookup keyed by two parameters is an inline permission check.
     assert.equal(/guardian_relationships[\s\S]{0,80}?guardian_person_id\s*=\s*\$\d+\s+and\s+(gr\.)?minor_person_id\s*=\s*\$\d+/.test(source), false, `${name} still has an inline guardian check`);
     assert.ok(source.includes("canActForChild"), `${name} should use canActForChild`);
+  }
+});
+
+test("a guardian can only grant permissions they hold for each covered child", () => {
+  const kids = [{ id: CHILD, name: "Ava" }, { id: OTHER_CHILD, name: "Ben" }];
+  const full = { guardian: true, requestRides: true, approveRides: true };
+  const noApprove = { guardian: true, requestRides: true, approveRides: false };
+  const noRequest = { guardian: true, requestRides: false, approveRides: true };
+  const viewerOnly = { guardian: true, requestRides: false, approveRides: false };
+  const approveOnly = { ...NONE, approveRides: true };
+  const requestOnly = { ...NONE, requestRides: true };
+  const viewOnly = { ...NONE, viewRideDetails: true, receiveNotifications: true };
+
+  assert.equal(delegateGrantRightsError({ scopes: ALL, childScope: "all", childIds: [] }, kids, { [CHILD]: full, [OTHER_CHILD]: full }), null);
+  assert.match(String(delegateGrantRightsError({ scopes: approveOnly, childScope: "all", childIds: [] }, kids, { [CHILD]: full, [OTHER_CHILD]: noApprove })), /cannot approve rides for Ben/);
+  assert.match(String(delegateGrantRightsError({ scopes: requestOnly, childScope: "all", childIds: [] }, kids, { [CHILD]: noRequest, [OTHER_CHILD]: full })), /cannot ask for rides for Ava/);
+  // Limiting the grant to the child they can approve for is fine.
+  assert.equal(delegateGrantRightsError({ scopes: approveOnly, childScope: "selected", childIds: [CHILD] }, kids, { [CHILD]: full, [OTHER_CHILD]: noApprove }), null);
+  // A household manager who is not this child's guardian cannot grant anything for them, not even viewing.
+  assert.match(String(delegateGrantRightsError({ scopes: viewOnly, childScope: "all", childIds: [] }, kids, { [CHILD]: full })), /not a guardian of Ben/);
+  assert.match(String(delegateGrantRightsError({ scopes: viewOnly, childScope: "all", childIds: [] }, kids, { [CHILD]: full, [OTHER_CHILD]: { guardian: false, requestRides: false, approveRides: false } })), /not a guardian of Ben/);
+  // Viewing and notifications only need a guardian relationship.
+  assert.equal(delegateGrantRightsError({ scopes: viewOnly, childScope: "all", childIds: [] }, kids, { [CHILD]: viewerOnly, [OTHER_CHILD]: viewerOnly }), null);
+});
+
+test("a paused or removed delegate cannot come back through an older invite", () => {
+  const sent = "2026-09-20T12:00:00Z";
+  const ok = { inviteCreatedAt: sent, inviterStillManages: true };
+  assert.equal(delegateInviteAcceptBlock(ok), null);
+  assert.equal(delegateInviteAcceptBlock({ ...ok, liveGrantStatus: "active" }), null);
+  // Accepting never un-pauses a paused grant, no matter when the invite was sent.
+  assert.match(String(delegateInviteAcceptBlock({ ...ok, liveGrantStatus: "paused", lastPausedAt: "2026-09-01T00:00:00Z" })), /paused/);
+  // Paused (then resumed) or removed after the invite was sent: the invite is spent.
+  assert.match(String(delegateInviteAcceptBlock({ ...ok, liveGrantStatus: "active", lastPausedAt: "2026-09-21T00:00:00Z" })), /new invitation/);
+  assert.match(String(delegateInviteAcceptBlock({ ...ok, liveGrantStatus: null, lastRevokedAt: "2026-09-21T00:00:00Z" })), /new invitation/);
+  assert.match(String(delegateInviteAcceptBlock({ ...ok, lastRevokedAt: sent })), /new invitation/);
+  // Removed before a fresh invite was sent: the fresh invite works.
+  assert.equal(delegateInviteAcceptBlock({ ...ok, liveGrantStatus: null, lastRevokedAt: "2026-09-10T00:00:00Z", lastPausedAt: "2026-09-05T00:00:00Z" }), null);
+  // The inviter must still manage the household.
+  assert.match(String(delegateInviteAcceptBlock({ ...ok, inviterStillManages: false })), /no longer manages/);
+});
+
+test("pausing, removing, and accepting cancel the person's other open invites", async () => {
+  const source = await readFile(new URL("../src/lib/household-delegates.ts", import.meta.url), "utf8");
+  const status = source.slice(source.indexOf("export async function setDelegateStatus"), source.indexOf("// Invitee side"));
+  assert.match(status, /cancelOpenInvitesForPerson\(client/);
+  assert.equal(/paused_at=case when \$2='paused' then now\(\) else null end/.test(status), false, "resuming must not erase when the grant was paused");
+  const accept = source.slice(source.indexOf("export async function acceptDelegateInvitation"), source.indexOf("export async function leaveDelegation"));
+  assert.match(accept, /delegateInviteAcceptBlock\(/);
+  assert.match(accept, /cancelOpenInvitesForPerson\(client/);
+  assert.match(accept, /delegateGrantRightsError\(/);
+  assert.equal(/status='active',paused_at=null/.test(accept), false, "accepting must never un-pause a grant");
+  for (const fn of ["export async function createDelegateInvitation", "export async function updateDelegate"]) {
+    const start = source.indexOf(fn);
+    assert.match(source.slice(start, start + 1500), /assertCanGrant\(identity\.personId/, fn);
   }
 });

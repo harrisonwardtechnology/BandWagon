@@ -290,3 +290,55 @@ export function maskContact(contactType: "email" | "phone", value: string) {
   const digits = value.replace(/\D/g, "");
   return digits.length >= 4 ? `***-***-${digits.slice(-4)}` : "***";
 }
+
+// ---------------------------------------------------------------------------
+// What a guardian may hand out, and when an invite can no longer be used.
+
+/** The inviter's own rights for one child, as a guardian (never through their own delegate grant). */
+export type GuardianGrantRights = { guardian: boolean; requestRides: boolean; approveRides: boolean };
+
+/**
+ * A guardian can only give permissions they hold themselves, for each child
+ * the grant covers. Returns a plain-English error or null.
+ */
+export function delegateGrantRightsError(
+  input: { scopes: DelegateScopes; childScope: unknown; childIds: string[] },
+  householdChildren: Array<{ id: string; name: string }>,
+  rights: Record<string, GuardianGrantRights | undefined>
+) {
+  const covered = input.childScope === "selected"
+    ? householdChildren.filter(child => input.childIds.includes(child.id))
+    : householdChildren;
+  const problems: string[] = [];
+  for (const child of covered) {
+    const r = rights[child.id];
+    if (!r || !r.guardian) { problems.push(`you are not a guardian of ${child.name}`); continue; }
+    if (input.scopes.requestRides && !r.requestRides) problems.push(`you cannot ask for rides for ${child.name}`);
+    if (input.scopes.approveRides && !r.approveRides) problems.push(`you cannot approve rides for ${child.name}`);
+  }
+  if (!problems.length) return null;
+  return `You can only give permissions you have yourself: ${problems.join("; ")}. Choose only those children or turn off that permission.`;
+}
+
+/**
+ * Extra checks when an invite is accepted. A paused grant is never turned
+ * back on by an invite, and a grant paused or removed after the invite was
+ * sent makes the invite unusable. The inviter must still manage the household.
+ */
+export function delegateInviteAcceptBlock(input: {
+  inviteCreatedAt: Date | string;
+  inviterStillManages: boolean;
+  liveGrantStatus?: string | null;
+  lastPausedAt?: Date | string | null;
+  lastRevokedAt?: Date | string | null;
+}) {
+  if (!input.inviterStillManages) return "The person who invited you no longer manages this household. Ask for a new invitation.";
+  if (input.liveGrantStatus === "paused") return "Your access to this family is paused. Ask the parent to turn it back on.";
+  const created = time(input.inviteCreatedAt) ?? 0;
+  const paused = time(input.lastPausedAt);
+  const revoked = time(input.lastRevokedAt);
+  if ((paused != null && paused >= created) || (revoked != null && revoked >= created)) {
+    return "Your access was changed after this invitation was sent. Ask the parent for a new invitation.";
+  }
+  return null;
+}

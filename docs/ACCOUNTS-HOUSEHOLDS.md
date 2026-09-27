@@ -60,6 +60,9 @@ A delegate who can ask for rides but not approve them creates requests that stil
 - The accepting account must have the invited email or phone verified. Household members cannot become delegates of their own household.
 - Links are single use (row lock plus `accepted_at` check), expire in 7 days, and a new invite to the same contact cancels the old one.
 - Rate limits: 10 invites per inviter per hour and 20 per household per day.
+- A guardian can only give permissions they hold themselves, as a guardian, for every child the grant covers: "Ask for rides" needs their own `can_manage_profile`, "Approve rides" their own `can_approve_rides`, and any permission needs a guardian relationship with that child. Their own delegate grants elsewhere never count. This is checked when inviting, when editing, and again when the invite is accepted.
+- Pausing or removing a delegate cancels every open invite in that household sent to any email or phone on that person's account. Accepting an invite cancels the person's other open invites for the household.
+- An invite can never turn a paused grant back on, and an invite sent before the grant was paused or removed cannot be used. The guardian must send a new one. The inviter must still manage the household when the invite is accepted (deleting an account also cancels that person's open invites).
 
 ### Permission checks
 

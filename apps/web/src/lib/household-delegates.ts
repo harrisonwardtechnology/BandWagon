@@ -11,6 +11,8 @@ import {
   DELEGATE_SCOPE_LABELS,
   delegateEligibility,
   delegateGrantInputError,
+  delegateGrantRightsError,
+  delegateInviteAcceptBlock,
   delegateGrantState,
   delegateInviteAcceptError,
   delegateInviteExpiresAt,
@@ -23,6 +25,7 @@ import {
   parseDelegateScopes,
   type DelegateScope,
   type DelegateScopes,
+  type GuardianGrantRights,
 } from "@/lib/household-delegate-policy";
 
 // Trusted household delegates: invite, accept, edit, pause, revoke, and the
@@ -104,6 +107,51 @@ async function householdManagerIds(householdId: string) {
     [householdId]
   );
   return result.rows.map((row: any) => String(row.person_id));
+}
+
+/**
+ * The inviter's own guardian rights for each child. Only a guardian
+ * relationship counts, never the inviter's own delegate grant elsewhere.
+ */
+async function guardianGrantRights(personId: string, childIds: string[]) {
+  const rights: Record<string, GuardianGrantRights> = {};
+  for (const childId of childIds) {
+    const request = await canActForChild(personId, childId, "request_rides");
+    const approve = await canActForChild(personId, childId, "approve_rides");
+    const view = await canActForChild(personId, childId, "view_ride_details");
+    rights[childId] = {
+      guardian: view.via === "guardian",
+      requestRides: request.via === "guardian",
+      approveRides: approve.via === "guardian",
+    };
+  }
+  return rights;
+}
+
+async function assertCanGrant(personId: string, input: { scopes: DelegateScopes; childScope: unknown; childIds: string[] }, children: Array<{ id: string; name: string }>) {
+  const error = delegateGrantRightsError(input, children, await guardianGrantRights(personId, children.map(child => child.id)));
+  if (error) throw new Error(error);
+}
+
+/** Every email (lowercased) and phone lookup hash on a person's account, verified or not. */
+async function contactKeysForPerson(client: any, personId: string) {
+  const emails = (await client.query(`select normalized_email from emails where person_id=$1`, [personId])).rows.map((row: any) => String(row.normalized_email));
+  const phones = (await client.query(`select lookup_hash from phones where person_id=$1`, [personId])).rows.map((row: any) => String(row.lookup_hash));
+  return { emails, phones };
+}
+
+/** Cancel open invitations in this household addressed to any of this person's contacts. */
+async function cancelOpenInvitesForPerson(client: any, input: { householdId: string; personId: string; byPersonId: string; exceptInvitationId?: string | null }) {
+  const keys = await contactKeysForPerson(client, input.personId);
+  const result = await client.query(
+    `update household_delegate_invitations set revoked_at=now(),revoked_by_person_id=$2
+      where household_id=$1 and accepted_at is null and revoked_at is null
+        and ($5::uuid is null or id<>$5::uuid)
+        and ((contact_type='email' and normalized_email=any($3::text[])) or (contact_type='phone' and phone_lookup_hash=any($4::text[])))
+      returning id`,
+    [input.householdId, input.byPersonId, keys.emails, keys.phones, input.exceptInvitationId || null]
+  );
+  return result.rows.map((row: any) => String(row.id));
 }
 
 async function notifyPeople(personIds: string[], input: { title: string; body: string; url: string }) {
@@ -240,6 +288,7 @@ export async function createDelegateInvitation(identity: SessionIdentity, input:
   const childIds = childScope === "selected" && Array.isArray(input.childIds) ? Array.from(new Set(input.childIds.map(String))) : [];
   const inputError = delegateGrantInputError({ scopes, childScope, childIds, endsAt: input.endsAt }, children.map(child => child.id));
   if (inputError) throw new Error(inputError);
+  await assertCanGrant(identity.personId, { scopes, childScope, childIds }, children);
   const endsAt = parseEndsAt(input.endsAt);
 
   let normalizedEmail: string | null = null;
@@ -380,6 +429,7 @@ export async function updateDelegate(identity: SessionIdentity, input: {
   const childIds = childScope === "selected" && Array.isArray(input.childIds) ? Array.from(new Set(input.childIds.map(String))) : [];
   const inputError = delegateGrantInputError({ scopes, childScope, childIds, endsAt: input.endsAt }, children.map(child => child.id));
   if (inputError) throw new Error(inputError);
+  await assertCanGrant(identity.personId, { scopes, childScope, childIds }, children);
   const endsAt = parseEndsAt(input.endsAt);
   const db = dbRequired();
   const client = await db.connect();
@@ -441,12 +491,15 @@ export async function setDelegateStatus(identity: SessionIdentity, input: { dele
       );
     } else {
       await client.query(
-        `update household_delegates set status=$2,paused_at=case when $2='paused' then now() else null end,updated_at=now() where id=$1`,
+        // paused_at is kept after resuming so older invitations stay unusable.
+        `update household_delegates set status=$2,paused_at=case when $2='paused' then now() else paused_at end,updated_at=now() where id=$1`,
         [grant.id, input.status]
       );
     }
+    // A second open invite (say email and phone) must not bring access back.
+    const canceledInvitationIds = input.status === "active" ? [] : await cancelOpenInvitesForPerson(client, { householdId: household.id, personId: grant.delegate_person_id, byPersonId: identity.personId });
     const action = input.status === "revoked" ? "household_delegate.revoked" : input.status === "paused" ? "household_delegate.paused" : "household_delegate.resumed";
-    await householdAudit({ client, actorPersonId: identity.personId, action, householdId: household.id, delegateId: grant.id, metadata: { delegateName: grant.delegate_name, previousStatus: grant.status } });
+    await householdAudit({ client, actorPersonId: identity.personId, action, householdId: household.id, delegateId: grant.id, metadata: { delegateName: grant.delegate_name, previousStatus: grant.status, canceledInvitationIds } });
     await client.query("COMMIT");
   } catch (error) {
     await client.query("ROLLBACK").catch(() => {});
@@ -549,15 +602,44 @@ export async function acceptDelegateInvitation(identity: SessionIdentity, token:
     )).rows.map((row: any) => String(row.id));
     if (invite.child_scope === "selected" && !stillChildren.length) throw new Error("The children on this invitation are no longer in the household. Ask for a new invitation.");
 
-    const existing = await client.query(
-      `select id from household_delegates where household_id=$1 and delegate_person_id=$2 and status<>'revoked' for update`,
+    // Lock every grant for this household and person, including removed ones.
+    const grants = (await client.query(
+      `select id,status,paused_at,revoked_at from household_delegates where household_id=$1 and delegate_person_id=$2 for update`,
       [invite.household_id, identity.personId]
+    )).rows;
+    const live = grants.find((row: any) => row.status !== "revoked") || null;
+    const latest = (key: "paused_at" | "revoked_at") => grants.map((row: any) => row[key]).filter(Boolean).sort((a: any, b: any) => new Date(b).getTime() - new Date(a).getTime())[0] || null;
+    const inviterStillManages = Boolean(invite.invited_by_person_id) && Boolean((await client.query(
+      `select 1 from household_members hm join people p on p.id=hm.person_id and p.status='active'
+        where hm.household_id=$1 and hm.person_id=$2 and hm.can_manage_household=true`,
+      [invite.household_id, invite.invited_by_person_id]
+    )).rowCount);
+    const block = delegateInviteAcceptBlock({
+      inviteCreatedAt: invite.created_at,
+      inviterStillManages,
+      liveGrantStatus: live?.status || null,
+      lastPausedAt: latest("paused_at"),
+      lastRevokedAt: latest("revoked_at"),
+    });
+    if (block) throw new Error(block);
+    // The inviter must still hold every permission they are handing out.
+    const coveredChildren = (await client.query(
+      `select p.id,coalesce(p.preferred_name,p.display_name) as name from household_members hm join people p on p.id=hm.person_id
+        where hm.household_id=$1 and p.person_type='minor' and p.status='active'`,
+      [invite.household_id]
+    )).rows.map((row: any) => ({ id: String(row.id), name: String(row.name) }));
+    const rightsError = delegateGrantRightsError(
+      { scopes: scopesFromRow(invite), childScope: invite.child_scope, childIds: stillChildren },
+      coveredChildren,
+      await guardianGrantRights(invite.invited_by_person_id, coveredChildren.map((child: { id: string }) => child.id))
     );
+    if (rightsError) throw new Error("The person who invited you can no longer give these permissions. Ask for a new invitation.");
+
     let delegateId: string;
-    if (existing.rowCount) {
-      delegateId = existing.rows[0].id;
+    if (live) {
+      delegateId = live.id;
       await client.query(
-        `update household_delegates set status='active',paused_at=null,can_request_rides=$2,can_approve_rides=$3,can_view_ride_details=$4,
+        `update household_delegates set status='active',can_request_rides=$2,can_approve_rides=$3,can_view_ride_details=$4,
                 can_receive_notifications=$5,child_scope=$6,ends_at=$7,relationship_label=coalesce($8,relationship_label),
                 invited_by_person_id=$9,starts_at=now(),updated_at=now()
           where id=$1`,
@@ -585,6 +667,8 @@ export async function acceptDelegateInvitation(identity: SessionIdentity, token:
       `update household_delegate_invitations set accepted_at=now(),accepted_by_person_id=$2,delegate_id=$3 where id=$1 and accepted_at is null and revoked_at is null`,
       [invite.id, identity.personId, delegateId]
     );
+    // Any other open invite to this person for this household is now spent.
+    await cancelOpenInvitesForPerson(client, { householdId: invite.household_id, personId: identity.personId, byPersonId: identity.personId, exceptInvitationId: invite.id });
     await householdAudit({
       client,
       actorPersonId: identity.personId,
@@ -621,6 +705,7 @@ export async function leaveDelegation(identity: SessionIdentity, delegateId: str
   );
   if (!updated.rowCount) throw new Error("Trusted adult access not found");
   const householdId = updated.rows[0].household_id;
+  await cancelOpenInvitesForPerson(db, { householdId, personId: identity.personId, byPersonId: identity.personId });
   await householdAudit({ actorPersonId: identity.personId, action: "household_delegate.left", householdId, delegateId, metadata: { delegateName: identity.displayName } });
   await notifyPeople(await householdManagerIds(householdId), {
     title: "A trusted adult stepped away",
