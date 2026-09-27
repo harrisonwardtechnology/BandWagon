@@ -34,7 +34,7 @@ Key settings baked into the file:
 
 - `MESSAGING_SANDBOX=true` (or `NEXT_PUBLIC_ENVIRONMENT=staging`, or `APP_ENVIRONMENT=staging`) turns it on.
 - `SANDBOX_ALLOWED_PHONES` is a comma list of E.164 numbers, for example `+19725550100,+19725550101`.
-- `SANDBOX_ALLOWED_EMAILS` is a comma list of addresses, for example `qa@harrisonward.com`.
+- `SANDBOX_ALLOWED_EMAILS` is a comma list of addresses, for example `qa@bandwagon.club`.
 - A message to anyone else never reaches Twilio or SMTP2GO. It is written to `notification_deliveries` with status `sandbox_skipped` and the reason in `metadata`, so you can still see what would have been sent.
 - An empty allowlist blocks everyone. That is the safe default.
 - Sign-in codes follow the same rule. To sign in to staging, put your own phone or email on the allowlist.
