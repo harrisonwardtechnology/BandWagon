@@ -1,5 +1,9 @@
 import { getDb } from "@/lib/db";
+import type { PoolClient } from "pg";
 import { calendarConflictMode, classifyCalendarConflict } from "@/lib/calendar-conflict-policy";
+
+/** A pool or a transaction client; lets callers create events inside their own transaction. */
+export type EventQueryable = Pick<PoolClient, "query">;
 
 export async function getOrganizationCalendarControls(organizationId:string){
   const db=getDb();if(!db)throw new Error("Database is not configured");
@@ -136,8 +140,12 @@ export async function createManualEvent(input: {
   visibility?: "organization" | "group" | "private";
   rideCoordinationEnabled?: boolean;
   createdByPersonId?: string | null;
-}) {
-  const db = getDb();
+  /** Member whose approved event proposal became this event. */
+  proposedByPersonId?: string | null;
+  /** Extra audit metadata, for example the proposal id. */
+  auditMetadata?: Record<string, unknown>;
+}, options: { client?: EventQueryable } = {}) {
+  const db = options.client || getDb();
   if (!db) throw new Error("Database is not configured");
   const title = input.title.trim();
   if (!title) throw new Error("Event title is required");
@@ -150,8 +158,8 @@ export async function createManualEvent(input: {
   const result = await db.query(
     `insert into events
       (organization_id,title,description,location_name,location_address,starts_at,ends_at,
-       all_day,status,visibility,ride_coordination_enabled,source_type,created_by_person_id)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,'active',$9,$10,'manual',$11)
+       all_day,status,visibility,ride_coordination_enabled,source_type,created_by_person_id,proposed_by_person_id)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,'active',$9,$10,'manual',$11,$12)
      returning *`,
     [
       input.organizationId,
@@ -165,12 +173,13 @@ export async function createManualEvent(input: {
       input.visibility || "organization",
       input.rideCoordinationEnabled !== false,
       input.createdByPersonId || null,
+      input.proposedByPersonId || null,
     ]
   );
   await db.query(
     `insert into audit_events(organization_id,actor_person_id,action,target_type,target_id,metadata)
      values($1::uuid,$2,'organization.manual_event_created','event',$3,$4::jsonb)`,
-    [input.organizationId,input.createdByPersonId||null,result.rows[0].id,JSON.stringify({visibility:input.visibility||"organization",rideCoordinationEnabled:input.rideCoordinationEnabled!==false,allDay:Boolean(input.allDay)})]
+    [input.organizationId,input.createdByPersonId||null,result.rows[0].id,JSON.stringify({...(input.auditMetadata||{}),visibility:input.visibility||"organization",rideCoordinationEnabled:input.rideCoordinationEnabled!==false,allDay:Boolean(input.allDay),proposedByPersonId:input.proposedByPersonId||null})]
   );
   return result.rows[0];
 }
@@ -179,11 +188,13 @@ export async function listOrganizationEvents(organizationId: string, limit = 100
   const db = getDb();
   if (!db) throw new Error("Database is not configured");
   const result = await db.query(
-    `select id,title,description,location_name,location_address,starts_at,ends_at,all_day,status,
-            visibility,ride_coordination_enabled,source_type,source_calendar_id,source_event_id,source_url
-     from events
-     where organization_id=$1 and status <> 'archived'
-     order by starts_at nulls last, created_at desc
+    `select e.id,e.title,e.description,e.location_name,e.location_address,e.starts_at,e.ends_at,e.all_day,e.status,
+            e.visibility,e.ride_coordination_enabled,e.source_type,e.source_calendar_id,e.source_event_id,e.source_url,
+            e.proposed_by_person_id,coalesce(pp.preferred_name,pp.display_name) as proposed_by_name
+     from events e
+     left join people pp on pp.id=e.proposed_by_person_id
+     where e.organization_id=$1 and e.status <> 'archived'
+     order by e.starts_at nulls last, e.created_at desc
      limit $2`,
     [organizationId, Math.max(1, Math.min(limit, 500))]
   );

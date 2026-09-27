@@ -59,6 +59,8 @@ const requiredTables = [
   "auth_rate_limit_events",
   "organization_waitlist_settings",
   "ride_waitlist_entries",
+  "organization_event_proposal_settings",
+  "event_proposals",
 ];
 
 await client.connect();
