@@ -46,6 +46,9 @@ const requiredTables = [
   "sms_consent_events",
   "background_jobs",
   "stripe_webhook_events",
+  "organization_requests",
+  "organization_invitations",
+  "organization_setup_progress",
 ];
 
 await client.connect();

@@ -19,7 +19,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  try { await requirePlatformRole(["owner"]); }
+  let actorPersonId: string | null = null;
+  try { actorPersonId = (await requirePlatformRole(["owner"])).personId; }
   catch (error) { return Response.json({error:error instanceof Error?error.message:"Platform owner access is required"},{status:403}); }
 
   const body = await request.json().catch(() => ({}));
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
         name: String(body.name || ""),
         slug: String(body.slug || body.name || ""),
         discoverability: typeof body.discoverability === "string" ? body.discoverability : "unlisted",
+        actorPersonId,
       });
       return Response.json({ ok: true, organization });
     }

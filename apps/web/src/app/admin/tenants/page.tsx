@@ -40,6 +40,7 @@ export default function TenantsAdmin() {
       <div style={{fontSize:13,fontWeight:800,letterSpacing:1}}>PLATFORM ADMIN</div>
       <h1 style={{fontSize:38,margin:"6px 0"}}>SaaS Tenants</h1>
       <p style={{margin:0,opacity:.9}}>Every organization gets <strong>tenant.harrisonward.org</strong>, with an optional custom domain.</p>
+      <p style={{margin:"10px 0 0"}}><a href="/admin/organization-requests" style={{color:"white",fontWeight:800}}>Review community requests</a></p>
     </section>
 
     <section style={card}>
