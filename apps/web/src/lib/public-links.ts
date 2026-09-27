@@ -4,8 +4,11 @@
 // NEXT_PUBLIC_* values are inlined by Next.js at build time. Set them as
 // build variables in Coolify (and as build args for docker compose builds).
 
-export const SUPPORT_EMAIL_FALLBACK = "help+support@harrisonward.com";
-export const PRIVACY_EMAIL_FALLBACK = "help+privacy@harrisonward.com";
+// Shared mailboxes on the bandwagon.club M365 domain.
+export const SUPPORT_EMAIL_FALLBACK = "support@bandwagon.club";
+export const PRIVACY_EMAIL_FALLBACK = "privacy@bandwagon.club";
+export const SECURITY_EMAIL_FALLBACK = "security@bandwagon.club";
+export const SPONSORS_EMAIL_FALLBACK = "sponsors@bandwagon.club";
 
 /** Accept only absolute http(s) URLs; anything else is treated as unset. */
 export function safePublicUrl(value: string | undefined | null) {

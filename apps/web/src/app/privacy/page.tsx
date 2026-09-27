@@ -20,7 +20,7 @@ export default function PrivacyPage() {
     <article className="legal-card">
       <h2>1. Controller and Scope</h2>
       <p>Harrison Ward Technology, located in Flower Mound, Texas, United States, operates BandWagon and determines how platform personal information is processed. In privacy-law terminology, Harrison Ward Technology is generally the controller for the BandWagon platform. A participating organization may separately control information it submits, organization policies, membership decisions, and organization-specific uses.</p>
-      <p>This policy applies to BandWagon websites, progressive web applications, organization instances such as FloMoGo, support processes, and related ride-coordination services. Questions may be submitted through the <Link href="/help">Help Center</Link> or to <a href="mailto:help+privacy@harrisonward.com">help+privacy@harrisonward.com</a>.</p>
+      <p>This policy applies to BandWagon websites, progressive web applications, organization instances such as FloMoGo, support processes, and related ride-coordination services. Questions may be submitted through the <Link href="/help">Help Center</Link> or to <a href="mailto:privacy@bandwagon.club">privacy@bandwagon.club</a>.</p>
 
       <h2>2. What BandWagon Does</h2>
       <p>BandWagon is a community ride-coordination platform. It helps users voluntarily connect to request, offer, and coordinate transportation. BandWagon does not provide transportation, employ or dispatch drivers, inspect vehicles, conduct background checks unless specifically disclosed, verify insurance or licensing, supervise rides, track vehicles, or guarantee an arrangement.</p>
@@ -106,7 +106,7 @@ export default function PrivacyPage() {
       <p>Material policy changes may require renewed acknowledgement or consent. A new optional cookie/storage category, materially different purpose, or new tracking provider will not be authorized by an old functional-storage choice; BandWagon will update the policy version and ask again before activation where consent is required.</p>
 
       <h2>18. Contact and Complaints</h2>
-      <p><strong>Controller:</strong> Harrison Ward Technology, Flower Mound, Texas, United States<br/><strong>Privacy:</strong> <a href="mailto:help+privacy@harrisonward.com">help+privacy@harrisonward.com</a> or the <Link href="/help">Help Center</Link><br/><strong>Security:</strong> <a href="mailto:help+security@harrisonward.com">help+security@harrisonward.com</a> or the <Link href="/security">Security Report</Link> process<br/><strong>Support:</strong> <SupportContact /></p>
+      <p><strong>Controller:</strong> Harrison Ward Technology, Flower Mound, Texas, United States<br/><strong>Privacy:</strong> <a href="mailto:privacy@bandwagon.club">privacy@bandwagon.club</a> or the <Link href="/help">Help Center</Link><br/><strong>Security:</strong> <a href="mailto:security@bandwagon.club">security@bandwagon.club</a> or the <Link href="/security">Security Report</Link> process<br/><strong>Support:</strong> <SupportContact /></p>
 
       <div className="legal-links"><Link href="/cookies">Cookie Policy</Link><Link href="/terms">Terms of Use</Link><Link href="/messaging">Messaging &amp; SMS Consent</Link><Link href="/help">Privacy Request</Link><Link href="/legal/subprocessors">Subprocessors</Link><Link href="/legal/student-data">Student Data</Link><Link href="/">BandWagon Home</Link></div>
     </article>

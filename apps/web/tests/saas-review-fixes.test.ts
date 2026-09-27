@@ -45,3 +45,11 @@ test("product copy does not claim open source or blanket phone encryption", asyn
   assert.doesNotMatch(home, /Open source/);
   assert.match(home, /Profile phone numbers/);
 });
+
+test("public contact addresses live on the bandwagon.club mail domain", async () => {
+  const links = await read("lib/public-links.ts");
+  for (const box of ["support", "privacy", "security", "sponsors"]) assert.match(links, new RegExp(`"${box}@bandwagon\\.club"`));
+  for (const file of ["app/privacy/page.tsx", "app/cookies/page.tsx", "lib/push.ts"]) {
+    assert.doesNotMatch(await read(file), /help\+\w+@harrisonward\.com/, file);
+  }
+});

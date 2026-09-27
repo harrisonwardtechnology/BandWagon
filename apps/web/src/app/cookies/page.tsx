@@ -52,7 +52,7 @@ export default function CookiePolicyPage() {
       <p>Users may also block or delete cookies and site data through browser settings. Because BandWagon does not sell personal information or use data for targeted advertising, there is no sale or targeted-advertising processing to opt out of. BandWagon treats supported Global Privacy Control signals as an instruction not to enable any future sale, sharing, or targeted-advertising processing for that browser.</p>
 
       <h2>10. Contact</h2>
-      <p>Questions or requests about cookies and browser storage may be submitted through the <Link href="/help">Help Center</Link> using the Privacy Request topic or by email to <a href="mailto:help+privacy@harrisonward.com">help+privacy@harrisonward.com</a>.</p>
+      <p>Questions or requests about cookies and browser storage may be submitted through the <Link href="/help">Help Center</Link> using the Privacy Request topic or by email to <a href="mailto:privacy@bandwagon.club">privacy@bandwagon.club</a>.</p>
 
       <div className="legal-links"><Link href="/privacy">Privacy Policy</Link><Link href="/terms">Terms of Use</Link><Link href="/help">Privacy Request</Link><Link href="/">BandWagon Home</Link></div>
     </article>
