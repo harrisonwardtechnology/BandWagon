@@ -4,6 +4,7 @@ import type { SessionIdentity } from "@/lib/auth";
 import { enqueueJob } from "@/lib/jobs";
 import { queueNotification } from "@/lib/notification-queue";
 import { guardianApprovalFor } from "@/lib/rides";
+import { canActForChild, delegateNotificationRecipients } from "@/lib/child-access";
 import { reserveSeatForRequest } from "@/lib/carpool";
 import { requestWaitlistProcessing, WAITLIST_EXPIRE_JOB_KIND } from "@/lib/ride-waitlist-queue";
 import {
@@ -147,10 +148,14 @@ export async function joinWaitlist(input: { rideId: string; passengerPersonId: s
   const result = await inTransaction(async (client) => {
     const ride = await lockRide(client, input.rideId);
     const settings = await getWaitlistSettings(ride.organization_id, client);
-    const [actorMember, passengerMember] = await Promise.all([
+    const [memberActor, passengerMember] = await Promise.all([
       isActiveMember(client, ride.organization_id, input.actorPersonId),
       isActiveMember(client, ride.organization_id, input.passengerPersonId),
     ]);
+    // A trusted household delegate is not an organization member. They may
+    // join for the child only through a live request_rides grant here.
+    const actorMember = memberActor || (input.actorPersonId !== input.passengerPersonId
+      && (await canActForChild(input.actorPersonId, input.passengerPersonId, "request_rides", { organizationId: ride.organization_id, client })).via === "delegate");
     const onRide = await client.query(`select 1 from ride_passengers where ride_id=$1 and person_id=$2 and assignment_status='confirmed' limit 1`, [ride.id, input.passengerPersonId]);
     const onWaitlist = await client.query(`select 1 from ride_waitlist_entries where ride_id=$1 and passenger_person_id=$2 and status in ('waiting','offered') limit 1`, [ride.id, input.passengerPersonId]);
     const held = await heldSeats(client, ride.id);
@@ -182,7 +187,7 @@ export async function joinWaitlist(input: { rideId: string; passengerPersonId: s
     )).rows[0];
     let createdRequest = false;
     if (!request) {
-      const approval = await guardianApprovalFor(input.passengerPersonId, input.actorPersonId);
+      const approval = await guardianApprovalFor(input.passengerPersonId, input.actorPersonId, ride.organization_id);
       const status = approval.status === "pending" ? "pending_approval" : "open";
       request = (await client.query(
         `insert into ride_requests(organization_id,event_id,requester_person_id,passenger_person_id,direction,seats_needed,requested_pickup_at,
@@ -234,16 +239,31 @@ async function lockEntryWithRide(client: Queryable, entryId: string) {
   return { ride, entry };
 }
 
-async function actorManagesEntry(q: Queryable, actorPersonId: string, entry: any) {
-  if (actorPersonId === entry.passenger_person_id || actorPersonId === entry.joined_by_person_id) return true;
-  const r = await q.query(
-    `select 1 from ride_requests rr where rr.id=$1 and rr.requester_person_id=$2
-     union all
-     select 1 from guardian_relationships gr where gr.guardian_person_id=$2 and gr.minor_person_id=$3 and (gr.can_approve_rides=true or gr.can_manage_profile=true)
-     limit 1`,
-    [entry.ride_request_id, actorPersonId, entry.passenger_person_id]
-  );
-  return Boolean(r.rowCount);
+/**
+ * Who may leave, decline, or accept for a waitlist entry. Goes through
+ * canActForChild so guardians and trusted delegates are judged the same way
+ * and a paused or removed delegate loses access at once, even for an entry
+ * they joined themselves.
+ * - Guardians: can_manage_profile or can_approve_rides (unchanged).
+ * - Delegates: leave/decline with ask-for-rides or approve permission;
+ *   accept a standby offer only with approve permission.
+ */
+async function actorManagesEntry(q: Queryable, actorPersonId: string, entry: any, action: "leave" | "accept" = "leave") {
+  if (actorPersonId === entry.passenger_person_id) return true;
+  const options = { organizationId: entry.organization_id, client: q as any };
+  const approve = await canActForChild(actorPersonId, entry.passenger_person_id, "approve_rides", options);
+  if (approve.allowed) return true;
+  const request = await canActForChild(actorPersonId, entry.passenger_person_id, "request_rides", options);
+  if (!request.allowed) {
+    // Adult riders keep the old rule: whoever joined or asked for them may manage the entry.
+    // A minor's entry always needs a live guardian or delegate relationship.
+    const passenger = (await q.query(`select person_type from people where id=$1`, [entry.passenger_person_id])).rows[0];
+    if (passenger?.person_type === "minor") return false;
+    if (actorPersonId === entry.joined_by_person_id) return true;
+    const r = await q.query(`select 1 from ride_requests rr where rr.id=$1 and rr.requester_person_id=$2 limit 1`, [entry.ride_request_id, actorPersonId]);
+    return Boolean(r.rowCount);
+  }
+  return action === "leave" || request.via !== "delegate";
 }
 
 export async function leaveWaitlist(input: { entryId: string; actorPersonId: string }) {
@@ -282,7 +302,7 @@ export async function declineStandbyOffer(input: { entryId: string; actorPersonI
 export async function acceptStandbyOffer(input: { entryId: string; actorPersonId: string }) {
   const outcome = await inTransaction(async (client) => {
     const { ride, entry } = await lockEntryWithRide(client, input.entryId);
-    if (!(await actorManagesEntry(client, input.actorPersonId, entry))) throw new Error("You cannot respond to this standby offer");
+    if (!(await actorManagesEntry(client, input.actorPersonId, entry, "accept"))) throw new Error("You cannot respond to this standby offer");
     const request = (await client.query(`select * from ride_requests where id=$1 for update`, [entry.ride_request_id])).rows[0];
     if (!request) throw new Error("Ride request not found");
     const held = await heldSeats(client, ride.id, entry.id);
@@ -489,7 +509,7 @@ export async function sweepRideWaitlists(limit = 200) {
 
 async function recipientsFor(entryId: string) {
   const row = (await dbRequired().query(
-    `select w.passenger_person_id,w.joined_by_person_id,rr.requester_person_id,p.person_type
+    `select w.organization_id,w.passenger_person_id,w.joined_by_person_id,rr.requester_person_id,p.person_type
        from ride_waitlist_entries w join ride_requests rr on rr.id=w.ride_request_id join people p on p.id=w.passenger_person_id
       where w.id=$1`,
     [entryId]
@@ -499,8 +519,15 @@ async function recipientsFor(entryId: string) {
   if (row.requester_person_id) ids.add(row.requester_person_id);
   if (row.joined_by_person_id) ids.add(row.joined_by_person_id);
   // Adults hear about their own seat directly. A minor's household is told through the guardian who asked.
-  if (row.person_type !== "minor") ids.add(row.passenger_person_id);
-  return Array.from(ids);
+  if (row.person_type !== "minor") return Array.from(ids.add(row.passenger_person_id));
+  // For a minor, drop anyone who no longer has a guardian or delegate relationship
+  // (for example a removed trusted adult), and add delegates who asked for ride notifications.
+  const kept: string[] = [];
+  for (const id of ids) {
+    if ((await canActForChild(id, row.passenger_person_id, "receive_notifications", { organizationId: row.organization_id })).allowed) kept.push(id);
+  }
+  for (const id of await delegateNotificationRecipients(row.passenger_person_id, row.organization_id)) kept.push(id);
+  return Array.from(new Set(kept));
 }
 
 async function notifyEntry(notice: Notice) {

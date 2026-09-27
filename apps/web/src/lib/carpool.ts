@@ -1,6 +1,7 @@
 import { getDb } from "@/lib/db";
 import { queueNotification } from "@/lib/notification-queue";
 import { requestWaitlistProcessing } from "@/lib/ride-waitlist-queue";
+import { canActForChild } from "@/lib/child-access";
 
 function dbRequired() {
   const db = getDb();
@@ -15,12 +16,8 @@ function minutesBetween(a?: Date | string | null, b?: Date | string | null) {
 
 async function actorCanManageRequest(client: any, actorPersonId: string, request: any) {
   if (actorPersonId === request.requester_person_id) return true;
-  const guardian = await client.query(
-    `select 1 from guardian_relationships
-     where guardian_person_id=$1 and minor_person_id=$2 and can_approve_rides=true limit 1`,
-    [actorPersonId,request.passenger_person_id]
-  );
-  return Boolean(guardian.rowCount);
+  const access = await canActForChild(actorPersonId, request.passenger_person_id, "manage_ride_request", { organizationId: request.organization_id, client });
+  return access.allowed;
 }
 
 async function resequenceStops(client: any, rideId: string) {

@@ -2,6 +2,7 @@
 
 import { useEffect,useState } from "react";
 import { AppNav,appCardStyle,appPageStyle } from "@/components/app-nav";
+import TrustedAdults from "./trusted-adults";
 
 type Row=Record<string,any>;
 
@@ -46,5 +47,6 @@ export default function HouseholdPage(){
     {context.household?.can_manage_household&&<section style={{...appCardStyle,marginBottom:18}}><h2 style={{marginTop:0}}>Add a student</h2><label>Student name</label><input value={studentName} onChange={e=>setStudentName(e.target.value)} style={input}/><label>Birth year <span style={{color:"#64748b"}}>(optional)</span></label><input inputMode="numeric" value={birthYear} onChange={e=>setBirthYear(e.target.value.replace(/\D/g,""))} style={input}/><button disabled={working||!studentName.trim()} style={{...button,opacity:working ? .6 : 1}} onClick={async()=>{await act({action:"add_student",displayName:studentName,birthYear:birthYear||null,studentApprovalRequired:true});setStudentName("");setBirthYear("");}}>Add student</button></section>}
     <section style={{...appCardStyle,marginBottom:18}}><h2 style={{marginTop:0}}>Join an organization</h2><p style={{color:"#64748b"}}>Enter the join code provided by your organization.</p><input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} placeholder="JOIN CODE" style={{...input,fontSize:20,letterSpacing:2,textTransform:"uppercase"}}/><button disabled={working||!joinCode.trim()} style={{...button,opacity:working ? .6 : 1}} onClick={async()=>{await act({action:"join_organization",code:joinCode});setJoinCode("");}}>Join organization</button></section>
     <section style={appCardStyle}><h2 style={{marginTop:0}}>Memberships</h2>{context.organizations.length?context.organizations.map((o:Row)=><div key={o.id} style={{padding:"11px 0",borderBottom:"1px solid #f1f5f9"}}><b>{o.name}</b> <span style={{color:"#64748b"}}>· {o.role}</span>{context.members.filter((m:Row)=>m.person_type==='minor').map((m:Row)=><button key={m.id} disabled={working} onClick={()=>act({action:"add_student_to_organization",studentPersonId:m.id,organizationId:o.id})} style={{marginLeft:10,padding:"5px 8px",border:"1px solid #cbd5e1",borderRadius:8,background:"white",cursor:"pointer"}}>Add {m.preferred_name||m.display_name}</button>)}</div>):<p>No organization memberships yet.</p>}</section>
+    <div style={{marginTop:18}}><TrustedAdults/></div>
   </>}{message&&<div style={{position:"fixed",bottom:20,right:20,maxWidth:360,padding:14,background:"#101b33",color:"white",borderRadius:12}}>{message}</div>}</main>;
 }

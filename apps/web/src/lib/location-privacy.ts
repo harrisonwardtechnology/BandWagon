@@ -1,5 +1,6 @@
 import { getDb } from "@/lib/db";
 import { encryptSensitive, decryptSensitive } from "@/lib/data-security";
+import { canActForChild } from "@/lib/child-access";
 
 function dbRequired() {
   const db = getDb();
@@ -111,8 +112,8 @@ export async function attachLocationsToRideRequest(input:{rideRequestId:string;a
   if (!rr.rowCount) throw new Error("Ride request not found");
   const request = rr.rows[0];
   if (request.requester_person_id !== input.actorPersonId) {
-    const guardian = await db.query(`select 1 from guardian_relationships where guardian_person_id=$1 and minor_person_id=$2 and can_approve_rides=true`,[input.actorPersonId,request.passenger_person_id]);
-    if (!guardian.rowCount) throw new Error("Not authorized to set ride locations");
+    const access = await canActForChild(input.actorPersonId, request.passenger_person_id, "manage_ride_request", { organizationId: request.organization_id });
+    if (!access.allowed) throw new Error("Not authorized to set ride locations");
   }
   const locationIds = [input.pickupLocationId,input.dropoffLocationId].filter(Boolean) as string[];
   if (locationIds.length) {

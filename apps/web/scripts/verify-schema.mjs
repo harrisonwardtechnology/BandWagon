@@ -61,6 +61,9 @@ const requiredTables = [
   "ride_waitlist_entries",
   "organization_event_proposal_settings",
   "event_proposals",
+  "household_delegates",
+  "household_delegate_children",
+  "household_delegate_invitations",
 ];
 
 await client.connect();
