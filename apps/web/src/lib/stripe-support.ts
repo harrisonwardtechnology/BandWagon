@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { getDb } from "@/lib/db";
+import { safeHttpsUrlOrNull, SPONSOR_LIMITS } from "@/lib/sponsor-policy";
 
 function stripeSecret() {
   const value = process.env.STRIPE_SECRET_KEY;
@@ -219,8 +220,10 @@ async function applyStripeEvent(db: NonNullable<ReturnType<typeof getDb>>, event
         [
           contribution.organization_id,
           contribution.id,
-          contribution.sponsor_name,
-          contribution.sponsor_website,
+          // Checkout metadata is untrusted public input. Public sponsor records
+          // accept only https websites and bounded names.
+          String(contribution.sponsor_name).trim().slice(0, SPONSOR_LIMITS.name),
+          safeHttpsUrlOrNull(contribution.sponsor_website),
         ]
       );
     }
@@ -291,7 +294,7 @@ export async function supportDashboard(organizationId?: string | null) {
 
     sponsors = (
       await db.query(
-        `select sponsor_name,sponsor_website,logo_url,starts_at,ends_at
+        `select sponsor_name,sponsor_website,logo_url,tier_label,public_display,starts_at,ends_at
          from organization_sponsors
          where organization_id=$1 and status='active'
            and (ends_at is null or ends_at > now())

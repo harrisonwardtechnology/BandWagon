@@ -2,6 +2,8 @@ import { getDb } from "@/lib/db";
 import { lookupHash } from "@/lib/data-security";
 import { enforceMobileMessageIntent } from "@/lib/messaging-policy";
 import { mobileSendDecision } from "@/lib/sms-consent-policy";
+import { decideOrgMobileCap, ORG_TEXTING_LIMIT_ERROR, utcMonthWindow } from "@/lib/org-messaging-cap-policy";
+import { evaluateOrgMessagingAlerts, orgMobileCapCents, recordOrgCapBlocked } from "@/lib/org-messaging-limits";
 
 export type TwilioDeliveryMode = "auto" | "sms";
 
@@ -16,6 +18,13 @@ function estimatedSegments(body: string) {
 }
 
 type DbPool = NonNullable<ReturnType<typeof getDb>>;
+
+export class OrgTextingLimitError extends Error {
+  constructor() {
+    super(ORG_TEXTING_LIMIT_ERROR);
+    this.name = "OrgTextingLimitError";
+  }
+}
 
 async function reserveMobileDelivery(input: {
   db: DbPool;
@@ -67,6 +76,33 @@ async function reserveMobileDelivery(input: {
       throw new Error("Mobile messaging rate limit reached for this recipient");
     }
 
+    // Per-organization fair-use cap. Checked in the same transaction as the
+    // reservation, under a per-organization advisory lock, so parallel sends
+    // for one organization cannot all observe the same pre-send total.
+    // Critical urgency and OTP are always allowed but still counted.
+    let orgCapChecked = false;
+    if (input.organizationId) {
+      await client.query("select pg_advisory_xact_lock(hashtext($1))", [`bandwagon:org-mobile:${input.organizationId}`]);
+      const month = utcMonthWindow();
+      const capCents = await orgMobileCapCents(client, input.organizationId);
+      const usage = await client.query(
+        `select coalesce(sum(estimated_cost_cents),0)::numeric as used from notification_deliveries
+          where organization_id=$1 and channel in ('sms','rcs') and status not in ('failed','blocked_org_cap')
+            and created_at>=$2 and created_at<$3`,
+        [input.organizationId, month.start, month.end]
+      );
+      const decision = decideOrgMobileCap({
+        organizationId: input.organizationId,
+        urgency: input.urgency,
+        notificationType: input.notificationType,
+        usedCents: Number(usage.rows[0]?.used || 0),
+        requestedCents: input.estimatedCostCents,
+        capCents,
+      });
+      if (!decision.allowed) throw new OrgTextingLimitError();
+      orgCapChecked = true;
+    }
+
     const reserved = await client.query(
       `insert into notification_deliveries
         (person_id, organization_id, notification_type, channel, destination_ref,
@@ -86,9 +122,24 @@ async function reserveMobileDelivery(input: {
       ]
     );
     await client.query("COMMIT");
+    if (orgCapChecked && input.organizationId) {
+      // Threshold alerts are deduplicated per organization, month, and threshold.
+      void evaluateOrgMessagingAlerts(input.organizationId).catch(() => undefined);
+    }
     return reserved.rows[0].id as number | string;
   } catch (error) {
     await client.query("ROLLBACK").catch(() => undefined);
+    if (error instanceof OrgTextingLimitError && input.organizationId) {
+      await recordOrgCapBlocked(input.db, {
+        organizationId: input.organizationId,
+        personId: input.personId || null,
+        notificationType: input.notificationType,
+        channel: input.channel,
+        urgency: input.urgency,
+        correlationId: input.correlationId || null,
+      }).catch(() => undefined);
+      void evaluateOrgMessagingAlerts(input.organizationId).catch(() => undefined);
+    }
     throw error;
   } finally {
     client.release();
