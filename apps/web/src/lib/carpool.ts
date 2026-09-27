@@ -1,5 +1,5 @@
 import { getDb } from "@/lib/db";
-import { routeNotification } from "@/lib/notification-router";
+import { queueNotification } from "@/lib/notification-queue";
 
 function dbRequired() {
   const db = getDb();
@@ -123,8 +123,8 @@ export async function attachRequestToRide(input: {rideId:string;rideRequestId:st
     await client.query('COMMIT');
 
     await Promise.allSettled([
-      routeNotification({notificationType:'ride_matched',title:'Carpool confirmed',body:'Your ride request was added to a BandWagon carpool.',personId:request.requester_person_id,organizationId:request.organization_id,url:`/rides/${ride.public_ref}`}),
-      routeNotification({notificationType:'ride_matched',title:'Passenger added',body:'Another passenger was added to your BandWagon carpool.',personId:ride.driver_person_id,organizationId:request.organization_id,url:`/rides/${ride.public_ref}`}),
+      queueNotification({notificationType:'ride_matched',title:'Carpool confirmed',body:'Your ride request was added to a BandWagon carpool.',personId:request.requester_person_id,organizationId:request.organization_id,url:`/rides/${ride.public_ref}`}),
+      queueNotification({notificationType:'ride_matched',title:'Passenger added',body:'Another passenger was added to your BandWagon carpool.',personId:ride.driver_person_id,organizationId:request.organization_id,url:`/rides/${ride.public_ref}`}),
     ]);
     return getRideManifest(ride.id);
   } catch (error) {

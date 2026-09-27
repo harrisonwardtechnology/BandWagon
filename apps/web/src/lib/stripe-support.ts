@@ -156,6 +156,28 @@ export async function processStripeEvent(event: any) {
   const db = getDb();
   if (!db) throw new Error("Database is not configured");
 
+  // Stripe retries, and any web instance may receive a given delivery. Record the
+  // event id first; a repeat is acknowledged without being processed twice.
+  if (typeof event?.id === "string") {
+    const fresh = await db.query(
+      `insert into stripe_webhook_events (event_id,event_type) values ($1,$2) on conflict (event_id) do nothing returning event_id`,
+      [event.id, String(event.type || "unknown")]
+    );
+    if (!fresh.rowCount) return;
+    try {
+      await applyStripeEvent(db, event);
+    } catch (error) {
+      // Let Stripe's retry through if we failed partway.
+      await db.query(`delete from stripe_webhook_events where event_id=$1`, [event.id]).catch(() => {});
+      throw error;
+    }
+    return;
+  }
+  await applyStripeEvent(db, event);
+}
+
+async function applyStripeEvent(db: NonNullable<ReturnType<typeof getDb>>, event: any) {
+
   if (
     event.type === "checkout.session.completed" ||
     event.type === "checkout.session.async_payment_succeeded"

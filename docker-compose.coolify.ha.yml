@@ -1,0 +1,97 @@
+# BandWagon high-availability layout for Coolify (one image, three roles).
+#
+#   migrate   runs database migrations once, then exits
+#   web-1/2   serve pages + API behind Traefik (load balanced, health checked)
+#   worker-1/2 send notifications, run scheduled jobs, retry failures
+#
+# Postgres (PostGIS) and Redis stay as their own Coolify resources; point
+# DATABASE_URL and REDIS_URL at them. See docs/operations/HIGH-AVAILABILITY.md.
+#
+# Leave the Coolify "Domains" field EMPTY for these services. Routing comes
+# from the Traefik labels below, so both web containers join ONE load
+# balancer instead of fighting over the hostname.
+
+x-app-env: &app-env
+  NODE_ENV: production
+  APP_URL: ${APP_URL}
+  DATABASE_URL: ${DATABASE_URL}
+  DATABASE_SSL: ${DATABASE_SSL:-false}
+  REDIS_URL: ${REDIS_URL}
+  # "true" pulls an instance out of Traefik when Redis is unreachable. Keep "false"
+  # while Redis is a single container, or a Redis blip takes every web box down.
+  HEALTH_REQUIRE_REDIS: "false"
+  AUTH_SECRET: ${AUTH_SECRET}
+  DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY}
+  LOOKUP_HASH_KEY: ${LOOKUP_HASH_KEY}
+  NOTIFICATION_DELIVERY: queue
+  # Add the rest of your production variables (Twilio, SMTP2GO, S3, Google,
+  # Stripe, VAPID, Turnstile...) in Coolify; they are shared by every role.
+
+x-app: &app
+  build:
+    context: ./apps/web
+  image: bandwagon-app:latest
+  restart: unless-stopped
+  stop_grace_period: 30s
+  depends_on:
+    migrate:
+      condition: service_completed_successfully
+  healthcheck:
+    test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health/ready >/dev/null || exit 1"]
+    interval: 15s
+    timeout: 5s
+    start_period: 20s
+    retries: 3
+
+x-web-labels: &web-labels
+  traefik.enable: "true"
+  traefik.http.routers.bandwagon-web.rule: Host(`${APP_HOSTNAME:-bandwagon.harrisonward.net}`)
+  traefik.http.routers.bandwagon-web.entrypoints: https
+  traefik.http.routers.bandwagon-web.tls: "true"
+  traefik.http.routers.bandwagon-web.service: bandwagon-web
+  traefik.http.services.bandwagon-web.loadbalancer.server.port: "3000"
+  # Traefik stops sending traffic to an instance whose readiness check fails.
+  traefik.http.services.bandwagon-web.loadbalancer.healthcheck.path: /api/health/ready
+  traefik.http.services.bandwagon-web.loadbalancer.healthcheck.interval: 10s
+
+services:
+  migrate:
+    build:
+      context: ./apps/web
+    image: bandwagon-app:latest
+    restart: "no"
+    command: ["node", "scripts/migrate.mjs"]
+    environment:
+      <<: *app-env
+    healthcheck:
+      disable: true
+
+  web-1:
+    <<: *app
+    environment:
+      <<: *app-env
+      APP_ROLE: web
+    labels: *web-labels
+
+  web-2:
+    <<: *app
+    environment:
+      <<: *app-env
+      APP_ROLE: web
+    labels: *web-labels
+
+  worker-1:
+    <<: *app
+    environment:
+      <<: *app-env
+      APP_ROLE: worker
+      WORKER_CONCURRENCY: "4"
+      WORKER_KUMA_PUSH_URL: ${WORKER_KUMA_PUSH_URL:-}
+
+  worker-2:
+    <<: *app
+    environment:
+      <<: *app-env
+      APP_ROLE: worker
+      WORKER_CONCURRENCY: "4"
+      WORKER_KUMA_PUSH_URL: ${WORKER_KUMA_PUSH_URL:-}

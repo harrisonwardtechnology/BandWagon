@@ -14,7 +14,38 @@ function compactResult(value: unknown) {
   return result;
 }
 
+export type CronSkipped = { skipped: true; reason: string };
+
+/**
+ * Run a scheduled job under a Postgres session advisory lock so only one
+ * instance runs a given job at a time, whether it was triggered by the HTTP
+ * cron endpoint or by a worker. A second caller gets { skipped: true }.
+ */
 export async function runCronWithHeartbeat<T extends CronResult>(input: {
+  key: string;
+  expectedMaxAgeMinutes: number;
+  run: () => Promise<T>;
+}): Promise<T | CronSkipped> {
+  const pool = getDb();
+  if (!pool) return runCronUnlocked(input);
+  const lockClient = await pool.connect();
+  let locked = false;
+  try {
+    const lock = await lockClient.query("select pg_try_advisory_lock(hashtext($1)) as ok", [`bandwagon:cron:${input.key}`]);
+    locked = Boolean(lock.rows[0]?.ok);
+    if (!locked) return { skipped: true, reason: `${input.key} is already running on another instance` };
+    return await runCronUnlocked(input);
+  } finally {
+    let unlockFailed = false;
+    if (locked) {
+      await lockClient.query("select pg_advisory_unlock(hashtext($1))", [`bandwagon:cron:${input.key}`]).catch(() => { unlockFailed = true; });
+    }
+    // A connection that may still hold the lock is destroyed, not returned to the pool.
+    lockClient.release(unlockFailed ? true : undefined);
+  }
+}
+
+async function runCronUnlocked<T extends CronResult>(input: {
   key: string;
   expectedMaxAgeMinutes: number;
   run: () => Promise<T>;

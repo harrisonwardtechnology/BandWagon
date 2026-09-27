@@ -33,7 +33,9 @@ export async function processDoDomainWebhook(rawBody:string,signature:string){
   if(hostname){domain=(await db.query(`select * from organization_domains where lower(hostname)=$1 and domain_type='custom' limit 1`,[hostname])).rows[0]||null;}
   if(!domain&&sessionId){domain=(await db.query(`select * from organization_domains where setup_provider='dodomain' and setup_provider_session_id=$1 limit 1`,[sessionId])).rows[0]||null;}
 
-  await db.query(`insert into domain_provider_webhook_events(event_id,provider,event_type,hostname,organization_domain_id,payload) values($1,'dodomain',$2,$3,$4,$5::jsonb)`,[eventId,eventType,hostname,domain?.id||null,rawBody]);
+  // Two instances can receive the same event at once; the primary key decides who processes it.
+  const claimed=await db.query(`insert into domain_provider_webhook_events(event_id,provider,event_type,hostname,organization_domain_id,payload) values($1,'dodomain',$2,$3,$4,$5::jsonb) on conflict (event_id) do nothing returning event_id`,[eventId,eventType,hostname,domain?.id||null,rawBody]);
+  if(!claimed.rowCount)return{duplicate:true,eventId,eventType};
   if(!domain){
     await db.query(`update domain_provider_webhook_events set processing_status='ignored',processed_at=now() where event_id=$1`,[eventId]);
     return{ignored:true,eventId,eventType,reason:"No BandWagon custom domain matched"};

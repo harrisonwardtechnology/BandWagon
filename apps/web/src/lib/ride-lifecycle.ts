@@ -1,5 +1,5 @@
 import { getDb } from "@/lib/db";
-import { routeNotification } from "@/lib/notification-router";
+import { queueNotification } from "@/lib/notification-queue";
 import {
   assertRideTransition,
   canActorTransitionRide,
@@ -73,13 +73,13 @@ export async function transitionRide(input:{rideId:string;actorPersonId:string;t
     await client.query('COMMIT');
 
     if(input.toStatus==='driver_en_route'||input.toStatus==='arrived'){
-      await routeNotification({notificationType:'driver_arriving',title:'Driver update',body:input.toStatus==='driver_en_route'?'Your driver is on the way.':'Your driver has arrived.',personId:ride.requester_person_id,organizationId:ride.organization_id,url:`/rides/${ride.public_ref}`}).catch(()=>{});
+      await queueNotification({notificationType:'driver_arriving',title:'Driver update',body:input.toStatus==='driver_en_route'?'Your driver is on the way.':'Your driver has arrived.',personId:ride.requester_person_id,organizationId:ride.organization_id,url:`/rides/${ride.public_ref}`}).catch(()=>{});
     }else if(input.toStatus==='cancelled'){
       const unique=new Map<string,any>();for(const n of notifications)if(n.personId)unique.set(n.personId,n);
-      await Promise.allSettled(Array.from(unique.values()).map(n=>routeNotification({notificationType:'last_minute_cancellation',title:n.requestStatus==='open'?'Ride cancelled - request reopened':'Ride cancelled',body:n.requestStatus==='open'?'This carpool was cancelled. Your ride request has been reopened so another driver can help.':'Your BandWagon ride was cancelled.',personId:n.personId,organizationId:ride.organization_id,url:'/app/rides'})));
-      if(!actorIsDriver)await routeNotification({notificationType:'last_minute_cancellation',title:'Ride cancelled by rider',body:'The primary rider cancelled this carpool. Other affected ride requests were reopened.',personId:ride.driver_person_id,organizationId:ride.organization_id,url:'/app/driver'}).catch(()=>{});
+      await Promise.allSettled(Array.from(unique.values()).map(n=>queueNotification({notificationType:'last_minute_cancellation',title:n.requestStatus==='open'?'Ride cancelled - request reopened':'Ride cancelled',body:n.requestStatus==='open'?'This carpool was cancelled. Your ride request has been reopened so another driver can help.':'Your BandWagon ride was cancelled.',personId:n.personId,organizationId:ride.organization_id,url:'/app/rides'})));
+      if(!actorIsDriver)await queueNotification({notificationType:'last_minute_cancellation',title:'Ride cancelled by rider',body:'The primary rider cancelled this carpool. Other affected ride requests were reopened.',personId:ride.driver_person_id,organizationId:ride.organization_id,url:'/app/driver'}).catch(()=>{});
     }else if(input.toStatus==='no_show'&&notifications[0]?.personId){
-      await routeNotification({notificationType:'ride_no_show',title:'Ride marked no-show',body:'The driver marked this ride as a no-show. No rating or punitive score is applied automatically.',personId:notifications[0].personId,organizationId:ride.organization_id,url:'/app/rides'}).catch(()=>{});
+      await queueNotification({notificationType:'ride_no_show',title:'Ride marked no-show',body:'The driver marked this ride as a no-show. No rating or punitive score is applied automatically.',personId:notifications[0].personId,organizationId:ride.organization_id,url:'/app/rides'}).catch(()=>{});
     }
     return result.rows[0];
   }catch(error){await client.query('ROLLBACK').catch(()=>{});throw error;}finally{client.release();}

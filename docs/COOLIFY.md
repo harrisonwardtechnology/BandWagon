@@ -26,14 +26,16 @@
 
 - Mark secret environment variables as secret/sensitive where supported.
 - Do not expose PostgreSQL or Redis publicly.
-- Use Coolify health checks against `/health/live` and `/health/ready`.
+- Use Coolify health checks against `/api/health/live` and `/api/health/ready`.
+- For multiple web/worker instances, see [operations/HIGH-AVAILABILITY.md](operations/HIGH-AVAILABILITY.md).
 - Back up persistent PostgreSQL volumes and test restoration.
 - Restrict preview/development deployments from using production Twilio/SMTP credentials.
 
 ## Health Endpoints
 
-- `/health/live` - process is running.
-- `/health/ready` - database, queue and required configuration are available.
+- `/api/health/live` - process is running.
+- `/api/health/ready` - database, encryption key, and (if `HEALTH_REQUIRE_REDIS=true`) Redis are available. Reports the instance's `APP_ROLE`.
+- `/api/health/deep` - integrations, scheduled jobs, workers and the job queue; 503 when anything has failed.
 - `/admin/config-health` - authenticated Platform Admin page showing status only, never secret values.
 
 Example safe health display:
