@@ -3,6 +3,7 @@
 import { useState } from "react";
 import TurnstileWidget from "@/components/turnstile-widget";
 import PhoneNumberInput from "@/components/phone-number-input";
+import { SMS_CONSENT_TEXT } from "@/lib/sms-consent-policy";
 
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const [contactMethod,setContactMethod] = useState<"email"|"phone">("email");
   const [email,setEmail] = useState("");
   const [phone,setPhone] = useState("");
+  const [smsConsent,setSmsConsent] = useState(false);
   const [displayName,setDisplayName] = useState("");
   const [householdName,setHouseholdName] = useState("");
   const [birthMonth,setBirthMonth] = useState("");
@@ -45,7 +47,7 @@ export default function LoginPage() {
     setWorking(true); setMessage("");
     const r = await fetch("/api/auth/otp", {
       method:"POST", headers:{"content-type":"application/json"},
-      body:JSON.stringify({ action:"verify",challengeId,code })
+      body:JSON.stringify({ action:"verify",challengeId,code,smsConsent:contactMethod==="phone"&&smsConsent })
     });
     const d = await r.json().catch(()=>({}));
     setWorking(false);
@@ -80,6 +82,10 @@ export default function LoginPage() {
         </> : <>
           <label htmlFor="login-phone" style={{display:"block",fontWeight:700,marginBottom:7}}>Mobile number</label>
           <PhoneNumberInput id="login-phone" value={phone} onChange={setPhone} required />
+          <label style={{display:"flex",gap:10,alignItems:"flex-start",margin:"12px 0 16px",fontSize:13,lineHeight:1.5,color:"#334155"}}>
+            <input type="checkbox" checked={smsConsent} onChange={e=>setSmsConsent(e.target.checked)} style={{marginTop:3,flex:"0 0 auto"}} />
+            <span>{SMS_CONSENT_TEXT} <span style={{color:"#64748b"}}>Optional. Your sign-in code is sent either way. See our <a href="/privacy">Privacy Policy</a> and <a href="/sms-opt-in">Messaging and SMS Consent</a>.</span></span>
+          </label>
         </>}
         {mode==="create_account" && <div style={{padding:16,background:"#f8fafc",borderRadius:14,marginBottom:16}}>
           <div style={{fontWeight:800,marginBottom:10}}>Create your BandWagon account</div>

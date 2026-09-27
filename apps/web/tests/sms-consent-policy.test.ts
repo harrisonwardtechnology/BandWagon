@@ -1,0 +1,64 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+import { classifyInboundConsent, mobileSendDecision, SMS_CONSENT_TEXT } from "../src/lib/sms-consent-policy.ts";
+
+test("Twilio Advanced Opt-Out type wins when present", () => {
+  assert.equal(classifyInboundConsent({ optOutType: "STOP", body: "hello" }), "opt_out");
+  assert.equal(classifyInboundConsent({ optOutType: "start", body: "" }), "opt_in");
+  assert.equal(classifyInboundConsent({ optOutType: "HELP", body: "STOP" }), null);
+});
+
+test("Keyword fallback catches STOP when Advanced Opt-Out is not configured", () => {
+  for (const body of ["STOP", "stop", " Stop. ", "unsubscribe", "CANCEL", "end", "quit", "STOPALL"]) {
+    assert.equal(classifyInboundConsent({ body }), "opt_out", body);
+  }
+  for (const body of ["START", "yes", "unstop"]) {
+    assert.equal(classifyInboundConsent({ body }), "opt_in", body);
+  }
+  assert.equal(classifyInboundConsent({ body: "please stop by at 5" }), null);
+  assert.equal(classifyInboundConsent({ body: "CONFIRM ABC123" }), null);
+});
+
+test("Ride texts need an affirmative opt-in; verifying a number is not enough", () => {
+  assert.deepEqual(mobileSendDecision({ notificationType: "ride_matched", phoneState: "opted_in" }), { allowed: true });
+  assert.equal(mobileSendDecision({ notificationType: "ride_matched", phoneState: "not_configured" }).allowed, false);
+  assert.equal(mobileSendDecision({ notificationType: "ride_matched", phoneState: null }).allowed, false);
+});
+
+test("A carrier-level STOP blocks everything, including codes", () => {
+  assert.equal(mobileSendDecision({ notificationType: "otp", registryState: "opted_out" }).allowed, false);
+  assert.equal(mobileSendDecision({ notificationType: "ride_matched", phoneState: "opted_in", registryState: "opted_out" }).allowed, false);
+  assert.equal(mobileSendDecision({ notificationType: "otp", phoneState: "opted_out" }).allowed, false);
+});
+
+test("Requested verification codes do not need ride-text consent", () => {
+  assert.deepEqual(mobileSendDecision({ notificationType: "otp", phoneState: null, registryState: null }), { allowed: true });
+});
+
+test("Consent text carries the carrier-required disclosures", () => {
+  assert.match(SMS_CONSENT_TEXT, /Message frequency varies/);
+  assert.match(SMS_CONSENT_TEXT, /Message and data rates may apply/);
+  assert.match(SMS_CONSENT_TEXT, /Reply STOP to opt out/);
+  assert.match(SMS_CONSENT_TEXT, /HELP/);
+});
+
+test("Signup checkbox is unchecked by default and shares the public consent text", async () => {
+  const login = await readFile(new URL("../src/app/login/page.tsx", import.meta.url), "utf8");
+  assert.match(login, /useState\(false\)[\s\S]*SMS_CONSENT_TEXT/);
+  assert.match(login, /smsConsent:contactMethod==="phone"&&smsConsent/);
+  const publicPage = await readFile(new URL("../src/app/sms-opt-in/page.tsx", import.meta.url), "utf8");
+  assert.match(publicPage, /\{SMS_CONSENT_TEXT\}/);
+});
+
+test("Inbound webhook records consent before the dedupe marker and fails loudly", async () => {
+  const route = await readFile(new URL("../src/app/api/webhooks/twilio/inbound/route.ts", import.meta.url), "utf8");
+  assert.ok(route.indexOf("recordSmsConsent(") < route.indexOf("markOnce("), "consent must be written before markOnce");
+  assert.match(route, /status: 500/);
+});
+
+test("Send path no longer skips consent when LOOKUP_HASH_KEY is unset", async () => {
+  const send = await readFile(new URL("../src/lib/twilio-send.ts", import.meta.url), "utf8");
+  assert.doesNotMatch(send, /if \(process\.env\.LOOKUP_HASH_KEY\)/);
+  assert.match(send, /sms_opt_outs/);
+});

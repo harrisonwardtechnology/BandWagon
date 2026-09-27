@@ -14,6 +14,9 @@ export default function NotificationsPage() {
   const [permission,setPermission]=useState<NotificationPermission|undefined>(undefined);
   const [subscribed,setSubscribed]=useState(false);
   const [message,setMessage]=useState("");
+  const [sms,setSms]=useState<{hasPhone:boolean;optedIn:boolean;optedOut:boolean;consentText:string}|null>(null);
+  const [smsChecked,setSmsChecked]=useState(false);
+  const [smsMessage,setSmsMessage]=useState("");
 
   useEffect(()=>{
     const ok="serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
@@ -23,6 +26,19 @@ export default function NotificationsPage() {
       navigator.serviceWorker.getRegistration().then(reg=>reg?.pushManager.getSubscription()).then(sub=>setSubscribed(Boolean(sub)));
     }
   },[]);
+
+  useEffect(()=>{
+    fetch("/api/sms-consent").then(r=>r.ok?r.json():null).then(d=>{if(d?.ok){setSms(d);setSmsChecked(Boolean(d.optedIn));}}).catch(()=>{});
+  },[]);
+
+  async function saveSms(){
+    setSmsMessage("");
+    const r=await fetch("/api/sms-consent",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({optIn:smsChecked})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)return setSmsMessage(d.error||"Unable to save text message settings");
+    setSms(s=>s?{...s,...d}:s);setSmsChecked(Boolean(d.optedIn));
+    setSmsMessage(d.optedIn?"Text messages are on.":"Text messages are off.");
+  }
 
   async function enable(){
     setMessage("");
@@ -105,5 +121,20 @@ export default function NotificationsPage() {
         On iPhone/iPad, web push requires iOS/iPadOS 16.4 or later and BandWagon must be installed on the Home Screen as a web app.
       </p>
     </section>
+
+    {sms&&<section style={{marginTop:22,padding:24,border:"1px solid #dbe3ef",borderRadius:18}}>
+      <h2 style={{marginTop:0}}>Text messages</h2>
+      {!sms.hasPhone
+        ? <p style={{color:"#475569"}}>Add and verify a mobile number on your account to get ride texts.</p>
+        : <>
+          <label style={{display:"flex",gap:10,alignItems:"flex-start",lineHeight:1.5}}>
+            <input type="checkbox" checked={smsChecked} onChange={e=>setSmsChecked(e.target.checked)} style={{marginTop:4,flex:"0 0 auto"}}/>
+            <span>{sms.consentText}</span>
+          </label>
+          <p style={{fontSize:14,color:"#64748b"}}>Optional. You can use BandWagon without text messages. See our <a href="/privacy">Privacy Policy</a>.</p>
+          <button onClick={saveSms} disabled={smsChecked===sms.optedIn} style={{padding:"12px 18px"}}>Save text message setting</button>
+        </>}
+      {smsMessage&&<p style={{marginTop:16,padding:14,background:"#f8fafc",borderRadius:10}}>{smsMessage}</p>}
+    </section>}
   </main>;
 }

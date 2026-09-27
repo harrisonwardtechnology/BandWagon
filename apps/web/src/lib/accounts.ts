@@ -124,12 +124,12 @@ export async function upsertVerifiedPhone(personId: string, phoneValue: string) 
   const hash = lookupHash(e164);
   const result = await db.query(
     `insert into phones (person_id,e164_ciphertext,lookup_hash,verified_at,visibility,messaging_consent_status)
-     values ($1,$2,$3,now(),'hidden','opted_in')
+     values ($1,$2,$3,now(),'hidden','not_configured')
      on conflict (lookup_hash) do update set
        person_id=excluded.person_id,
        e164_ciphertext=excluded.e164_ciphertext,
-       verified_at=now(),
-       messaging_consent_status=case when phones.messaging_consent_status='opted_out' then 'opted_out' else 'opted_in' end
+       verified_at=now()
+       -- An admin adding a number cannot consent for the person; existing consent is kept as-is.
      returning *`,
     [personId, encrypted, hash]
   );
@@ -140,7 +140,10 @@ export async function getVerifiedPhone(personId: string) {
   const db = getDb();
   if (!db) return null;
   const result = await db.query(
-    `select e164_ciphertext from phones where person_id=$1 and verified_at is not null and messaging_consent_status<>'opted_out' order by verified_at desc limit 1`,
+    `select p.e164_ciphertext from phones p
+      where p.person_id=$1 and p.verified_at is not null and p.messaging_consent_status='opted_in'
+        and not exists(select 1 from sms_opt_outs r where r.lookup_hash=p.lookup_hash and r.state='opted_out')
+      order by p.verified_at desc limit 1`,
     [personId]
   );
   if (!result.rowCount) return null;

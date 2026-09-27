@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SMS_CONSENT_TEXT } from "@/lib/sms-consent-policy";
 
 export const metadata = {
   title: "SMS Opt-In | BandWagon",
@@ -31,7 +32,7 @@ export default function SmsOptInPage() {
 
           <label className="consent-row">
             <input type="checkbox" />
-            <span>I agree to receive transactional SMS messages from BandWagon, a Harrison Ward Technology product, about ride requests, ride offers, confirmations, schedule changes, reminders, account activity, pickup/drop-off status, cancellations, and ride coordination. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help.</span>
+            <span>{SMS_CONSENT_TEXT}</span>
           </label>
 
           <p className="fine-print">SMS consent is optional and is not required to create or use a BandWagon account. The checkbox above is intentionally unchecked by default.</p>
