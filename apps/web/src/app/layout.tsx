@@ -8,6 +8,7 @@ import { PublicSiteHeader } from "@/components/public-site-header";
 import PrivacyConsentManager, { PrivacyPreferencesButton } from "@/components/privacy-consent-manager";
 import { StagingBanner } from "@/components/staging-banner";
 import { platformOrigin } from "@/lib/platform-hosts";
+import ClientErrorReporter from "@/components/client-error-reporter";
 
 export const viewport: Viewport = {
   themeColor: "#071a33",
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <StagingBanner />
         <PrivacyConsentManager />
         <PwaRegister />
+        <ClientErrorReporter />
         <OfflineStatus />
         <SupportModeBanner />
         <PublicSiteHeader />

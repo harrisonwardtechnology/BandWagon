@@ -1,5 +1,6 @@
 import { getDb } from "@/lib/db";
 import { recordHeartbeat } from "@/lib/platform-health";
+import { reportErrorToGlitchTip } from "@/lib/glitchtip";
 
 type CronResult = Record<string, unknown> | unknown;
 
@@ -73,6 +74,7 @@ async function runCronUnlocked<T extends CronResult>(input: {
     return result;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Scheduled job failed";
+    reportErrorToGlitchTip(error, { source: "scheduled-task", route: `scheduled:${input.key}`, tags: { task: input.key } });
     await recordHeartbeat({
       key: input.key,
       type: "cron",

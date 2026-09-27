@@ -3,6 +3,7 @@ import os from "node:os";
 import { claimJobs, completeJob, enqueueJob, extendLeases, failJob, releaseJobs, type BackgroundJob } from "@/lib/jobs";
 import { parseDisabledTasks, scheduleSlot } from "@/lib/job-policy";
 import { recordHeartbeat } from "@/lib/platform-health";
+import { reportErrorToGlitchTip } from "@/lib/glitchtip";
 import { SCHEDULED_TASKS, runScheduledTask, scheduledJobKind } from "@/lib/scheduled-tasks";
 
 // One worker loop per process. Started from instrumentation.ts when
@@ -43,6 +44,8 @@ async function runJob(state: WorkerState, job: BackgroundJob) {
     log("job.succeeded", { jobId: job.id, kind: job.kind, attempt: job.attempts, ms: Date.now() - started });
   } catch (error) {
     const { dead } = await failJob(job, state.id, error).catch(() => ({ dead: false }));
+    // Scheduled tasks already report their own failures; report dead jobs of every other kind.
+    if (dead && !job.kind.startsWith("scheduled:")) reportErrorToGlitchTip(error, { source: "worker", route: `job:${job.kind}`, tags: { job_kind: job.kind, attempts: job.attempts } });
     log(dead ? "job.dead" : "job.retry", { jobId: job.id, kind: job.kind, attempt: job.attempts, error: error instanceof Error ? error.message : String(error) });
   }
 }
