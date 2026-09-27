@@ -170,7 +170,8 @@ test("setup checklist math counts automatic and allowed manual items", () => {
   const all = computeSetupProgress(Object.fromEntries(SETUP_CHECKLIST.map(i => [i.key, true])), []);
   assert.equal(all.allDone, true);
   assert.equal(all.percent, 100);
-  assert.equal(isManualSetupItem("branding"), true);
+  assert.equal(isManualSetupItem("branding"), false, "branding is detected from saved branding");
+  assert.equal(isManualSetupItem("notifications"), true);
   assert.equal(isManualSetupItem("policies"), false);
   assert.equal(isManualSetupItem("nope"), false);
 });

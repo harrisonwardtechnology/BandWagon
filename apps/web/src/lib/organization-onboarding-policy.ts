@@ -172,7 +172,7 @@ export function reviewDecisionError(input: { decision: string; status: string; n
 // ---- New organization setup checklist ----
 
 export const SETUP_CHECKLIST = [
-  { key: "branding", label: "Set your branding", description: "Logo, colors, and welcome text.", href: "/help", manual: true },
+  { key: "branding", label: "Set your branding", description: "Name, logo, colors, and welcome text.", href: "/admin/branding", manual: false },
   { key: "join_code", label: "Create and share a join code", description: "Families use it to join your community.", href: "/admin/setup#join-code", manual: false },
   { key: "driver_requirements", label: "Set driver requirements", description: "Minimum age, license, insurance, and approval rules.", href: "/admin/driver-requirements", manual: true },
   { key: "policies", label: "Accept organization policies", description: "An owner accepts the current terms for the group.", href: "/admin/organization-policies", manual: false },

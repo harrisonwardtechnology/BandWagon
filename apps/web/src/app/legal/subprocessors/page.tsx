@@ -81,8 +81,10 @@ const vendors: Vendor[] = [
     always: false,
   },
   {
-    name: "Configured AI model providers (currently OpenAI), through our self-hosted LiteLLM gateway",
-    purpose: "Optional help with admin tasks, such as turning event details into calendar entries or reading an insurance card image for review.",
+    // LiteLLM uses its default routing, so the model provider can change.
+    // TODO before final: name the providers the gateway is allowed to route to.
+    name: "AI model providers, through our self-hosted LiteLLM gateway",
+    purpose: "Optional help with admin tasks, such as turning event details into calendar entries or reading an insurance card image for review. The gateway routes each request to one of the model providers we have approved, so the provider can vary. We update this list before approving a new provider.",
     data: "Only the text or image needed for the task the organization turned on.",
     when: "Only if the organization turns on the specific AI feature. Matching, eligibility, and safety rules never use AI.",
     always: false,

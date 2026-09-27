@@ -18,7 +18,8 @@ export async function getSetupChecklist(identity: SessionIdentity, organizationI
     db.query(`select id,coalesce(display_name,name) as name,slug,tenant_hostname,created_at from organizations where id=$1`, [organizationId]),
     db.query(
       `select
-         (select branding<>'{}'::jsonb from organizations where id=$1) as branding,
+         ((select branding<>'{}'::jsonb from organizations where id=$1)
+           or exists(select 1 from audit_events where organization_id=$1 and action='organization.branding_updated')) as branding,
          exists(select 1 from organization_join_codes where organization_id=$1 and status='active') as join_code,
          exists(select 1 from organization_driver_requirements where organization_id=$1 and updated_at>created_at+interval '1 second') as driver_requirements,
          exists(select 1 from organization_policy_acknowledgements where organization_id=$1 and terms_version=$2 and privacy_version=$3) as policies,
