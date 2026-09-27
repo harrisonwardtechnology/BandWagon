@@ -1,3 +1,4 @@
+import { parseGlitchTipDsn } from "@/lib/glitchtip-policy";
 import { checkRedis } from "@/lib/redis";
 import { getDb } from "@/lib/db";
 
@@ -38,6 +39,9 @@ export async function getPlatformHealth(){
  const workerAlive=workerAgeSeconds!==null&&workerAgeSeconds<=180;const queueMode=String(process.env.NOTIFICATION_DELIVERY||'').toLowerCase()==='queue';
  const redisCheck:any=await Promise.race([checkRedis(),new Promise(r=>setTimeout(()=>r({configured:true,ok:false,error:'Redis did not answer within 2s'}),2000))]);
  const redisIntegration={key:'redis',label:'Redis (rate limits, webhook dedupe)',type:'service',configured:Boolean(redisCheck.configured),status:!redisCheck.configured?'degraded':redisCheck.ok?'healthy':'failed',detail:!redisCheck.configured?'REDIS_URL is not set; rate limits and webhook dedupe are off':redisCheck.ok?'Reachable':(redisCheck.error||'Unreachable'),troubleshoot:'/admin/health'};
+ const glitchTipDsn=parseGlitchTipDsn(process.env.GLITCHTIP_DSN);
+ const glitchTipReachable=glitchTipDsn?await fetch(`https://${glitchTipDsn.host}/_health/`,{signal:AbortSignal.timeout(2000),cache:'no-store'}).then(r=>r.ok).catch(()=>false):false;
+ const glitchTipIntegration={key:'glitchtip',label:'GlitchTip Error Tracking',type:'service',configured:Boolean(glitchTipDsn),status:!process.env.GLITCHTIP_DSN?'degraded':!glitchTipDsn?'failed':glitchTipReachable?'healthy':'degraded',detail:!process.env.GLITCHTIP_DSN?'GLITCHTIP_DSN is not set; errors are only stored locally':!glitchTipDsn?'GLITCHTIP_DSN is not a valid DSN':glitchTipReachable?`Sending to ${glitchTipDsn.host} (project ${glitchTipDsn.projectId})`:`${glitchTipDsn.host} did not answer its health check`,troubleshoot:'/admin/health'};
  const jobQueueIntegration={key:'job_queue',label:'Workers & Job Queue',type:'service',configured:Boolean(queue),status:!queue?'unknown':(!workerAlive&&(queueMode||Number(queue.ready)>0))?'failed':(Number(queue.oldest_ready_seconds)>120||Number(queue.dead24h)>0)?'degraded':'healthy',detail:!queue?'Job queue table missing (run migrations)':`${workerAlive?'Workers alive':'No live worker'}${workerAgeSeconds!==null?` (last beat ${workerAgeSeconds}s ago)`:''}; ${queue.ready} ready, ${queue.running} running, oldest ${queue.oldest_ready_seconds}s, ${queue.dead24h} dead / 24h`,lastSuccess:workerRow?.last_succeeded_at?new Date(workerRow.last_succeeded_at).toISOString():null,troubleshoot:'/admin/health'};
  const integrations=[
   {key:'database',label:'PostgreSQL',type:'database',configured:true,status:dbOk?(dbLatencyMs>750?'degraded':'healthy'):'failed',detail:dbOk?`${dbLatencyMs} ms query latency`:dbError,lastSuccess:new Date().toISOString(),troubleshoot:'/admin/platform-health'},
@@ -49,6 +53,7 @@ export async function getPlatformHealth(){
   {key:'push',label:'Web Push',type:'service',configured:envAny('NEXT_PUBLIC_VAPID_PUBLIC_KEY')&&envAny('VAPID_PRIVATE_KEY'),status:envAny('NEXT_PUBLIC_VAPID_PUBLIC_KEY')&&envAny('VAPID_PRIVATE_KEY')?'healthy':'failed',detail:envAny('NEXT_PUBLIC_VAPID_PUBLIC_KEY')?'VAPID keys present':'VAPID keys missing',troubleshoot:'/admin/push'}
   ,jobQueueIntegration
   ,redisIntegration
+  ,glitchTipIntegration
   ,{key:'application_errors',label:'Application Errors',type:'service',configured:envAny('ERROR_MONITOR_INGEST_SECRET'),status:status(envAny('ERROR_MONITOR_INGEST_SECRET'),Number(applicationErrorSummary.rows[0]?.count||0)),detail:envAny('ERROR_MONITOR_INGEST_SECRET')?`${Number(applicationErrorSummary.rows[0]?.count||0)} open fingerprints, ${Number(applicationErrorSummary.rows[0]?.occurrences||0)} occurrences / 24h`:'ERROR_MONITOR_INGEST_SECRET is missing',troubleshoot:'/admin/health'}
  ];
  const cronDefinitions=[

@@ -1,10 +1,13 @@
 import crypto from "node:crypto";
 import { getDb } from "@/lib/db";
 import { redactApplicationErrorText } from "@/lib/error-monitoring-policy";
+import { reportErrorToGlitchTip } from "@/lib/glitchtip";
 
 export async function recordApplicationError(error:unknown,input:{routePath?:string|null;method?:string|null;routerKind?:string|null;routeType?:string|null;metadata?:Record<string,unknown>}={}){
-  const db=getDb();if(!db)return;
   const source=error instanceof Error?error:new Error(typeof error==="string"?error:"Unknown application error");
+  // Also send to GlitchTip when configured (redacted there too; never blocks).
+  reportErrorToGlitchTip(source,{source:"server",route:input.routePath||null,method:input.method||null,tags:{router:input.routerKind||null,route_type:input.routeType||null}});
+  const db=getDb();if(!db)return;
   const routePath=redactApplicationErrorText(String(input.routePath||"unknown")).slice(0,500);
   const name=String(source.name||"Error").slice(0,120);
   const message=redactApplicationErrorText(String(source.message||"Application error")).slice(0,1000);

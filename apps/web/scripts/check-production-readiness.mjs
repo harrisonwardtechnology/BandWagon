@@ -119,6 +119,13 @@ for (const name of ["NEXT_PUBLIC_HELP_DESK_URL", "NEXT_PUBLIC_STATUS_PAGE_URL"])
   else warnings.push(`${name} is not set; ${name === "NEXT_PUBLIC_HELP_DESK_URL" ? "support links fall back to email" : "/status shows only the live check"}.`);
 }
 
+// Error tracking (GlitchTip, Sentry-compatible). Optional but recommended.
+if (value("GLITCHTIP_DSN")) {
+  if (!/^https:\/\/[^@\s]+@[^/\s]+\/(?:[^\s]*\/)?\d+$/.test(value("GLITCHTIP_DSN"))) failures.push("GLITCHTIP_DSN must look like https://<key>@<glitchtip host>/<project id>");
+} else {
+  warnings.push("GLITCHTIP_DSN is not set; errors are only stored in the local application_errors table.");
+}
+
 // Domain settings. Defaults are bandwagon.club (platform + tenants).
 for (const host of value("PLATFORM_HOSTNAMES").split(",").map((h) => h.trim()).filter(Boolean)) {
   if (!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(host)) failures.push(`PLATFORM_HOSTNAMES: invalid hostname "${host}"`);

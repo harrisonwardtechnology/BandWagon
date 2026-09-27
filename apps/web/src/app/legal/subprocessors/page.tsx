@@ -125,7 +125,7 @@ export default function SubprocessorsPage() {
         </p>
         <p>
           Some tools we run ourselves on our own servers, so no outside company receives data through them. These include our deployment platform (Coolify), our status monitoring (Uptime Kuma),
-          our error monitoring, and our AI gateway (LiteLLM).
+          our error monitoring (the local error log and a self-hosted GlitchTip), and our AI gateway (LiteLLM).
         </p>
 
         <h2>Current list</h2>

@@ -23,6 +23,11 @@ export const envSchema = z.object({
   NEXT_PUBLIC_HELP_DESK_URL: z.string().url().optional().or(z.literal("")), // e.g. https://help.harrisonward.net
   NEXT_PUBLIC_STATUS_PAGE_URL: z.string().url().optional().or(z.literal("")),
   NEXT_PUBLIC_ENVIRONMENT: z.enum(["production", "staging", "development"]).default("production"),
+  // Error tracking. GlitchTip is Sentry-compatible; paste the project's DSN.
+  GLITCHTIP_DSN: z.string().optional(), // e.g. https://<key>@glitchtip.bandwagon.club/1
+  GLITCHTIP_ENVIRONMENT: z.string().optional(), // defaults to NEXT_PUBLIC_ENVIRONMENT or NODE_ENV
+  GLITCHTIP_RELEASE: z.string().optional(), // defaults to Coolify's SOURCE_COMMIT
+  GLITCHTIP_MAX_EVENTS_PER_MINUTE: z.coerce.number().int().positive().default(60), // per process
   // Staging safety. Staging forces the sandbox on even if this is false.
   MESSAGING_SANDBOX: bool.default(false),
   SANDBOX_ALLOWED_PHONES: z.string().optional(), // comma list of E.164 numbers
