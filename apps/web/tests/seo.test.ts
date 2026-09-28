@@ -147,3 +147,10 @@ test("layout has no site-wide canonical and no open-source claim", () => {
   }
   assert.ok(fs.existsSync("public/llms.txt"));
 });
+
+test("responses send HSTS and cache icons and brand files for a week", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const cfg = await readFile(new URL("../next.config.ts", import.meta.url), "utf8");
+  assert.match(cfg, /Strict-Transport-Security", value: "max-age=31536000; includeSubDomains"/);
+  assert.match(cfg, /\/:dir\(icons\|brand\)\/:path\*/);
+});
