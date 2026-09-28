@@ -28,9 +28,11 @@ export function helpDeskUrl() {
   return safePublicUrl(process.env.NEXT_PUBLIC_HELP_DESK_URL);
 }
 
-/** Public status page (for example an Uptime Kuma status page). Null when not configured. */
+export const STATUS_PAGE_FALLBACK = "https://status.bandwagon.club/";
+
+/** Public status page (Uptime Kuma). Falls back to status.bandwagon.club when not configured. */
 export function statusPageUrl() {
-  return safePublicUrl(process.env.NEXT_PUBLIC_STATUS_PAGE_URL) || safePublicUrl(process.env.NEXT_PUBLIC_STATUS_URL);
+  return safePublicUrl(process.env.NEXT_PUBLIC_STATUS_PAGE_URL) || safePublicUrl(process.env.NEXT_PUBLIC_STATUS_URL) || STATUS_PAGE_FALLBACK;
 }
 
 export function publicEnvironment() {

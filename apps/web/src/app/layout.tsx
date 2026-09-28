@@ -92,6 +92,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <a href="/help" style={linkStyle}>Help Center</a>
               <a href="/api/review-package" style={linkStyle}>Review Package</a>
               <a href="/status" style={linkStyle}>Platform Status</a>
+              <a href="https://status.bandwagon.club/" target="_blank" rel="noreferrer" style={linkStyle}>Status Page</a>
               <a href="/security" style={linkStyle}>Security / Report a Bug</a>
               <a href="/support" style={linkStyle}>Support BandWagon</a>
               <a href="/privacy" style={linkStyle}>Privacy</a>

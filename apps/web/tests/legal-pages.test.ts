@@ -80,3 +80,12 @@ test("status and help desk links come from env and are optional", () => {
   const contact = fs.readFileSync("src/components/support-contact.tsx", "utf8");
   assert.match(contact, /mailto:/, "email stays as the fallback");
 });
+
+test("the public status page link always resolves to status.bandwagon.club by default", async () => {
+  const { statusPageUrl } = await import("../src/lib/public-links.ts");
+  const saved = { a: process.env.NEXT_PUBLIC_STATUS_PAGE_URL, b: process.env.NEXT_PUBLIC_STATUS_URL };
+  delete process.env.NEXT_PUBLIC_STATUS_PAGE_URL; delete process.env.NEXT_PUBLIC_STATUS_URL;
+  assert.equal(statusPageUrl(), "https://status.bandwagon.club/");
+  if (saved.a !== undefined) process.env.NEXT_PUBLIC_STATUS_PAGE_URL = saved.a;
+  if (saved.b !== undefined) process.env.NEXT_PUBLIC_STATUS_URL = saved.b;
+});
