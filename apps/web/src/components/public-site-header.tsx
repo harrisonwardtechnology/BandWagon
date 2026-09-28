@@ -8,6 +8,7 @@ const links = [
   ["Home", "/"],
   ["Help", "/help"],
   ["Demo", "https://demo.bandwagon.club/"],
+  ["Status", "https://status.bandwagon.club/"],
   ["Review package", "/api/review-package"],
   ["Support", "/support"],
 ] as const;
