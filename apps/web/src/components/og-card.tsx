@@ -8,6 +8,8 @@ export const OG_ALT = `BandWagon: ${PRODUCT_TAGLINE}`;
 
 const NAVY = "#071a33";
 const GOLD = "#f5a800";
+// Route-to-the-show mark (same art as /bandwagon-icon.svg), inlined so the card renders offline.
+const MARK = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcm9sZT0iaW1nIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzA3MWEzMyIvPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI1NiAyNTYpIHNjYWxlKDEuMCkgdHJhbnNsYXRlKC0yNDMuNSAtMjYyLjUpIj48cGF0aCBkPSJNMTI2IDQwMiBDIDEyNiAzMDAsIDM5NiAzMzQsIDM4OCAyMzIgQyAzODIgMTY0LCAyMzIgMTk2LCAyMjIgMjA0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWRhc2hhcnJheT0iMCA0MCIvPjxjaXJjbGUgY3g9IjEyNiIgY3k9IjQwMiIgcj0iMzgiIGZpbGw9IiNmNWE4MDAiLz48Y2lyY2xlIGN4PSIxMjYiIGN5PSI0MDIiIHI9IjE0IiBmaWxsPSIjMDcxYTMzIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjQ2IDIwMCkgc2NhbGUoMS4yKSIgZmlsbD0iI2Y1YTgwMCI+PHJlY3QgeD0iMTAiIHk9Ii05NiIgd2lkdGg9IjE2IiBoZWlnaHQ9Ijk2IiByeD0iNCIvPjxwYXRoIGQ9Ik0yNiAtOTYgQzYyIC04NCwgODQgLTY2LCA3NiAtMzAgQzcwIC01MCwgNTAgLTYwLCAyNiAtNjQgWiIvPjxlbGxpcHNlIGN4PSIwIiBjeT0iMCIgcng9IjMwIiByeT0iMjIiIHRyYW5zZm9ybT0icm90YXRlKC0yMCkiLz48L2c+PC9nPjwvc3ZnPg==";
 
 export function renderOgCard() {
   return new ImageResponse(
@@ -26,7 +28,10 @@ export function renderOgCard() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <div style={{ width: 72, height: 72, borderRadius: 18, background: GOLD, display: "flex", alignItems: "center", justifyContent: "center", color: NAVY, fontSize: 48, fontWeight: 800 }}>B</div>
+          <div style={{ display: "flex", borderRadius: 20, border: `3px solid ${GOLD}`, overflow: "hidden" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={MARK} width={72} height={72} alt="" />
+          </div>
           <div style={{ fontSize: 30, fontWeight: 700, color: GOLD, letterSpacing: 2 }}>BANDWAGON.CLUB</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
