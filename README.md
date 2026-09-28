@@ -1,6 +1,6 @@
 # BandWagon
 
-![BandWagon — community-powered rides](apps/web/public/social/bandwagon-social.png)
+![BandWagon: Community-Powered Rides](apps/web/public/social/bandwagon-social.png)
 
 <p align="center">
   <strong>Community-powered rides for families, schools, teams, and local organizations.</strong><br>

@@ -1,7 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny-ps" viewBox="0 0 512 512">
 <title>BandWagon</title>
 <rect width="512" height="512" fill="#071a33"/>
-<circle cx="256" cy="256" r="206" fill="none" stroke="#f5a800" stroke-width="22"/>
-<path fill="#ffffff" d="M218.9 293.1Q218.9 313.8 204.4 325.9Q190 338 164.1 338H87.2V173H161.5Q186.7 173 200.9 184.5Q215.1 196 215.1 215.8Q215.1 230.4 207.5 240Q199.8 249.6 187.1 253.4Q201.5 256.4 210.2 267.6Q218.9 278.8 218.9 293.1ZM127.4 239.8H153.8Q163.6 239.8 168.9 235.4Q174.2 231.1 174.2 222.6Q174.2 214.1 168.9 209.7Q163.6 205.2 153.8 205.2H127.4ZM178.2 287.7Q178.2 279 172.4 274.1Q166.7 269.1 156.6 269.1H127.4V305.6H157Q167.2 305.6 172.7 301Q178.2 296.4 178.2 287.7Z"/>
-<path fill="#f5a800" d="M424.8 206.8 389.3 338H344.8L324.2 252.9L302.8 338H258.6L222.9 206.8H263.1L281.6 300.6L303.7 206.8H346.3L368.6 300.2L386.9 206.8Z"/>
+<circle cx="129.1" cy="406.7" r="11.9" fill="#ffffff"/>
+<circle cx="145.2" cy="367.7" r="11.9" fill="#ffffff"/>
+<circle cx="180.9" cy="343.9" r="11.9" fill="#ffffff"/>
+<circle cx="221.5" cy="329.0" r="11.9" fill="#ffffff"/>
+<circle cx="263.0" cy="317.6" r="11.9" fill="#ffffff"/>
+<circle cx="305.0" cy="306.7" r="11.9" fill="#ffffff"/>
+<circle cx="346.2" cy="293.8" r="11.9" fill="#ffffff"/>
+<circle cx="384.8" cy="274.7" r="11.9" fill="#ffffff"/>
+<circle cx="410.5" cy="241.2" r="11.9" fill="#ffffff"/>
+<circle cx="402.9" cy="200.3" r="11.9" fill="#ffffff"/>
+<circle cx="365.3" cy="180.7" r="11.9" fill="#ffffff"/>
+<circle cx="322.4" cy="177.2" r="11.9" fill="#ffffff"/>
+<circle cx="279.4" cy="181.0" r="11.9" fill="#ffffff"/>
+<circle cx="237.3" cy="190.6" r="11.9" fill="#ffffff"/>
+<circle cx="129.1" cy="406.7" r="41.0" fill="#f5a800"/><circle cx="129.1" cy="406.7" r="15.1" fill="#071a33"/>
+<rect x="271.7" y="64.1" width="20.7" height="124.4" rx="5.2" fill="#f5a800"/>
+<path fill="#f5a800" d="M292.4 64.1C339.1 79.6 367.6 103.0 357.2 149.6C349.4 123.7 323.5 110.7 292.4 105.6Z"/>
+<ellipse cx="258.7" cy="188.5" rx="38.9" ry="28.5" transform="rotate(-20 258.7 188.5)" fill="#f5a800"/>
 </svg>
