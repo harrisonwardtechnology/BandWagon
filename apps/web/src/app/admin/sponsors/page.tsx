@@ -62,7 +62,7 @@ export default function SponsorsAdmin() {
     </header>
 
     <section style={{ ...card, background: "#f8fafc" }}>
-      <strong>What sponsors get, and what they never get</strong>
+      <strong>What Sponsors Get, And What They Never Get</strong>
       <ul style={{ lineHeight: 1.6, marginBottom: 0 }}>
         <li>Recognition for adults: a logo and link on your public impact page (if you turn it on), and thanks in your own newsletters and meetings.</li>
         <li>Never any participant data: no names, contact details, ride history, schedules, or locations.</li>
@@ -74,29 +74,29 @@ export default function SponsorsAdmin() {
     <section style={card}>
       <label><strong>Organization</strong></label>
       <select value={org} onChange={e => void loadOrg(e.target.value)} style={field}>
-        <option value="">Choose an organization</option>
+        <option value="">Choose An Organization</option>
         {organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
       </select>
       {org && <a href={`/admin/sponsors/packet?organizationId=${encodeURIComponent(org)}`} style={{ ...button, display: "inline-block", textDecoration: "none" }}>Open Printable Sponsor Packet</a>}
     </section>
 
     {org && <section style={card}>
-      <h2 style={{ marginTop: 0 }}>{editing ? "Edit sponsor" : "Add a sponsor"}</h2>
-      <label><strong>Business name</strong></label>
+      <h2 style={{ marginTop: 0 }}>{editing ? "Edit Sponsor" : "Add A Sponsor"}</h2>
+      <label><strong>Business Name</strong></label>
       <input maxLength={120} value={form.sponsorName} onChange={e => setForm({ ...form, sponsorName: e.target.value })} style={field} />
-      <label><strong>Website (https only)</strong></label>
+      <label><strong>Website (HTTPS Only)</strong></label>
       <input maxLength={500} placeholder="https://example.com" value={form.sponsorWebsite} onChange={e => setForm({ ...form, sponsorWebsite: e.target.value })} style={field} />
-      <label><strong>Logo image address (https only)</strong></label>
+      <label><strong>Logo Image Address (HTTPS Only)</strong></label>
       <input maxLength={500} placeholder="https://example.com/logo.png" value={form.logoUrl} onChange={e => setForm({ ...form, logoUrl: e.target.value })} style={field} />
-      <label><strong>Recognition level</strong></label>
+      <label><strong>Recognition Level</strong></label>
       <input maxLength={40} list="sponsor-tiers" value={form.tierLabel} onChange={e => setForm({ ...form, tierLabel: e.target.value })} style={field} />
       <datalist id="sponsor-tiers"><option value="Gold" /><option value="Silver" /><option value="Bronze" /><option value="Community" /></datalist>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 12 }}>
-        <div><label><strong>Start date</strong></label><input type="date" value={form.startsAt} onChange={e => setForm({ ...form, startsAt: e.target.value })} style={field} /></div>
-        <div><label><strong>End date (optional)</strong></label><input type="date" value={form.endsAt} onChange={e => setForm({ ...form, endsAt: e.target.value })} style={field} /></div>
+        <div><label><strong>Start Date</strong></label><input type="date" value={form.startsAt} onChange={e => setForm({ ...form, startsAt: e.target.value })} style={field} /></div>
+        <div><label><strong>End Date (Optional)</strong></label><input type="date" value={form.endsAt} onChange={e => setForm({ ...form, endsAt: e.target.value })} style={field} /></div>
       </div>
-      <label style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 14 }}><input type="checkbox" checked={Boolean(form.publicDisplay)} onChange={e => setForm({ ...form, publicDisplay: e.target.checked })} /> Show publicly (on your public impact page, if it is turned on)</label>
-      <label><strong>Internal notes (admins only, never shown publicly)</strong></label>
+      <label style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 14 }}><input type="checkbox" checked={Boolean(form.publicDisplay)} onChange={e => setForm({ ...form, publicDisplay: e.target.checked })} /> Show Publicly <span style={{ color: "#64748b" }}>(on your public impact page, if it is turned on)</span></label>
+      <label><strong>Internal Notes (Admins Only, Never Shown Publicly)</strong></label>
       <textarea maxLength={2000} value={form.internalNotes} onChange={e => setForm({ ...form, internalNotes: e.target.value })} style={{ ...field, minHeight: 80 }} />
       <p style={{ color: "#64748b", fontSize: 13, marginTop: 0 }}>Do not put student or family information in sponsor notes.</p>
       <div style={{ display: "flex", gap: 10 }}>
@@ -121,7 +121,7 @@ export default function SponsorsAdmin() {
     </section>}
 
     {payments && <section style={card}>
-      <h2 style={{ marginTop: 0 }}>Sponsorship payments through BandWagon</h2>
+      <h2 style={{ marginTop: 0 }}>Sponsorship Payments Through BandWagon</h2>
       <p style={{ margin: "4px 0" }}>Paid all time: <strong>{money(payments.paidCents)}</strong> · Paid this calendar year: <strong>{money(payments.paidThisYearCents)}</strong></p>
       <p style={{ color: "#64748b", fontSize: 13 }}>Payments support BandWagon platform operations and are not tax-deductible charitable contributions.</p>
       {payments.contributions.length === 0 ? <p>No sponsorship payments yet.</p> : <div style={{ overflowX: "auto" }}><table style={{ width: "100%", borderCollapse: "collapse" }}>

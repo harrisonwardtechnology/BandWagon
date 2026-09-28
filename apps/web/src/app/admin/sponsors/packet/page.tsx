@@ -36,16 +36,16 @@ export default function SponsorPacket() {
     {message && <p style={{ padding: 14, background: "#f1f5f9", borderRadius: 12 }}>{message}</p>}
     {report && <>
       <div className="no-print" style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-        <button onClick={() => window.print()} style={{ padding: "10px 14px", border: 0, borderRadius: 9, background: "#101b33", color: "white", fontWeight: 800, cursor: "pointer" }}>Print or Save as PDF</button>
-        <a href="/admin/sponsors" style={{ padding: "10px 14px" }}>← Back to Sponsors</a>
+        <button onClick={() => window.print()} style={{ padding: "10px 14px", border: 0, borderRadius: 9, background: "#101b33", color: "white", fontWeight: 800, cursor: "pointer" }}>Print Or Save As PDF</button>
+        <a href="/admin/sponsors" style={{ padding: "10px 14px" }}>← Back To Sponsors</a>
       </div>
       <header style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
         <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1 }}>COMMUNITY SPONSORSHIP</div>
-        <h1 style={{ margin: "6px 0" }}>Help {report.organization.name} families get there together</h1>
+        <h1 style={{ margin: "6px 0" }}>Help {report.organization.name} Families Get There Together</h1>
         <p style={{ marginBottom: 0, opacity: .9, lineHeight: 1.55 }}>{report.organization.name} uses BandWagon, a free and privacy-first carpool tool, so families can share rides to rehearsals, games, and events. Local sponsors help keep it free.</p>
       </header>
 
-      <h2>Our impact so far</h2>
+      <h2>Our Impact So Far</h2>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 12 }}>
         {[
           ["Completed rides", "completedRides"],
@@ -58,7 +58,7 @@ export default function SponsorPacket() {
       </div>
       <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>Estimates are conservative: {report.settings.milesPerTrip} miles and {report.settings.minutesPerTrip} minutes per avoided car trip, and 400 grams of CO2 per vehicle mile (U.S. EPA). Counts under 5 are not shown.</p>
 
-      <h2>Ways to be recognized</h2>
+      <h2>Ways To Be Recognized</h2>
       <div style={{ display: "grid", gap: 10 }}>
         <div style={box}><strong>Gold</strong> · Logo and link at the top of our public impact page, thanks at parent and booster meetings, and a mention in our newsletter each term.</div>
         <div style={box}><strong>Silver</strong> · Logo and link on our public impact page and a mention in our newsletter.</div>
@@ -66,7 +66,7 @@ export default function SponsorPacket() {
       </div>
       <p style={{ fontSize: 13, color: "#475569" }}>Our organization sets the amount for each level. Payments support BandWagon platform operations and are not tax-deductible charitable contributions.</p>
 
-      <h2>Our promise to families</h2>
+      <h2>Our Promise To Families</h2>
       <div style={{ ...box, background: "#f8fafc" }}>
         <ul style={{ margin: 0, lineHeight: 1.6 }}>
           <li>Sponsors are thanked in front of adults only.</li>
@@ -77,7 +77,7 @@ export default function SponsorPacket() {
       </div>
 
       {sponsors.length > 0 && <>
-        <h2>Thank you to our current sponsors</h2>
+        <h2>Thank You To Our Current Sponsors</h2>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
           {sponsors.map(s => <div key={s.id} style={{ ...box, display: "flex", gap: 10, alignItems: "center" }}>{/^https:\/\//i.test(s.logo_url || "") && <img src={s.logo_url} alt="" referrerPolicy="no-referrer" style={{ width: 44, height: 44, objectFit: "contain" }} />}<div><strong>{s.sponsor_name}</strong>{s.tier_label ? <div style={{ fontSize: 12, color: "#64748b" }}>{s.tier_label}</div> : null}</div></div>)}
         </div>

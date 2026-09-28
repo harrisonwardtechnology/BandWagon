@@ -67,41 +67,41 @@ export default function UsageAdmin() {
   return <main style={{ maxWidth: 960, margin: "36px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif" }}>
     <header style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1 }}>BANDWAGON ADMIN</div>
-      <h1 style={{ margin: "6px 0" }}>Texting and AI Usage</h1>
+      <h1 style={{ margin: "6px 0" }}>Texting And AI Usage</h1>
       <p style={{ marginBottom: 0, opacity: .9, lineHeight: 1.55 }}>BandWagon is free to your organization. To keep it that way for everyone, each organization has a fair use monthly texting allowance. Push notifications and email are not limited.</p>
     </header>
 
     <section style={card}>
       <label><strong>Organization</strong></label>
       <select value={org} onChange={e => void loadOrg(e.target.value)} style={field}>
-        <option value="">Choose an organization</option>
+        <option value="">Choose An Organization</option>
         {organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
       </select>
       {t && <>
-        <h2 style={{ margin: "4px 0" }}>Texting this month ({usage?.month?.slice(0, 7)})</h2>
+        <h2 style={{ margin: "4px 0" }}>Texting This Month ({usage?.month?.slice(0, 7)})</h2>
         <p style={{ margin: "4px 0", fontSize: 18 }}><strong>{money(t.usedCents)}</strong> of {money(t.capCents)} used ({t.percent}%){t.usesPlatformDefault ? " · platform default allowance" : " · custom allowance"}</p>
         <Meter percent={t.percent} />
         {t.limitReached && <p role="status" style={{ padding: 12, borderRadius: 10, background: "#fee2e2", color: "#7f1d1d", fontWeight: 700 }}>The monthly texting limit has been reached. Routine and important texts are paused until next month. People still get push notifications and email.</p>}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 10, marginTop: 12 }}>
-          <div style={{ padding: 12, background: "#f8fafc", borderRadius: 10 }}><strong>{t.messagesSent}</strong><div>texts sent</div></div>
-          <div style={{ padding: 12, background: "#f8fafc", borderRadius: 10 }}><strong>{t.protectedMessagesSent}</strong><div>safety and sign-in texts (always sent)</div></div>
-          <div style={{ padding: 12, background: "#f8fafc", borderRadius: 10 }}><strong>{t.messagesPaused}</strong><div>texts paused by the limit</div></div>
+          <div style={{ padding: 12, background: "#f8fafc", borderRadius: 10 }}><strong>{t.messagesSent}</strong><div>Texts Sent</div></div>
+          <div style={{ padding: 12, background: "#f8fafc", borderRadius: 10 }}><strong>{t.protectedMessagesSent}</strong><div>Safety And Sign-In Texts (Always Sent)</div></div>
+          <div style={{ padding: 12, background: "#f8fafc", borderRadius: 10 }}><strong>{t.messagesPaused}</strong><div>Texts Paused By The Limit</div></div>
         </div>
         <p style={{ color: "#475569", lineHeight: 1.5, fontSize: 14 }}>Safety alerts, driver arriving messages, cancellations, and sign-in codes are always sent, even over the limit, and still count toward usage. Admins get an email when usage reaches {t.alertThresholdPercent}% and 100%. Costs are planning estimates.</p>
 
-        <h2 style={{ marginBottom: 4 }}>AI this month</h2>
+        <h2 style={{ marginBottom: 4 }}>AI This Month</h2>
         {ai?.enabled
           ? <><p style={{ margin: "4px 0" }}><strong>{money(ai.usedCents)}</strong>{ai.budgetCents != null ? <> of {money(ai.budgetCents)} AI cap ({ai.percent}%)</> : " used"} · {ai.jobs} AI jobs</p>{ai.budgetCents != null && <Meter percent={ai.percent} />}</>
           : <p style={{ margin: "4px 0" }}>AI features are off for this organization.{ai?.usedCents ? ` Earlier usage this month: ${money(ai.usedCents)}.` : ""}</p>}
         <p style={{ color: "#475569", fontSize: 14 }}>The AI cap is set on the <a href="/admin/ai-settings">AI Controls</a> page.</p>
 
         {canEdit ? <div style={{ marginTop: 18, padding: 18, border: "2px solid #cbd5e1", borderRadius: 14 }}>
-          <h3 style={{ marginTop: 0 }}>Platform owner: adjust texting allowance</h3>
-          <label style={{ display: "flex", gap: 8, alignItems: "center" }}><input type="checkbox" checked={useDefault} onChange={e => setUseDefault(e.target.checked)} /> Use the platform default ({money(t.platformDefaultCents)} per month)</label>
-          {!useDefault && <><label style={{ display: "block", marginTop: 12 }}><strong>Monthly allowance (USD)</strong></label><input type="number" min={0} step="1" value={capDollars} onChange={e => setCapDollars(e.target.value)} style={field} /></>}
-          <label style={{ display: "block", marginTop: 12 }}><strong>Early alert at (percent)</strong></label>
+          <h3 style={{ marginTop: 0 }}>Platform Owner: Adjust Texting Allowance</h3>
+          <label style={{ display: "flex", gap: 8, alignItems: "center" }}><input type="checkbox" checked={useDefault} onChange={e => setUseDefault(e.target.checked)} /> Use The Platform Default ({money(t.platformDefaultCents)} Per Month)</label>
+          {!useDefault && <><label style={{ display: "block", marginTop: 12 }}><strong>Monthly Allowance (USD)</strong></label><input type="number" min={0} step="1" value={capDollars} onChange={e => setCapDollars(e.target.value)} style={field} /></>}
+          <label style={{ display: "block", marginTop: 12 }}><strong>Early Alert At (Percent)</strong></label>
           <input type="number" min={1} max={99} value={threshold} onChange={e => setThreshold(Number(e.target.value))} style={field} />
-          <label><strong>Internal note (optional)</strong></label>
+          <label><strong>Internal Note (Optional)</strong></label>
           <textarea maxLength={1000} value={notes} onChange={e => setNotes(e.target.value)} style={{ ...field, minHeight: 70 }} />
           <button disabled={working} onClick={saveLimit} style={{ padding: "12px 16px", border: 0, borderRadius: 9, background: "#101b33", color: "white", fontWeight: 900, cursor: "pointer" }}>{working ? "Saving…" : "Save Allowance"}</button>
         </div> : <p style={{ color: "#475569", fontSize: 14 }}>Need a higher texting allowance? Contact BandWagon Support.</p>}
@@ -109,7 +109,7 @@ export default function UsageAdmin() {
     </section>
 
     {overview && <section style={card}>
-      <h2 style={{ marginTop: 0 }}>All organizations ({overview.month?.slice(0, 7)})</h2>
+      <h2 style={{ marginTop: 0 }}>All Organizations ({overview.month?.slice(0, 7)})</h2>
       <p style={{ color: "#475569", marginTop: 0 }}>Platform default allowance: {money(overview.platformDefaultCents)} per month (ORG_DEFAULT_MONTHLY_SMS_CAP_CENTS).</p>
       <div style={{ overflowX: "auto" }}><table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead><tr style={{ textAlign: "left", borderBottom: "1px solid #dbe3ef" }}><th style={{ padding: 8 }}>Organization</th><th style={{ padding: 8 }}>Used</th><th style={{ padding: 8 }}>Allowance</th><th style={{ padding: 8 }}>Percent</th><th style={{ padding: 8 }}>Paused</th></tr></thead>

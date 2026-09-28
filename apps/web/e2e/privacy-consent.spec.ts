@@ -8,17 +8,17 @@ test("privacy banner makes rejection as easy as acceptance and persists the choi
   await page.goto("/");
   const banner = page.getByRole("dialog", { name: /BandWagon uses only essential technology/i });
   await expect(banner).toBeVisible();
-  await expect(banner.getByRole("button", { name: "Accept optional" })).toBeVisible();
-  await expect(banner.getByRole("button", { name: "Reject optional" })).toBeVisible();
-  await expect(banner.getByRole("button", { name: "Manage preferences" })).toBeVisible();
+  await expect(banner.getByRole("button", { name: "Accept Optional" })).toBeVisible();
+  await expect(banner.getByRole("button", { name: "Reject Optional" })).toBeVisible();
+  await expect(banner.getByRole("button", { name: "Manage Preferences" })).toBeVisible();
 
-  await banner.getByRole("button", { name: "Reject optional" }).click();
+  await banner.getByRole("button", { name: "Reject Optional" }).click();
   await expect(banner).toBeHidden();
   const cookie = (await context.cookies()).find(item => item.name === "bw_privacy_preferences");
   expect(decodeURIComponent(cookie?.value || "")).toContain("f=0");
 
-  await page.getByRole("button", { name: "Cookie preferences" }).click();
-  const preferences = page.getByRole("dialog", { name: "Choose what BandWagon may store" });
+  await page.getByRole("button", { name: "Cookie Preferences" }).click();
+  const preferences = page.getByRole("dialog", { name: "Choose What BandWagon May Store" });
   await expect(preferences).toBeVisible();
   await expect(preferences.getByText("Advertising", { exact: true })).toBeVisible();
   await expect(preferences.getByText("Not used. BandWagon does not deploy advertising pixels or cross-site tracking.")).toBeVisible();
@@ -26,10 +26,10 @@ test("privacy banner makes rejection as easy as acceptance and persists the choi
 
 test("functional storage requires an affirmative saved choice", async ({ page, context }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Manage preferences" }).click();
-  const preferences = page.getByRole("dialog", { name: "Choose what BandWagon may store" });
+  await page.getByRole("button", { name: "Manage Preferences" }).click();
+  const preferences = page.getByRole("dialog", { name: "Choose What BandWagon May Store" });
   await preferences.getByRole("checkbox", { name: "Allow optional functional storage" }).check();
-  await preferences.getByRole("button", { name: "Save my choices" }).click();
+  await preferences.getByRole("button", { name: "Save My Choices" }).click();
   const cookie = (await context.cookies()).find(item => item.name === "bw_privacy_preferences");
   expect(decodeURIComponent(cookie?.value || "")).toContain("f=1");
 });

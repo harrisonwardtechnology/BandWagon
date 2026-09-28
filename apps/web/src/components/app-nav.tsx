@@ -21,7 +21,7 @@ export function AppNav({active}:{active?:string}) {
     <div className="app-brand"><BrandLogo /><span>Community rides, without the logistics web.</span></div>
     <nav aria-label="Application" style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
       {links.map(([label,href])=><a key={href} href={href} aria-current={active===label?"page":undefined} style={{textDecoration:"none",padding:"9px 12px",borderRadius:10,color:active===label?"white":"#334155",background:active===label?"#101b33":"#f1f5f9",fontWeight:750}}>{label}</a>)}
-      <button onClick={signOut} style={{padding:"9px 12px",border:"1px solid #cbd5e1",borderRadius:10,background:"white",cursor:"pointer"}}>Sign out</button>
+      <button onClick={signOut} style={{padding:"9px 12px",border:"1px solid #cbd5e1",borderRadius:10,background:"white",cursor:"pointer"}}>Sign Out</button>
     </nav>
   </header>;
 }

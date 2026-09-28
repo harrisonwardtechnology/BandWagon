@@ -15,7 +15,7 @@ const reviewPackageUrl = "/api/review-package";
 
 const sections = [
   {
-    title: "I Run a Community",
+    title: "I Run A Community",
     items: [
       ["Start a Community", "Create your community, choose its name and short URL, assign at least one admin, then review the launch checklist. Your BandWagon hostname is created automatically."],
       ["Review and Approval", "Use the proposal and evidence package to document your organization’s own review. BandWagon does not replace your board, school, insurer, or other approval process."],
@@ -26,7 +26,7 @@ const sections = [
     ],
   },
   {
-    title: "I Am a Parent or Guardian",
+    title: "I Am A Parent Or Guardian",
     items: [
       ["Create Your Household", "Add yourself first, then add students or other household members you manage. Student participation stays under guardian control."],
       ["Request a Ride", "Choose the event, passenger, direction, and pickup and drop-off information. Exact addresses stay private until they are needed for a confirmed ride."],
@@ -35,7 +35,7 @@ const sections = [
     ],
   },
   {
-    title: "I Am a Driver",
+    title: "I Am A Driver",
     items: [
       ["Become a Driver", "Enable your driver profile for the organization, provide the required organization-specific information, and wait for any required approval."],
       ["RouteAssist", "Optional RouteAssist can suggest open requests that fit your route and detour limits. It never automatically accepts a ride for you."],
@@ -85,7 +85,7 @@ export default function HelpPage() {
           The package covers governance, privacy, data flows, ThirdParty services, security, AI, transportation boundaries, consent, and reusable review worksheets. It is proposal material - not an approval or launch authorization. Each organization must complete its own review and attach its official decision.
         </p>
         <a href={reviewPackageUrl} download style={{ display: "inline-block", padding: "12px 16px", borderRadius: 10, background: "#2458d8", color: "white", textDecoration: "none", fontWeight: 900 }}>
-          Download the Organization Proposal (.docx)
+          Download The Organization Proposal (.docx)
         </a>
       </section>
 
@@ -120,12 +120,12 @@ export default function HelpPage() {
       <section style={{ ...card, marginBottom: 18, background: "#f5f3ff", borderColor: "#c4b5fd" }} aria-labelledby="ideas-title">
         <h2 id="ideas-title" style={{ marginTop: 0 }}>Have an Idea?</h2>
         <p style={{ color: "#475569" }}>Suggest a feature, vote for ideas from other families and drivers, and see what the BandWagon team is planning.</p>
-        <a href="/help/ideas" style={{ display: "inline-block", padding: "12px 16px", borderRadius: 10, background: "#101b33", color: "white", textDecoration: "none", fontWeight: 900 }}>Suggest a Feature</a>
+        <a href="/help/ideas" style={{ display: "inline-block", padding: "12px 16px", borderRadius: 10, background: "#101b33", color: "white", textDecoration: "none", fontWeight: 900 }}>Suggest A Feature</a>
       </section>
 
       <section style={{ ...card, marginBottom:18 }} aria-labelledby="contact-support-title">
         <h2 id="contact-support-title" style={{ marginTop: 0 }}>Contact BandWagon Support</h2>
-        <p style={{color:"#475569"}}>Send an account, technical, organization, ride, event, or general question directly to BandWagon Support. For a new feature idea, use <a href="/help/ideas"><strong>Suggest a Feature</strong></a> so others can vote on it.</p>
+        <p style={{color:"#475569"}}>Send an account, technical, organization, ride, event, or general question directly to BandWagon Support. For a new feature idea, use <a href="/help/ideas"><strong>Suggest A Feature</strong></a> so others can vote on it.</p>
         {desk && <p style={{color:"#475569"}}>You can also open a ticket and follow replies in the <a href={desk} target="_blank" rel="noreferrer"><strong>BandWagon help desk</strong><span className="sr-only"> (opens in a new tab)</span></a>.</p>}
         <HelpContactForm />
       </section>

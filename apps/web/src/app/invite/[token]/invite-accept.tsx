@@ -49,9 +49,9 @@ export default function InviteAccept({ token }: { token: string }) {
     {!loaded && <section style={card}><p style={{ margin: 0 }}>Checking your invitation...</p></section>}
 
     {accepted && <section style={card}>
-      <h2 style={{ marginTop: 0 }}>You are in</h2>
+      <h2 style={{ marginTop: 0 }}>You Are In</h2>
       <p>{accepted.role === "owner" ? `You are still the owner of ${accepted.organizationName}.` : `You are now ${accepted.role === "admin" ? "an admin" : "a manager"} for ${accepted.organizationName}.`}</p>
-      <a href={`/admin/setup?organizationId=${accepted.organizationId}`} style={button}>Open the setup checklist</a>
+      <a href={`/admin/setup?organizationId=${accepted.organizationId}`} style={button}>Open The Setup Checklist</a>
     </section>}
 
     {!accepted && invitation && invitation.state !== "active" && <section style={card}>
@@ -61,8 +61,8 @@ export default function InviteAccept({ token }: { token: string }) {
     {!accepted && invitation && invitation.state === "active" && <section style={card}>
       <p style={{ marginTop: 0 }}>This invitation was sent to <strong>{invitation.emailHint}</strong>. Sign in with that email address to accept it.</p>
       {signedIn
-        ? <button disabled={working} onClick={accept} style={{ ...button, opacity: working ? .6 : 1 }}>{working ? "Accepting..." : "Accept invitation"}</button>
-        : <><a href="/login" style={button}>Sign in</a><p style={{ color: "#475569", fontSize: 14 }}>After you sign in, open this link again from your email.</p></>}
+        ? <button disabled={working} onClick={accept} style={{ ...button, opacity: working ? .6 : 1 }}>{working ? "Accepting..." : "Accept Invitation"}</button>
+        : <><a href="/login" style={button}>Sign In</a><p style={{ color: "#475569", fontSize: 14 }}>After you sign in, open this link again from your email.</p></>}
     </section>}
 
     {error && <p role="alert" style={{ padding: 14, background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10 }}>{error}</p>}

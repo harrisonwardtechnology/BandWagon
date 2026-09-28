@@ -86,8 +86,8 @@ export default function AccountsAdminPage() {
       <section style={card}>
         <h2>2. Add Parent / Household Manager</h2>
         <label>Name</label><input value={adultName} onChange={(e) => setAdultName(e.target.value)} style={input} />
-        <label>Email (optional)</label><input value={adultEmail} onChange={(e) => setAdultEmail(e.target.value)} style={input} />
-        <label htmlFor="adult-phone">Mobile phone (optional)</label><PhoneNumberInput id="adult-phone" value={adultPhone} onChange={setAdultPhone} />
+        <label>Email (Optional)</label><input value={adultEmail} onChange={(e) => setAdultEmail(e.target.value)} style={input} />
+        <label htmlFor="adult-phone">Mobile Phone (Optional)</label><PhoneNumberInput id="adult-phone" value={adultPhone} onChange={setAdultPhone} />
         <button onClick={makeAdult}>Create Parent</button>
         <p>Parent ID: <code>{adultId || "not created"}</code></p>
       </section>

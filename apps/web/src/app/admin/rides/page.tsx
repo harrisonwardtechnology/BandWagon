@@ -73,7 +73,7 @@ export default function AdminRidesPage() {
         <h2>Create Ride Request</h2>
         <label>Requester</label><select value={requester} onChange={e=>setRequester(e.target.value)} style={input}><option value="">Select...</option>{people.map(p=><option key={p.id} value={p.id}>{p.display_name} ({p.person_type})</option>)}</select>
         <label>Passenger</label><select value={passenger} onChange={e=>setPassenger(e.target.value)} style={input}><option value="">Select...</option>{people.map(p=><option key={p.id} value={p.id}>{p.display_name}</option>)}</select>
-        <label>Event</label><select value={eventId} onChange={e=>setEventId(e.target.value)} style={input}><option value="">No event / other</option>{events.map(e=><option key={e.id} value={e.id}>{e.title}</option>)}</select>
+        <label>Event</label><select value={eventId} onChange={e=>setEventId(e.target.value)} style={input}><option value="">No Event / Other</option>{events.map(e=><option key={e.id} value={e.id}>{e.title}</option>)}</select>
         <button style={button} onClick={()=>act({action:"create_request",organizationId,requesterPersonId:requester,passengerPersonId:passenger,eventId:eventId||null,direction:"to_event",seatsNeeded:1})}>Create Request</button>
       </section>
 
@@ -97,7 +97,7 @@ export default function AdminRidesPage() {
         <h2>Accept Offer</h2>
         <label>Ride Request ID</label><input value={selectedRequest} onChange={e=>setSelectedRequest(e.target.value)} style={input}/>
         <label>Offer ID</label><input value={selectedOffer} onChange={e=>setSelectedOffer(e.target.value)} style={input}/>
-        <label>Actor (requester/guardian)</label><select value={actor} onChange={e=>setActor(e.target.value)} style={input}><option value="">Select...</option>{people.map(p=><option key={p.id} value={p.id}>{p.display_name}</option>)}</select>
+        <label>Actor (Requester/Guardian)</label><select value={actor} onChange={e=>setActor(e.target.value)} style={input}><option value="">Select...</option>{people.map(p=><option key={p.id} value={p.id}>{p.display_name}</option>)}</select>
         <button style={button} onClick={()=>act({action:"accept_offer",rideRequestId:selectedRequest,offerId:selectedOffer,actorPersonId:actor})}>Accept + Match</button>
       </section>
 

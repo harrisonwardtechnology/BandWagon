@@ -32,9 +32,9 @@ test("consent UI offers accept, reject, manage, and does not pre-authorize track
   const component = fs.readFileSync("src/components/privacy-consent-manager.tsx", "utf8");
   const policy = fs.readFileSync("src/app/cookies/page.tsx", "utf8");
   const pwa = fs.readFileSync("src/app/PwaRegister.tsx", "utf8");
-  assert.match(component, /Accept optional/);
-  assert.match(component, /Reject optional/);
-  assert.match(component, /Manage preferences/);
+  assert.match(component, /Accept Optional/);
+  assert.match(component, /Reject Optional/);
+  assert.match(component, /Manage Preferences/);
   assert.match(component, /Analytics[\s\S]*Not used/);
   assert.match(component, /Advertising[\s\S]*Not used/);
   assert.match(policy, /will not add optional analytics or advertising technology under an existing functional-storage choice/i);

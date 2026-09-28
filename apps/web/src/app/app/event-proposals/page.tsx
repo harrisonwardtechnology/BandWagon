@@ -104,25 +104,25 @@ export default function EventProposalsPage() {
 
   return <main style={appPageStyle}><AppNav active="Propose Event" />
     <section style={{ ...appCardStyle, marginBottom: 18 }}>
-      <h1 style={{ marginTop: 0 }}>{editingId ? "Update Your Event Proposal" : "Propose an Event"}</h1>
+      <h1 style={{ marginTop: 0 }}>{editingId ? "Update Your Event Proposal" : "Propose An Event"}</h1>
       <p style={{ color: "#475569", lineHeight: 1.6 }}>Have an event that needs carpools? Send the details to your organizers. They will review it, and it only goes on the calendar if they approve it.</p>
       {!loaded ? <p>Loading...</p> : organizations.length === 0 ? <p>Join an organization first. Then you can propose events if it allows it.</p> : <>
         <label><strong>Organization</strong><select value={organizationId} disabled={Boolean(editingId)} onChange={e => setOrganizationId(e.target.value)} style={input}>{organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
         {!editingId && selected && !selected.canPropose && <p style={{ padding: 12, borderRadius: 10, background: "#f1f5f9" }}>{selected.reason}.</p>}
         {canSend && <>
-          <label><strong>Event name</strong><input value={form.title} onChange={set("title")} maxLength={120} placeholder="Saturday section practice" style={input} /></label>
+          <label><strong>Event Name</strong><input value={form.title} onChange={set("title")} maxLength={120} placeholder="Saturday section practice" style={input} /></label>
           <label><strong>Description</strong><textarea value={form.description} onChange={set("description")} maxLength={2000} rows={3} style={input} placeholder="What is it and who is it for?" /></label>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12 }}>
             <label><strong>Starts</strong><input type="datetime-local" value={form.startsAt} onChange={set("startsAt")} style={input} /></label>
-            <label><strong>Ends (optional)</strong><input type="datetime-local" value={form.endsAt} onChange={set("endsAt")} style={input} /></label>
-            <label><strong>Location name</strong><input value={form.locationName} onChange={set("locationName")} maxLength={160} placeholder="Community Center" style={input} /></label>
+            <label><strong>Ends (Optional)</strong><input type="datetime-local" value={form.endsAt} onChange={set("endsAt")} style={input} /></label>
+            <label><strong>Location Name</strong><input value={form.locationName} onChange={set("locationName")} maxLength={160} placeholder="Community Center" style={input} /></label>
             <label><strong>Address</strong><input value={form.locationAddress} onChange={set("locationAddress")} maxLength={300} placeholder="Event address" style={input} /></label>
           </div>
           <p style={{ fontSize: 13, color: "#92400e", marginTop: 0 }}>If approved, everyone who can see the event will see this address. Use a public place such as a school, field, or park. Do not enter a home address. Pickup spots stay private and are set when someone requests a ride.</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12 }}>
             <label><strong>About how many riders?</strong><input type="number" min={0} max={500} value={form.expectedRiders} onChange={set("expectedRiders")} style={input} /></label>
           </div>
-          <label><strong>Notes for organizers (optional)</strong><textarea value={form.notes} onChange={set("notes")} maxLength={1000} rows={2} style={input} placeholder="Anything organizers should know. Only organizers see this." /></label>
+          <label><strong>Notes For Organizers (Optional)</strong><textarea value={form.notes} onChange={set("notes")} maxLength={1000} rows={2} style={input} placeholder="Anything organizers should know. Only organizers see this." /></label>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button style={{ ...button, background: "#101b33", color: "white", borderColor: "#101b33" }} disabled={working || !form.title.trim() || !form.startsAt || (!editingId && !organizationId)} onClick={() => void submit()}>{editingId ? "Send Updated Proposal" : "Send Proposal"}</button>
             {editingId && <button style={button} disabled={working} onClick={() => { setEditingId(null); setForm(EMPTY); }}>Cancel</button>}
@@ -139,7 +139,7 @@ export default function EventProposalsPage() {
         </div>
         {p.moderator_note && <p style={{ margin: "8px 0", padding: 10, borderRadius: 8, background: "#f8fafc", whiteSpace: "pre-wrap" }}><strong>Organizer note: </strong>{p.moderator_note}</p>}
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
-          {p.status === "changes_requested" && <button style={button} disabled={working} onClick={() => startEdit(p)}>Update and Resend</button>}
+          {p.status === "changes_requested" && <button style={button} disabled={working} onClick={() => startEdit(p)}>Update And Resend</button>}
           {(p.status === "pending" || p.status === "changes_requested") && <button style={button} disabled={working} onClick={() => void withdraw(p)}>Withdraw</button>}
         </div>
       </div>)}

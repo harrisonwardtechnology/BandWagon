@@ -28,10 +28,10 @@ export default function HelpContactForm(){
         <label><strong>Name</strong><input name="name" required minLength={2} maxLength={100} autoComplete="name" style={inputStyle}/></label>
         <label><strong>Email</strong><input name="email" type="email" required maxLength={320} autoComplete="email" style={inputStyle}/></label>
       </div>
-      <label><strong>What do you need help with?</strong><select name="topic" required defaultValue="technical" style={inputStyle}><option value="technical">Technical problem</option><option value="account">Account or sign-in</option><option value="organization">Organization setup</option><option value="ride">Ride or event question</option><option value="privacy">Privacy request</option><option value="other">Other</option></select></label>
+      <label><strong>What do you need help with?</strong><select name="topic" required defaultValue="technical" style={inputStyle}><option value="technical">Technical Problem</option><option value="account">Account Or Sign-In</option><option value="organization">Organization Setup</option><option value="ride">Ride Or Event Question</option><option value="privacy">Privacy Request</option><option value="other">Other</option></select></label>
       <label><strong>Message</strong><textarea name="message" required minLength={10} maxLength={5000} rows={7} style={{...inputStyle,resize:"vertical"}} placeholder="Tell us what happened and what you expected. Do not include passwords, one-time codes, payment-card details, or sensitive documents."/></label>
       <TurnstileWidget action="support_contact" onToken={setToken} resetKey={resetKey}/><input type="hidden" name="turnstileToken" value={token}/>
-      <button disabled={working||!token} style={{justifySelf:"start",padding:"12px 18px",border:0,borderRadius:10,background:"#2458d8",color:"white",fontWeight:900,cursor:"pointer"}}>{working?"Sending…":"Send to BandWagon Support"}</button>
+      <button disabled={working||!token} style={{justifySelf:"start",padding:"12px 18px",border:0,borderRadius:10,background:"#2458d8",color:"white",fontWeight:900,cursor:"pointer"}}>{working?"Sending…":"Send To BandWagon Support"}</button>
       {message&&<div role="status" aria-live="polite" style={{padding:12,borderRadius:10,background:success?"#ecfdf5":"#fff7ed",color:success?"#166534":"#9a3412"}}>{message}</div>}
     </form>
   </>;

@@ -132,27 +132,27 @@ export default function SecuritySettingsPage() {
     </section>}
 
     {status?.enabled && !readOnly && <section style={{ ...appCardStyle, marginBottom: 18 }}>
-      <h2 style={{ marginTop: 0 }}>Add a passkey</h2>
+      <h2 style={{ marginTop: 0 }}>Add A Passkey</h2>
       {!supported ? <p style={{ color: "#475569" }}>This browser does not support passkeys. Try the latest Safari, Chrome, Edge, or Firefox.</p>
         : !status.recentSignIn ? <>
           <p style={{ color: "#475569" }}>To keep your account safe, sign in again before adding a passkey. It only takes a moment.</p>
-          <button onClick={signInAgain} style={primary}>Sign in again</button>
+          <button onClick={signInAgain} style={primary}>Sign In Again</button>
         </> : <>
-          <label htmlFor="passkey-name" style={{ fontWeight: 750, display: "block", marginBottom: 6 }}>Name this passkey <span style={{ fontWeight: 400, color: "#64748b" }}>(optional)</span></label>
+          <label htmlFor="passkey-name" style={{ fontWeight: 750, display: "block", marginBottom: 6 }}>Name This Passkey <span style={{ fontWeight: 400, color: "#64748b" }}>(Optional)</span></label>
           <input id="passkey-name" value={nickname} maxLength={PASSKEY_NICKNAME_MAX} onChange={(e) => setNickname(e.target.value)} placeholder="For example, My iPhone" style={{ ...input, maxWidth: 360, marginBottom: 12, display: "block" }} />
-          <button onClick={addPasskey} disabled={working === "add"} style={{ ...primary, opacity: working === "add" ? .65 : 1 }}>{working === "add" ? "Waiting for your device…" : "Add a passkey"}</button>
+          <button onClick={addPasskey} disabled={working === "add"} style={{ ...primary, opacity: working === "add" ? .65 : 1 }}>{working === "add" ? "Waiting For Your Device…" : "Add A Passkey"}</button>
           {status.rpId && <p style={{ fontSize: 13, color: "#64748b", marginBottom: 0 }}>This passkey will work on {status.rpId}{status.rpId === "bandwagon.club" ? " and every community site ending in .bandwagon.club" : ""}.</p>}
         </>}
     </section>}
 
     <section style={{ ...appCardStyle, marginBottom: 18 }}>
-      <h2 style={{ marginTop: 0 }}>Your passkeys</h2>
+      <h2 style={{ marginTop: 0 }}>Your Passkeys</h2>
       {!status ? <p style={{ color: "#64748b" }}>Loading…</p>
         : status.passkeys.length === 0 ? <p style={{ color: "#64748b", margin: 0 }}>You have not added any passkeys yet.</p>
         : <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 12 }}>
           {status.passkeys.map((passkey) => <li key={passkey.id} style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 14 }}>
             {editing?.id === passkey.id ? <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-              <label htmlFor={`rename-${passkey.id}`} style={{ position: "absolute", left: -9999 }}>New name</label>
+              <label htmlFor={`rename-${passkey.id}`} style={{ position: "absolute", left: -9999 }}>New Name</label>
               <input id={`rename-${passkey.id}`} value={editing.value} maxLength={PASSKEY_NICKNAME_MAX} onChange={(e) => setEditing({ id: passkey.id, value: e.target.value })} style={{ ...input, maxWidth: 280 }} />
               <button onClick={() => saveName(passkey.id, editing.value)} disabled={!editing.value.trim() || working === `rename:${passkey.id}`} style={secondary}>Save</button>
               <button onClick={() => setEditing(null)} style={secondary}>Cancel</button>

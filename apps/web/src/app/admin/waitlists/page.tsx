@@ -62,7 +62,7 @@ export default function WaitlistAdmin() {
     <section style={card}>
       <label><strong>Organization</strong></label>
       <select value={org} onChange={e => void loadOrg(e.target.value)} style={field}>
-        <option value="">Choose an organization</option>
+        <option value="">Choose An Organization</option>
         {organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
       </select>
     </section>
@@ -71,11 +71,11 @@ export default function WaitlistAdmin() {
       <h2 style={{ marginTop: 0 }}>Settings</h2>
       <label style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: 14, border: "2px solid #cbd5e1", borderRadius: 12, marginBottom: 14 }}>
         <input type="checkbox" checked={enabled} onChange={e => setEnabled(e.target.checked)} style={{ marginTop: 4 }} />
-        <span><strong>Allow waitlists on full carpools</strong><span style={{ display: "block", color: "#475569", marginTop: 4, lineHeight: 1.45 }}>On by default. Turning this off clears every open waitlist and tells the families on it.</span></span>
+        <span><strong>Allow Waitlists On Full Carpools</strong><span style={{ display: "block", color: "#475569", marginTop: 4, lineHeight: 1.45 }}>On by default. Turning this off clears every open waitlist and tells the families on it.</span></span>
       </label>
-      <label htmlFor="offer-window"><strong>Minutes to accept an open seat</strong></label>
+      <label htmlFor="offer-window"><strong>Minutes To Accept An Open Seat</strong></label>
       <input id="offer-window" type="number" min={data.limits.offerWindow.min} max={data.limits.offerWindow.max} value={windowMinutes} onChange={e => setWindowMinutes(Number(e.target.value))} style={field} />
-      <label htmlFor="cutoff"><strong>Stop offering seats this many minutes before departure</strong></label>
+      <label htmlFor="cutoff"><strong>Stop Offering Seats This Many Minutes Before Departure</strong></label>
       <input id="cutoff" type="number" min={data.limits.departureCutoff.min} max={data.limits.departureCutoff.max} value={cutoffMinutes} onChange={e => setCutoffMinutes(Number(e.target.value))} style={field} />
       <p style={{ color: "#475569", lineHeight: 1.5 }}>Close to departure, offers get shorter (at most half the time left) so there is still time for the next person if someone passes.</p>
       <button disabled={working} onClick={save} style={{ padding: "12px 16px", border: 0, borderRadius: 9, background: "#101b33", color: "white", fontWeight: 900, cursor: "pointer" }}>{working ? "Saving…" : "Save Waitlist Settings"}</button>

@@ -94,7 +94,7 @@ export default function NotificationsPage() {
   return <main style={{maxWidth:760,margin:"40px auto",padding:"0 20px",fontFamily:"system-ui,sans-serif"}}>
     <section style={{background:"#101b33",color:"#fff",padding:30,borderRadius:24}}>
       <div style={{fontSize:13,fontWeight:800,letterSpacing:1}}>BANDWAGON NOTIFICATIONS</div>
-      <h1 style={{fontSize:38,margin:"8px 0"}}>Stay updated without extra texts</h1>
+      <h1 style={{fontSize:38,margin:"8px 0"}}>Stay Updated Without Extra Texts</h1>
       <p style={{fontSize:18,lineHeight:1.6}}>
         Push notifications can deliver routine ride updates directly to this device.
         SMS/RCS can then be reserved for the messages that matter most.
@@ -123,7 +123,7 @@ export default function NotificationsPage() {
     </section>
 
     {sms&&<section style={{marginTop:22,padding:24,border:"1px solid #dbe3ef",borderRadius:18}}>
-      <h2 style={{marginTop:0}}>Text messages</h2>
+      <h2 style={{marginTop:0}}>Text Messages</h2>
       {!sms.hasPhone
         ? <p style={{color:"#475569"}}>Add and verify a mobile number on your account to get ride texts.</p>
         : <>
@@ -132,7 +132,7 @@ export default function NotificationsPage() {
             <span>{sms.consentText}</span>
           </label>
           <p style={{fontSize:14,color:"#64748b"}}>Optional. You can use BandWagon without text messages. See our <a href="/privacy">Privacy Policy</a>.</p>
-          <button onClick={saveSms} disabled={smsChecked===sms.optedIn} style={{padding:"12px 18px"}}>Save text message setting</button>
+          <button onClick={saveSms} disabled={smsChecked===sms.optedIn} style={{padding:"12px 18px"}}>Save Text Message Setting</button>
         </>}
       {smsMessage&&<p style={{marginTop:16,padding:14,background:"#f8fafc",borderRadius:10}}>{smsMessage}</p>}
     </section>}

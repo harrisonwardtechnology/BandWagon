@@ -82,21 +82,21 @@ export default function RideEngineAdminPage() {
         <select value={driverPersonId} onChange={e=>setDriverPersonId(e.target.value)} style={input}>
           <option value="">Select...</option>{people.map(p=><option key={p.id} value={p.id}>{p.display_name} ({p.person_type})</option>)}
         </select>
-        <label>Vehicle label</label><input value={vehicleLabel} onChange={e=>setVehicleLabel(e.target.value)} placeholder="Blue SUV" style={input}/>
-        <label>Seat capacity</label><input type="number" min={1} max={12} value={capacity} onChange={e=>setCapacity(Number(e.target.value))} style={input}/>
-        <label style={{display:"block",marginBottom:12}}><input type="checkbox" checked={willing} onChange={e=>setWilling(e.target.checked)}/> Always willing when no schedule rule exists</label>
+        <label>Vehicle Label</label><input value={vehicleLabel} onChange={e=>setVehicleLabel(e.target.value)} placeholder="Blue SUV" style={input}/>
+        <label>Seat Capacity</label><input type="number" min={1} max={12} value={capacity} onChange={e=>setCapacity(Number(e.target.value))} style={input}/>
+        <label style={{display:"block",marginBottom:12}}><input type="checkbox" checked={willing} onChange={e=>setWilling(e.target.checked)}/> Always Willing When No Schedule Rule Exists</label>
         <button style={button} onClick={()=>act({action:"upsert_driver",organizationId,personId:driverPersonId,defaultCapacity:capacity,vehicleLabel,willingByDefault:willing,allowMultiPassenger:true,maxDetourMinutes:15,maxPickupRadiusKm:zoneRadius})}>Save Driver Profile</button>
 
-        <h3>Preferred service area</h3>
+        <h3>Preferred Service Area</h3>
         <label>Label</label><input value={zoneLabel} onChange={e=>setZoneLabel(e.target.value)} style={input}/>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
-          <div><label>Generalized latitude</label><input value={zoneLat} onChange={e=>setZoneLat(e.target.value)} style={input}/></div>
-          <div><label>Generalized longitude</label><input value={zoneLng} onChange={e=>setZoneLng(e.target.value)} style={input}/></div>
+          <div><label>Generalized Latitude</label><input value={zoneLat} onChange={e=>setZoneLat(e.target.value)} style={input}/></div>
+          <div><label>Generalized Longitude</label><input value={zoneLng} onChange={e=>setZoneLng(e.target.value)} style={input}/></div>
           <div><label>Radius km</label><input type="number" value={zoneRadius} onChange={e=>setZoneRadius(Number(e.target.value))} style={input}/></div>
         </div>
         <button style={button} onClick={()=>act({action:"add_zone",organizationId,driverPersonId,label:zoneLabel,latitude:Number(zoneLat),longitude:Number(zoneLng),radiusKm:zoneRadius})}>Add Service Zone</button>
 
-        <h3>Recurring availability</h3>
+        <h3>Recurring Availability</h3>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
           <div><label>Weekday</label><select value={weekday} onChange={e=>setWeekday(Number(e.target.value))} style={input}>{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d,i)=><option key={d} value={i}>{d}</option>)}</select></div>
           <div><label>Start</label><input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)} style={input}/></div>
@@ -112,7 +112,7 @@ export default function RideEngineAdminPage() {
 
       <section style={card}>
         <h2>013 · Smart Matching</h2>
-        <label>Open ride request</label>
+        <label>Open Ride Request</label>
         <select value={rideRequestId} onChange={e=>setRideRequestId(e.target.value)} style={input}>
           <option value="">Select...</option>{requests.filter(r=>r.status==='open').map(r=><option key={r.id} value={r.id}>{r.passenger_name} · {r.event_title || r.public_ref}</option>)}
         </select>
@@ -129,19 +129,19 @@ export default function RideEngineAdminPage() {
       <section style={card}>
         <h2>012 · Multi-Passenger Carpool</h2>
         <p>Attach a compatible open request to an existing confirmed ride. Capacity, event, direction and pickup-time compatibility are checked transactionally.</p>
-        <label>Existing ride</label>
+        <label>Existing Ride</label>
         <select value={rideId} onChange={e=>setRideId(e.target.value)} style={input}>
           <option value="">Select...</option>{rides.map(r=><option key={r.id} value={r.id}>{r.driver_name} · {r.event_title || r.public_ref} · {r.remaining_seats} seat(s) open</option>)}
         </select>
-        <label>Open ride request</label>
+        <label>Open Ride Request</label>
         <select value={rideRequestId} onChange={e=>setRideRequestId(e.target.value)} style={input}>
           <option value="">Select...</option>{requests.filter(r=>r.status==='open').map(r=><option key={r.id} value={r.id}>{r.passenger_name} · {r.event_title || r.public_ref}</option>)}
         </select>
-        <label>Actor (driver, requester or guardian)</label>
+        <label>Actor (Driver, Requester Or Guardian)</label>
         <select value={actorPersonId} onChange={e=>setActorPersonId(e.target.value)} style={input}>
           <option value="">Select...</option>{people.map(p=><option key={p.id} value={p.id}>{p.display_name}</option>)}
         </select>
-        <button style={button} onClick={()=>act({action:"attach_request",rideId,rideRequestId,actorPersonId})}>Add Passenger to Carpool</button>
+        <button style={button} onClick={()=>act({action:"attach_request",rideId,rideRequestId,actorPersonId})}>Add Passenger To Carpool</button>
 
         <div style={{marginTop:18}}>{rides.map(r=><div key={r.id} style={{padding:"12px 0",borderTop:"1px solid #e5e7eb"}}>
           <b>{r.driver_name}</b> · {r.event_title || "Other ride"} · {r.seats_reserved}/{r.capacity_snapshot} seats · {r.request_count} request(s)

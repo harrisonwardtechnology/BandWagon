@@ -96,22 +96,22 @@ export default function OrganizationSetupPage() {
   return <main style={{ maxWidth: 960, margin: "40px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif" }}>
     <section style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1 }}>ORGANIZATION ADMIN</div>
-      <h1 style={{ fontSize: 38, margin: "6px 0" }}>Setup checklist</h1>
+      <h1 style={{ fontSize: 38, margin: "6px 0" }}>Setup Checklist</h1>
       <p style={{ margin: 0, opacity: .9 }}>A few steps to get your community ready before you invite families.</p>
     </section>
 
-    {needsSignIn && <section style={card}><p style={{ marginTop: 0 }}>Sign in to see your setup checklist.</p><a href="/login" style={{ ...button, display: "inline-block", textDecoration: "none" }}>Sign in</a></section>}
+    {needsSignIn && <section style={card}><p style={{ marginTop: 0 }}>Sign in to see your setup checklist.</p><a href="/login" style={{ ...button, display: "inline-block", textDecoration: "none" }}>Sign In</a></section>}
 
     {organizations.length > 1 && <section style={card}>
       <label><strong>Organization</strong>
         <select value={organizationId} onChange={e => choose(e.target.value)} style={{ ...input, display: "block", width: "100%", marginTop: 6 }}>
-          <option value="">Choose an organization</option>
+          <option value="">Choose An Organization</option>
           {organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
         </select>
       </label>
     </section>}
 
-    {!needsSignIn && organizations.length === 0 && !message && <section style={card}><p style={{ margin: 0 }}>You do not manage any organizations yet. Want to start one? <a href="/start">Start a community</a>.</p></section>}
+    {!needsSignIn && organizations.length === 0 && !message && <section style={card}><p style={{ margin: 0 }}>You do not manage any organizations yet. Want to start one? <a href="/start">Start A Community</a>.</p></section>}
 
     {checklist && progress && <>
       <section style={card}>
@@ -137,21 +137,21 @@ export default function OrganizationSetupPage() {
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
               <a href={item.href.startsWith("/admin/setup") ? item.href.replace("/admin/setup", "") : `${item.href}${item.href.startsWith("/admin/") ? `?organizationId=${organizationId}` : ""}`} style={{ fontWeight: 700, color: "#101b33" }}>{item.done ? "View" : "Open"}</a>
-              {item.manual && item.source !== "automatic" && <button disabled={working} onClick={() => mark(item.key, !item.done)}>{item.done ? "Undo" : "Mark done"}</button>}
+              {item.manual && item.source !== "automatic" && <button disabled={working} onClick={() => mark(item.key, !item.done)}>{item.done ? "Undo" : "Mark Done"}</button>}
             </div>
           </li>)}
         </ol>
       </section>
 
       <section id="join-code" style={card}>
-        <h2 style={{ marginTop: 0 }}>Join code</h2>
+        <h2 style={{ marginTop: 0 }}>Join Code</h2>
         <p style={{ color: "#475569" }}>Families enter this code in BandWagon to join. You have {checklist.activeJoinCodes} active code{checklist.activeJoinCodes === 1 ? "" : "s"}. Codes are only shown once, so copy it now.</p>
         {joinCode && <p style={{ fontSize: 28, letterSpacing: 3, fontWeight: 900, margin: "8px 0" }}><code>{joinCode}</code> <button onClick={() => navigator.clipboard?.writeText(joinCode)}>Copy</button></p>}
-        {checklist.role !== "manager" && <button disabled={working} onClick={makeJoinCode} style={button}>Create a join code</button>}
+        {checklist.role !== "manager" && <button disabled={working} onClick={makeJoinCode} style={button}>Create A Join Code</button>}
       </section>
 
       <section id="invite" style={card}>
-        <h2 style={{ marginTop: 0 }}>Invite a co-admin</h2>
+        <h2 style={{ marginTop: 0 }}>Invite A Co-Admin</h2>
         {invitableRoles.length === 0 ? <p style={{ color: "#475569" }}>Only owners and admins can invite people.</p> : <>
           <p style={{ color: "#475569" }}>They get an email with a one-time link that works for 7 days. They must sign in with the same email.</p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -159,7 +159,7 @@ export default function OrganizationSetupPage() {
             <select value={inviteRole} onChange={e => setInviteRole(e.target.value)} aria-label="Role" style={input}>
               {invitableRoles.map(role => <option key={role} value={role}>{role === "admin" ? "Admin" : "Manager"}</option>)}
             </select>
-            <button disabled={working || !inviteEmail.trim()} onClick={invite} style={button}>Send invite</button>
+            <button disabled={working || !inviteEmail.trim()} onClick={invite} style={button}>Send Invite</button>
           </div>
           <p style={{ color: "#64748b", fontSize: 13 }}>Admins can manage settings and invite managers. Managers help run rides and members.</p>
         </>}
