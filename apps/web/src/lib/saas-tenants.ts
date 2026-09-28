@@ -185,7 +185,7 @@ export async function requestCustomDomain(input: { organizationId: string; hostn
       method: "POST",
       body: JSON.stringify({
         hostname,
-        ssl: { method: "http", type: "dv" },
+        ssl: { method: "http", type: "dv", certificate_authority: "google" },
         custom_metadata: { organization_id: input.organizationId, bandwagon_target: targetHostname },
       }),
     });
