@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { recordSmsConsent } from "@/lib/sms-consent";
+import { recordSmsConsent, sendSmsWelcome } from "@/lib/sms-consent";
 import { getDb } from "@/lib/db";
 import { decryptSensitive, encryptSensitive, lookupHash } from "@/lib/data-security";
 import { sendEmailNotification } from "@/lib/email-send";
@@ -463,8 +463,10 @@ export async function verifyOtp(input: {
     );
     // Verifying a number is not consent to ride texts. Only the separate,
     // unchecked-by-default SMS checkbox opts the person in.
+    let smsWelcome: { phone: string } | null = null;
     if (input.smsConsent === true && challenge.destination_type === "phone") {
-      await recordSmsConsent({ phone: destination, action: "opt_in", source: "signup_checkbox", personId, db: client });
+      const consent = await recordSmsConsent({ phone: destination, action: "opt_in", source: "signup_checkbox", personId, db: client });
+      if (consent.newlyOptedIn) smsWelcome = { phone: consent.phone };
     }
     await client.query(`update auth_otp_challenges set consumed_at=now(),attempts=attempts+1 where id=$1`, [challenge.id]);
     const session = await completeSignIn(client, {
@@ -476,6 +478,7 @@ export async function verifyOtp(input: {
       userAgent: input.userAgent,
     });
     await client.query("COMMIT");
+    if (smsWelcome) void sendSmsWelcome({ phone: smsWelcome.phone, personId });
     return { ...session, personId, userAccountId, createdAccount: challenge.purpose === "sign_up" || challenge.purpose === "managed_student_claim" };
   } catch (error) {
     await client.query("ROLLBACK").catch(() => {});

@@ -6,6 +6,15 @@ export const SMS_CONSENT_TEXT =
   "I agree to receive transactional SMS messages from BandWagon, a Harrison Ward Technology product, about ride requests, ride offers, confirmations, schedule changes, reminders, account activity, pickup/drop-off status, cancellations, and ride coordination. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help.";
 export const SMS_CONSENT_TEXT_VERSION = "2026-09-26";
 
+// Sent once, right after someone opts in (checkbox or settings). Carriers
+// require brand, frequency, rates, HELP/STOP and a support contact.
+export const SMS_WELCOME_TEXT =
+  "BandWagon: You're signed up for ride texts (offers, confirmations, reminders, pickup updates). Msg frequency varies. Msg & data rates may apply. Reply HELP for help, STOP to opt out. Support: support@bandwagon.club";
+
+// Reply for the HELP keyword. Paste into Twilio Advanced Opt-Out as the HELP message.
+export const SMS_HELP_TEXT =
+  "BandWagon ride texts: help at https://bandwagon.club/help or support@bandwagon.club. Msg frequency varies. Msg & data rates may apply. Reply STOP to opt out.";
+
 export type SmsConsentState = "opted_in" | "opted_out" | "not_configured";
 export type SmsConsentAction = "opt_in" | "opt_out";
 export type SmsConsentSource =

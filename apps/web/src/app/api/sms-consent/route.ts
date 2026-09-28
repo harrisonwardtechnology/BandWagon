@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSessionIdentity } from "@/lib/auth";
-import { getAnyVerifiedPhone, getSmsConsentStatus, recordSmsConsent } from "@/lib/sms-consent";
+import { getAnyVerifiedPhone, getSmsConsentStatus, recordSmsConsent, sendSmsWelcome } from "@/lib/sms-consent";
 import { SMS_CONSENT_TEXT } from "@/lib/sms-consent-policy";
 
 export const runtime = "nodejs";
@@ -25,7 +25,8 @@ export async function POST(request: Request) {
     if (typeof body.optIn !== "boolean") throw new Error("optIn must be true or false");
     const phone = await getAnyVerifiedPhone(identity.personId);
     if (!phone) throw new Error("Add and verify a mobile number first");
-    await recordSmsConsent({ phone, action: body.optIn ? "opt_in" : "opt_out", source: "settings", personId: identity.personId });
+    const consent = await recordSmsConsent({ phone, action: body.optIn ? "opt_in" : "opt_out", source: "settings", personId: identity.personId });
+    if (consent.newlyOptedIn) void sendSmsWelcome({ phone: consent.phone, personId: identity.personId });
     return NextResponse.json({ ok: true, ...(await getSmsConsentStatus(identity.personId)) }, { headers: privateHeaders });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to update text message settings" }, { status: 400, headers: privateHeaders });

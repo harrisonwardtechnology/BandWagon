@@ -142,7 +142,7 @@ export default function LoginPage() {
           <PhoneNumberInput id="login-phone" value={phone} onChange={setPhone} required />
           <label style={{display:"flex",gap:10,alignItems:"flex-start",margin:"12px 0 16px",fontSize:13,lineHeight:1.5,color:"#334155"}}>
             <input type="checkbox" checked={smsConsent} onChange={e=>setSmsConsent(e.target.checked)} style={{marginTop:3,flex:"0 0 auto"}} />
-            <span>{SMS_CONSENT_TEXT} <span style={{color:"#64748b"}}>Optional. Your sign-in code is sent either way. See our <a href="/privacy">Privacy Policy</a> and <a href="/sms-opt-in">Messaging and SMS Consent</a>.</span></span>
+            <span>{SMS_CONSENT_TEXT} <span style={{color:"#64748b"}}>Optional. Your sign-in code is sent either way. See our <a href="/terms">Terms of Use</a>, <a href="/privacy">Privacy Policy</a> and <a href="/sms-opt-in">Messaging and SMS Consent</a>.</span></span>
           </label>
         </>}
         {mode==="create_account" && <div style={{padding:16,background:"#f8fafc",borderRadius:14,marginBottom:16}}>

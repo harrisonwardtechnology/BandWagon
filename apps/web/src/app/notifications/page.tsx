@@ -131,7 +131,7 @@ export default function NotificationsPage() {
             <input type="checkbox" checked={smsChecked} onChange={e=>setSmsChecked(e.target.checked)} style={{marginTop:4,flex:"0 0 auto"}}/>
             <span>{sms.consentText}</span>
           </label>
-          <p style={{fontSize:14,color:"#64748b"}}>Optional. You can use BandWagon without text messages. See our <a href="/privacy">Privacy Policy</a>.</p>
+          <p style={{fontSize:14,color:"#64748b"}}>Optional. You can use BandWagon without text messages. See our <a href="/terms">Terms of Use</a> and <a href="/privacy">Privacy Policy</a>.</p>
           <button onClick={saveSms} disabled={smsChecked===sms.optedIn} style={{padding:"12px 18px"}}>Save Text Message Setting</button>
         </>}
       {smsMessage&&<p style={{marginTop:16,padding:14,background:"#f8fafc",borderRadius:10}}>{smsMessage}</p>}
