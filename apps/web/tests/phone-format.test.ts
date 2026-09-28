@@ -25,6 +25,6 @@ test("phone control uses a country picker and login separates email from mobile"
   assert.match(component, /Phone country or region/);
   assert.match(component, /country code is added automatically/i);
   assert.match(component, /normalizePhoneInput/);
-  assert.match(login, /Mobile phone/);
+  assert.match(login, /Mobile Phone/);
   assert.doesNotMatch(login, /\+14695551212/);
 });

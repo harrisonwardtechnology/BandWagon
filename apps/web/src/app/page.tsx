@@ -49,7 +49,7 @@ export default async function Home() {
     <main className="home-shell" style={themed}>
       <section className="home-hero" aria-labelledby="home-heading">
         <div className="hero-copy">
-          <div className="hero-kicker"><span aria-hidden="true">●</span> Privacy-first community transportation</div>
+          <div className="hero-kicker"><span aria-hidden="true">●</span> Privacy-First Community Transportation</div>
           <div className="eyebrow">A {platformBrand.vendorName} product</div>
           {org.logoUrl && <img src={org.logoUrl} alt={`${org.name} logo`} referrerPolicy="no-referrer" style={{ width: 72, height: 72, objectFit: "contain", borderRadius: 16, background: "#fff", padding: 6, marginBottom: 12 }} />}
           {org.communityName && <div className="eyebrow">{org.communityName}</div>}
@@ -57,23 +57,23 @@ export default async function Home() {
           <p className="hero-lede">{org.tagline}</p>
           {org.welcomeText && <p className="hero-lede" style={{ whiteSpace: "pre-line", fontSize: "1rem" }}>{org.welcomeText}</p>}
           <div className="actions">
-            <Link className="button" href="/login">Get started <span aria-hidden="true">→</span></Link>
-            <Link className="button ghost" href="/help">See how it works</Link>
+            <Link className="button" href="/login">Get Started <span aria-hidden="true">→</span></Link>
+            <Link className="button ghost" href="/help">See How It Works</Link>
           </div>
           <div className="hero-trust" aria-label="Platform commitments">
-            <span>Organization isolated</span><span>Guardian controlled</span>
+            <span>Organization Isolated</span><span>Guardian Controlled</span>
           </div>
         </div>
 
         <div className="ride-preview" aria-label="Example BandWagon ride workflow">
-          <div className="preview-topline"><span>Saturday rehearsal</span><span className="status-pill">Ride matched</span></div>
+          <div className="preview-topline"><span>Saturday Rehearsal</span><span className="status-pill">Ride Matched</span></div>
           <div className="route-line" aria-hidden="true"><span></span><i></i><span></span><i></i><span></span></div>
           <ol className="ride-steps">
-            <li><span className="step-icon">1</span><div><strong>Request made</strong><small>General area shared</small></div><time>8:10 AM</time></li>
-            <li><span className="step-icon">2</span><div><strong>Trusted driver matched</strong><small>Guardian approved</small></div><time>8:22 AM</time></li>
-            <li><span className="step-icon verified">✓</span><div><strong>Pickup verified</strong><small>Exact details stay private</small></div><time>9:00 AM</time></li>
+            <li><span className="step-icon">1</span><div><strong>Request Made</strong><small>General Area Shared</small></div><time>8:10 AM</time></li>
+            <li><span className="step-icon">2</span><div><strong>Trusted Driver Matched</strong><small>Guardian Approved</small></div><time>8:22 AM</time></li>
+            <li><span className="step-icon verified">✓</span><div><strong>Pickup Verified</strong><small>Exact Details Stay Private</small></div><time>9:00 AM</time></li>
           </ol>
-          <div className="privacy-chip"><span aria-hidden="true">◆</span><div><strong>Privacy by design</strong><small>No passive location tracking</small></div></div>
+          <div className="privacy-chip"><span aria-hidden="true">◆</span><div><strong>Privacy By Design</strong><small>No Passive Location Tracking</small></div></div>
         </div>
       </section>
 
@@ -84,22 +84,22 @@ export default async function Home() {
 
       <section className="feature-section" aria-labelledby="features-heading">
         <div className="section-heading">
-          <div className="eyebrow">Built for real community logistics</div>
+          <div className="eyebrow">Built For Real Community Logistics</div>
           <h2 id="features-heading">Less coordination work. Better privacy.</h2>
           <p>Purpose-built tools replace spreadsheets, reply-all chains, and tangled message threads.</p>
         </div>
         <div className="feature-grid">
-          <article className="feature-card"><span className="feature-number">01</span><h3>Simple scheduling</h3><p>Import Google or Microsoft calendars, create organizer events, and coordinate one-way or round-trip rides.</p></article>
-          <article className="feature-card"><span className="feature-number">02</span><h3>Safer connections</h3><p>Organization rules, guardian approvals, driver eligibility, and verified pickup are built into the workflow.</p></article>
-          <article className="feature-card"><span className="feature-number">03</span><h3>Private by default</h3><p>Exact addresses stay protected until authorized participants need them. There is no public rating system or passive tracking.</p></article>
+          <article className="feature-card"><span className="feature-number">01</span><h3>Simple Scheduling</h3><p>Import Google or Microsoft calendars, create organizer events, and coordinate one-way or round-trip rides.</p></article>
+          <article className="feature-card"><span className="feature-number">02</span><h3>Safer Connections</h3><p>Organization rules, guardian approvals, driver eligibility, and verified pickup are built into the workflow.</p></article>
+          <article className="feature-card"><span className="feature-number">03</span><h3>Private By Default</h3><p>Exact addresses stay protected until authorized participants need them. There is no public rating system or passive tracking.</p></article>
         </div>
       </section>
 
       <section className="community-banner">
-        <div><div className="eyebrow">Ready when your community is</div><h2>Plan the ride. Protect the people.</h2><p>Use BandWagon on the web, install it as an app, or review the code on GitHub before your organization adopts it.</p></div>
+        <div><div className="eyebrow">Ready When Your Community Is</div><h2>Plan the ride. Protect the people.</h2><p>Use BandWagon on the web, install it as an app, or review the code on GitHub before your organization adopts it.</p></div>
         <div className="actions">
-          <Link className="button light" href="/login">Sign in</Link>
-          <a className="button outline-light" href="/api/review-package">Review package</a>
+          <Link className="button light" href="/login">Sign In</Link>
+          <a className="button outline-light" href="/api/review-package">Review Package</a>
           <a className="button outline-light" href="https://github.com/harrisonwardtechnology/BandWagon">GitHub</a>
         </div>
       </section>

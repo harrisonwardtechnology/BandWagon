@@ -53,18 +53,18 @@ export default function FeatureRequestsAdmin() {
   return <main style={{ maxWidth: 1050, margin: "40px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif" }}>
     <section style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1 }}>PLATFORM ADMIN</div>
-      <h1 style={{ fontSize: 38, margin: "6px 0" }}>Feature requests</h1>
+      <h1 style={{ fontSize: 38, margin: "6px 0" }}>Feature Requests</h1>
       <p style={{ margin: 0, opacity: .9 }}>Review ideas, set their status, and leave a public note. New ideas stay private to the submitter until you move them to Under review or later.</p>
       <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
         <a href="/admin/platform" style={{ color: "white", border: "1px solid #64748b", padding: "8px 12px", borderRadius: 9, fontWeight: 800, textDecoration: "none" }}>Platform Overview</a>
-        <a href="/help/ideas" style={{ color: "white", border: "1px solid #64748b", padding: "8px 12px", borderRadius: 9, fontWeight: 800, textDecoration: "none" }}>Public ideas page</a>
+        <a href="/help/ideas" style={{ color: "white", border: "1px solid #64748b", padding: "8px 12px", borderRadius: 9, fontWeight: 800, textDecoration: "none" }}>Public Ideas Page</a>
       </div>
     </section>
 
     <section style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16, alignItems: "center" }}>
       <label>Status <select value={status} onChange={(e) => setStatus(e.target.value)} style={control}><option value="">All</option>{Object.entries(statuses).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
       <label>Category <select value={category} onChange={(e) => setCategory(e.target.value)} style={control}><option value="">All</option>{Object.entries(categories).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
-      <label>Sort <select value={sort} onChange={(e) => setSort(e.target.value)} style={control}><option value="votes">Most votes</option><option value="newest">Newest</option></select></label>
+      <label>Sort <select value={sort} onChange={(e) => setSort(e.target.value)} style={control}><option value="votes">Most Votes</option><option value="newest">Newest</option></select></label>
       <span style={{ color: "#64748b" }}>{requests.length} shown</span>
     </section>
 
@@ -94,18 +94,18 @@ export default function FeatureRequestsAdmin() {
           </div>
           <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
             <label><strong>Status</strong><br /><select value={d.status} onChange={(e) => setDraft(r, { status: e.target.value })} style={control}>{options.map((v: string) => <option key={v} value={v}>{statuses[v] || v}</option>)}</select></label>
-            {d.status === "duplicate" && <label><strong>Duplicate of</strong><br />
+            {d.status === "duplicate" && <label><strong>Duplicate Of</strong><br />
               <select value={d.duplicateOfId} onChange={(e) => setDraft(r, { duplicateOfId: e.target.value })} style={{ ...control, maxWidth: "100%" }}>
-                <option value="">Choose the original idea</option>
+                <option value="">Choose The Original Idea</option>
                 {originals.filter((o) => o.id !== r.id).map((o) => <option key={o.id} value={o.id}>{o.title.slice(0, 90)} ({statuses[o.status] || o.status})</option>)}
               </select>
               <span style={{ display: "block", fontSize: 13, color: "#64748b", marginTop: 4 }}>Votes move to the original idea. Only ideas in the current list appear here, so clear the filters if you cannot find it.</span>
             </label>}
-            <label><strong>Public note</strong> <span style={{ color: "#64748b" }}>(shown to everyone who can see this idea)</span>
+            <label><strong>Public Note</strong> <span style={{ color: "#64748b" }}>(shown to everyone who can see this idea)</span>
               <textarea value={d.note} onChange={(e) => setDraft(r, { note: e.target.value })} rows={3} maxLength={1000} style={{ display: "block", width: "100%", boxSizing: "border-box", padding: 10, marginTop: 6, border: "1px solid #cbd5e1", borderRadius: 8, font: "inherit" }} />
             </label>
             <p style={{ margin: 0, fontSize: 13, color: "#64748b" }}>Moving an idea to Planned, Shipped, or Not planned emails the submitter when we have a verified address.</p>
-            <button disabled={working} onClick={() => save(r)} style={{ ...button, justifySelf: "start", opacity: working ? .6 : 1 }}>Save changes</button>
+            <button disabled={working} onClick={() => save(r)} style={{ ...button, justifySelf: "start", opacity: working ? .6 : 1 }}>Save Changes</button>
           </div>
         </div>}
       </section>;

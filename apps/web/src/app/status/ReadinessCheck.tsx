@@ -43,9 +43,9 @@ export default function ReadinessCheck() {
       </p>
       <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginTop: 12 }}>
         <button type="button" onClick={() => void check()} disabled={state === "checking"} style={{ padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: 10, background: "#fff", fontWeight: 800, cursor: "pointer" }}>
-          Check again
+          Check Again
         </button>
-        {checkedAt && <span style={{ color: "#64748b", fontSize: 14 }}>Last checked {checkedAt}. Rechecks every minute.</span>}
+        {checkedAt && <span style={{ color: "#64748b", fontSize: 14 }}>Last Checked {checkedAt}. Rechecks every minute.</span>}
       </div>
     </div>
   );

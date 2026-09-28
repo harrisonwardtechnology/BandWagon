@@ -51,12 +51,12 @@ export default function HouseholdDelegatesAdmin() {
     <section style={card}>
       <label><strong>Organization</strong></label>
       <select value={org} onChange={e => void loadOrg(e.target.value)} style={field}>
-        <option value="">Choose an organization</option>
+        <option value="">Choose An Organization</option>
         {organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
       </select>
       {settings && <label style={{ display: "flex", gap: 10, alignItems: "start" }}>
         <input type="checkbox" checked={Boolean(settings.householdDelegatesEnabled)} disabled={working} onChange={e => void save(e.target.checked)} />
-        <span><b>Allow trusted adults</b><br /><small style={{ color: "#64748b" }}>When this is off, trusted adults cannot ask for, approve, or manage rides in {settings.name}. Parents and guardians are not affected.</small></span>
+        <span><b>Allow Trusted Adults</b><br /><small style={{ color: "#64748b" }}>When this is off, trusted adults cannot ask for, approve, or manage rides in {settings.name}. Parents and guardians are not affected.</small></span>
       </label>}
     </section>
     {message && <p style={{ padding: 14, background: "#eef2ff", borderRadius: 12, fontWeight: 700 }}>{message}</p>}

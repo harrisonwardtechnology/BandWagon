@@ -48,7 +48,7 @@ export default function OrganizationRequestsAdmin() {
   return <main style={{ maxWidth: 1050, margin: "40px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif" }}>
     <section style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1 }}>PLATFORM ADMIN</div>
-      <h1 style={{ fontSize: 38, margin: "6px 0" }}>Community requests</h1>
+      <h1 style={{ fontSize: 38, margin: "6px 0" }}>Community Requests</h1>
       <p style={{ margin: 0, opacity: .9 }}>Review new organizations before they go live. Approving creates the tenant and makes the requester its owner.</p>
       <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
         <a href="/admin/platform" style={{ color: "white", border: "1px solid #64748b", padding: "8px 12px", borderRadius: 9, fontWeight: 800, textDecoration: "none" }}>Platform Overview</a>
@@ -74,35 +74,35 @@ export default function OrganizationRequestsAdmin() {
             <div style={{ color: "#475569" }}>{types[r.organization_type] || r.organization_type} in {r.city}, {r.state} · about {r.approximate_families} families</div>
             <div style={{ color: "#475569", fontSize: 14 }}>Sent {new Date(r.created_at).toLocaleString()} · status <strong>{r.status}</strong></div>
           </div>
-          <button onClick={() => setOpenId(open ? "" : r.id)} style={{ alignSelf: "flex-start" }}>{open ? "Hide details" : "Review"}</button>
+          <button onClick={() => setOpenId(open ? "" : r.id)} style={{ alignSelf: "flex-start" }}>{open ? "Hide Details" : "Review"}</button>
         </div>
         {open && <div style={{ marginTop: 14 }}>
-          {dl("Requested address", <code>{r.requested_slug}</code>)}
+          {dl("Requested Address", <code>{r.requested_slug}</code>)}
           {dl("Requester", `${r.requester_name}${r.requester_email ? ` <${r.requester_email}>` : ""}`)}
-          {dl("Account type", r.requester_person_type==="adult"?"Adult":"Not an adult account (cannot be approved)")}
+          {dl("Account Type", r.requester_person_type==="adult"?"Adult":"Not an adult account (cannot be approved)")}
           {dl("Role", r.requester_role)}
           {dl("Sponsor", r.sponsoring_organization)}
           {dl("Website", r.website && <a href={r.website} target="_blank" rel="noreferrer noopener">{r.website}</a>)}
           {dl("Agreement", `${r.agreement_version}, accepted ${new Date(r.agreement_accepted_at).toLocaleString()}`)}
           <div style={{ margin: "10px 0", padding: 12, background: "#f8fafc", borderRadius: 10, whiteSpace: "pre-wrap" }}>{r.ride_description}</div>
           {r.status !== "pending" && <>
-            {dl("Reviewed by", r.reviewer_name)}
+            {dl("Reviewed By", r.reviewer_name)}
             {dl("Decided", r.decided_at && new Date(r.decided_at).toLocaleString())}
             {dl("Note", r.review_notes)}
             {dl("Tenant", r.tenant_hostname && <code>{r.tenant_hostname}</code>)}
           </>}
           {r.status === "pending" && <>
-            <h3 style={{ marginBottom: 6 }}>Review checklist</h3>
+            <h3 style={{ marginBottom: 6 }}>Review Checklist</h3>
             <p style={{ margin: "0 0 8px", color: "#475569", fontSize: 14 }}>From the Organization Review Guide. Tick every item to approve.</p>
             {checklist.map(item => <label key={item.key} style={{ display: "flex", gap: 8, margin: "6px 0" }}>
               <input type="checkbox" disabled={!canDecide} checked={Boolean(t[item.key])} onChange={e => setTicks(all => ({ ...all, [r.id]: { ...(all[r.id] || {}), [item.key]: e.target.checked } }))} />
               <span>{item.label}</span>
             </label>)}
-            <label style={{ display: "block", marginTop: 10 }}><strong>Note to the requester</strong> <span style={{ color: "#64748b" }}>(required to reject)</span>
+            <label style={{ display: "block", marginTop: 10 }}><strong>Note To The Requester</strong> <span style={{ color: "#64748b" }}>(required to reject)</span>
               <textarea value={notes[r.id] || ""} disabled={!canDecide} onChange={e => setNotes(all => ({ ...all, [r.id]: e.target.value }))} rows={3} maxLength={2000} style={{ display: "block", width: "100%", boxSizing: "border-box", padding: 10, marginTop: 6, border: "1px solid #cbd5e1", borderRadius: 8, font: "inherit" }} />
             </label>
             {canDecide && <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-              <button disabled={working || !allTicked} onClick={() => decide(r, "approve")} style={{ ...button, opacity: working || !allTicked ? .6 : 1 }}>Approve and create</button>
+              <button disabled={working || !allTicked} onClick={() => decide(r, "approve")} style={{ ...button, opacity: working || !allTicked ? .6 : 1 }}>Approve And Create</button>
               <button disabled={working} onClick={() => decide(r, "reject")} style={{ ...button, background: "#b91c1c" }}>Reject</button>
             </div>}
           </>}

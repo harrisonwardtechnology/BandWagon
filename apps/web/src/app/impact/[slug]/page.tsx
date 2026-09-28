@@ -61,7 +61,7 @@ export default async function PublicImpactPage({ params }: { params: Promise<{ s
     </section>
 
     {data.sponsors.length > 0 && <section style={{ marginTop: 18, padding: 22, border: "1px solid #dbe3ef", borderRadius: 16 }}>
-      <h2 style={{ marginTop: 0 }}>Thank you to our sponsors</h2>
+      <h2 style={{ marginTop: 0 }}>Thank You To Our Sponsors</h2>
       <p style={{ color: "#475569", marginTop: 0 }}>Local businesses help keep BandWagon free. Sponsors never receive information about the families or students who use it.</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
         {data.sponsors.map((s: Record<string, string | null>, index: number) => {

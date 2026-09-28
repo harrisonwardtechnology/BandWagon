@@ -172,14 +172,14 @@ export function reviewDecisionError(input: { decision: string; status: string; n
 // ---- New organization setup checklist ----
 
 export const SETUP_CHECKLIST = [
-  { key: "branding", label: "Set your branding", description: "Name, logo, colors, and welcome text.", href: "/admin/branding", manual: false },
-  { key: "join_code", label: "Create and share a join code", description: "Families use it to join your community.", href: "/admin/setup#join-code", manual: false },
-  { key: "driver_requirements", label: "Set driver requirements", description: "Minimum age, license, insurance, and approval rules.", href: "/admin/driver-requirements", manual: true },
-  { key: "policies", label: "Accept organization policies", description: "An owner accepts the current terms for the group.", href: "/admin/organization-policies", manual: false },
-  { key: "events", label: "Add an event or connect a calendar", description: "Rides are organized around events.", href: "/admin/events", manual: false },
-  { key: "co_admin", label: "Invite a co-admin", description: "A second admin keeps things running if you are away.", href: "/admin/setup#invite", manual: false },
-  { key: "notifications", label: "Review notification and text settings", description: "Check how members get ride updates.", href: "/admin/notifications", manual: true },
-  { key: "test_ride", label: "Run a test ride", description: "Try one ride before inviting everyone.", href: "/app/rides", manual: false },
+  { key: "branding", label: "Set Your Branding", description: "Name, logo, colors, and welcome text.", href: "/admin/branding", manual: false },
+  { key: "join_code", label: "Create And Share A Join Code", description: "Families use it to join your community.", href: "/admin/setup#join-code", manual: false },
+  { key: "driver_requirements", label: "Set Driver Requirements", description: "Minimum age, license, insurance, and approval rules.", href: "/admin/driver-requirements", manual: true },
+  { key: "policies", label: "Accept Organization Policies", description: "An owner accepts the current terms for the group.", href: "/admin/organization-policies", manual: false },
+  { key: "events", label: "Add An Event Or Connect A Calendar", description: "Rides are organized around events.", href: "/admin/events", manual: false },
+  { key: "co_admin", label: "Invite A Co-Admin", description: "A second admin keeps things running if you are away.", href: "/admin/setup#invite", manual: false },
+  { key: "notifications", label: "Review Notification And Text Settings", description: "Check how members get ride updates.", href: "/admin/notifications", manual: true },
+  { key: "test_ride", label: "Run A Test Ride", description: "Try one ride before inviting everyone.", href: "/app/rides", manual: false },
 ] as const;
 export type SetupItemKey = (typeof SETUP_CHECKLIST)[number]["key"];
 

@@ -41,16 +41,16 @@ export default function HouseholdInviteAccept({ token }: { token: string }) {
   return <main style={{ maxWidth: 680, margin: "40px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif" }}>
     <section style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1 }}>BANDWAGON</div>
-      <h1 style={{ fontSize: 32, margin: "6px 0" }}>Become a trusted adult</h1>
+      <h1 style={{ fontSize: 32, margin: "6px 0" }}>Become A Trusted Adult</h1>
       {invitation && <p style={{ margin: 0, opacity: .9 }}>{invitation.inviterName} asked you to help with their family&apos;s rides.</p>}
     </section>
 
     {!loaded && <section style={card}><p style={{ margin: 0 }}>Checking your invitation...</p></section>}
 
     {accepted && <section style={card}>
-      <h2 style={{ marginTop: 0 }}>You are all set</h2>
+      <h2 style={{ marginTop: 0 }}>You Are All Set</h2>
       <p>You are now a trusted adult for {accepted.householdName || "this family"}. The parent or guardian can change or end this at any time.</p>
-      <a href="/app/household" style={button}>See the kids you help with</a>
+      <a href="/app/household" style={button}>See The Kids You Help With</a>
     </section>}
 
     {!accepted && invitation && invitation.state !== "active" && <section style={card}>
@@ -58,7 +58,7 @@ export default function HouseholdInviteAccept({ token }: { token: string }) {
     </section>}
 
     {!accepted && invitation && invitation.state === "active" && <section style={card}>
-      <h2 style={{ marginTop: 0 }}>What you can do</h2>
+      <h2 style={{ marginTop: 0 }}>What You Can Do</h2>
       <ul>{(invitation.permissions || []).map((p: string) => <li key={p}>{p}</li>)}</ul>
       <p style={{ color: "#475569" }}>
         {invitation.childCount ? `This covers ${invitation.childCount} ${invitation.childCount === 1 ? "child" : "children"}.` : "This covers all of the children in the household."}
@@ -67,8 +67,8 @@ export default function HouseholdInviteAccept({ token }: { token: string }) {
       <p style={{ color: "#475569" }}>You will not be able to change the children&apos;s profiles or safety settings, add or remove guardians, or share access with anyone else. You will not join their school or team as a member.</p>
       <p>This invitation was sent to <strong>{invitation.contactHint}</strong>. You need an adult BandWagon account with that {invitation.contactType === "phone" ? "phone number" : "email address"} verified.</p>
       {signedIn
-        ? <button disabled={working} onClick={accept} style={{ ...button, opacity: working ? .6 : 1 }}>{working ? "Accepting..." : "Accept invitation"}</button>
-        : <><a href="/login" style={button}>Sign in</a><p style={{ color: "#475569", fontSize: 14 }}>After you sign in, open this link again.</p></>}
+        ? <button disabled={working} onClick={accept} style={{ ...button, opacity: working ? .6 : 1 }}>{working ? "Accepting..." : "Accept Invitation"}</button>
+        : <><a href="/login" style={button}>Sign In</a><p style={{ color: "#475569", fontSize: 14 }}>After you sign in, open this link again.</p></>}
     </section>}
 
     {error && <p role="alert" style={{ padding: 14, background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10 }}>{error}</p>}

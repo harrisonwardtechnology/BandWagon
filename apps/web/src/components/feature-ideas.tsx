@@ -88,39 +88,39 @@ export default function FeatureIdeas() {
 
   return <>
     <section style={{ ...card, marginBottom: 18 }} aria-labelledby="suggest-title">
-      <h2 id="suggest-title" style={{ marginTop: 0 }}>Suggest a Feature</h2>
+      <h2 id="suggest-title" style={{ marginTop: 0 }}>Suggest A Feature</h2>
       <p style={{ color: "#475569" }}>Tell us what would make BandWagon work better for your family, drivers, or organization. Please do not include names, addresses, phone numbers, or other personal details about anyone.</p>
       {loaded && !signedIn && !siteKey
         ? <p><strong>The public idea form is temporarily unavailable.</strong> <a href="/login">Sign in</a> to suggest a feature.</p>
         : <form onSubmit={submit} style={{ display: "grid", gap: 13 }}>
           <div style={{ position: "absolute", left: "-10000px" }} aria-hidden="true"><label>Website<input name="companyWebsite" tabIndex={-1} autoComplete="off" /></label></div>
-          <label><strong>Short title</strong><input name="title" required minLength={5} maxLength={limits.titleMax} style={inputStyle} placeholder="For example: Let me copy a ride request to next week" />{errorText("title")}</label>
+          <label><strong>Short Title</strong><input name="title" required minLength={5} maxLength={limits.titleMax} style={inputStyle} placeholder="For example: Let me copy a ride request to next week" />{errorText("title")}</label>
           <label><strong>Category</strong><select name="category" required defaultValue="rides" style={inputStyle}>{Object.entries(categories).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>{errorText("category")}</label>
           <label><strong>Details</strong><textarea name="details" required minLength={10} maxLength={limits.detailsMax} rows={6} style={{ ...inputStyle, resize: "vertical" }} placeholder="What are you trying to do, and what gets in the way today?" />{errorText("details")}</label>
           {loaded && !signedIn && <>
-            <label><strong>Your email</strong><input name="email" type="email" required maxLength={320} autoComplete="email" style={inputStyle} /><span style={{ display: "block", fontSize: 13, color: "#64748b", marginTop: 4 }}>Used only to tell you about this idea. It is stored encrypted and never shown publicly.</span>{errorText("email")}</label>
+            <label><strong>Your Email</strong><input name="email" type="email" required maxLength={320} autoComplete="email" style={inputStyle} /><span style={{ display: "block", fontSize: 13, color: "#64748b", marginTop: 4 }}>Used only to tell you about this idea. It is stored encrypted and never shown publicly.</span>{errorText("email")}</label>
             <TurnstileWidget action="feature_request" onToken={setToken} resetKey={resetKey} />
           </>}
-          <button disabled={working || !loaded || (!signedIn && !token)} style={{ justifySelf: "start", padding: "12px 18px", border: 0, borderRadius: 10, background: "#2458d8", color: "white", fontWeight: 900, cursor: "pointer" }}>{working ? "Sending..." : "Send my idea"}</button>
+          <button disabled={working || !loaded || (!signedIn && !token)} style={{ justifySelf: "start", padding: "12px 18px", border: 0, borderRadius: 10, background: "#2458d8", color: "white", fontWeight: 900, cursor: "pointer" }}>{working ? "Sending..." : "Send My Idea"}</button>
         </form>}
       {message && <div role="status" aria-live="polite" style={{ marginTop: 12, padding: 12, borderRadius: 10, background: success ? "#ecfdf5" : "#fff7ed", color: success ? "#166534" : "#9a3412" }}>{message}</div>}
     </section>
 
     {loaded && !signedIn && <section style={{ ...card, background: "#eff6ff", borderColor: "#bfdbfe" }}>
-      <h2 style={{ marginTop: 0 }}>See what others have suggested</h2>
+      <h2 style={{ marginTop: 0 }}>See What Others Have Suggested</h2>
       <p style={{ marginBottom: 0 }}><a href="/login"><strong>Sign in</strong></a> to browse ideas the team is reviewing, vote for the ones you want most, and follow the status of your own ideas.</p>
     </section>}
 
     {signedIn && mine.length > 0 && <section style={{ ...card, marginBottom: 18 }} aria-labelledby="my-ideas-title">
-      <h2 id="my-ideas-title" style={{ marginTop: 0 }}>Your ideas</h2>
+      <h2 id="my-ideas-title" style={{ marginTop: 0 }}>Your Ideas</h2>
       {mine.map((r) => ideaCard(r, false))}
     </section>}
 
     {signedIn && <section style={card} aria-labelledby="all-ideas-title">
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-        <h2 id="all-ideas-title" style={{ margin: 0 }}>Ideas the team is working through</h2>
+        <h2 id="all-ideas-title" style={{ margin: 0 }}>Ideas The Team Is Working Through</h2>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <label>Sort <select value={sort} onChange={(e) => { setSort(e.target.value); void load(e.target.value, category); }} style={{ padding: 7, borderRadius: 8 }}><option value="votes">Most votes</option><option value="newest">Newest</option></select></label>
+          <label>Sort <select value={sort} onChange={(e) => { setSort(e.target.value); void load(e.target.value, category); }} style={{ padding: 7, borderRadius: 8 }}><option value="votes">Most Votes</option><option value="newest">Newest</option></select></label>
           <label>Category <select value={category} onChange={(e) => { setCategory(e.target.value); void load(sort, e.target.value); }} style={{ padding: 7, borderRadius: 8 }}><option value="">All</option>{Object.entries(categories).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         </div>
       </div>

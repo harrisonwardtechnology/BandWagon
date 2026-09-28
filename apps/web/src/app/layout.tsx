@@ -76,7 +76,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body>
-        <a className="skip-link" href="#main-content">Skip to main content</a>
+        <a className="skip-link" href="#main-content">Skip To Main Content</a>
         <StagingBanner />
         <PrivacyConsentManager />
         <PwaRegister />
@@ -87,13 +87,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <div id="main-content" tabIndex={-1}>{children}</div>
         <footer style={{marginTop:48,borderTop:"1px solid #e2e8f0",background:"#f8fafc",padding:"24px 20px",fontFamily:"system-ui,sans-serif"}}>
           <div style={{maxWidth:1120,margin:"0 auto",display:"flex",gap:18,justifyContent:"space-between",alignItems:"center",flexWrap:"wrap"}}>
-            <div className="footer-brand"><BrandLogo /><span>Community-powered rides</span></div>
+            <div className="footer-brand"><BrandLogo /><span>Community-Powered Rides</span></div>
             <nav aria-label="Footer" style={{display:"flex",gap:16,flexWrap:"wrap"}}>
               <a href="/help" style={linkStyle}>Help Center</a>
               <a href="/api/review-package" style={linkStyle}>Review Package</a>
               <a href="/status" style={linkStyle}>Platform Status</a>
               <a href="https://status.bandwagon.club/" target="_blank" rel="noreferrer" style={linkStyle}>Status Page</a>
-              <a href="/security" style={linkStyle}>Security / Report a Bug</a>
+              <a href="/security" style={linkStyle}>Security / Report A Bug</a>
               <a href="/support" style={linkStyle}>Support BandWagon</a>
               <a href="/privacy" style={linkStyle}>Privacy</a>
               <a href="/cookies" style={linkStyle}>Cookies</a>

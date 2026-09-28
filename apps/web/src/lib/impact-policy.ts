@@ -107,9 +107,9 @@ export function impactPeriods(now: Date = new Date()) {
   const schoolYear = schoolYearStart(now);
   const label = `${schoolYear.getUTCFullYear()}-${String((schoolYear.getUTCFullYear() + 1) % 100).padStart(2, "0")}`;
   return [
-    { key: "month" as const, label: "This month", start: month },
+    { key: "month" as const, label: "This Month", start: month },
     { key: "school_year" as const, label: `School year ${label}`, start: schoolYear },
-    { key: "all_time" as const, label: "All time", start: null as Date | null },
+    { key: "all_time" as const, label: "All Time", start: null as Date | null },
   ];
 }
 

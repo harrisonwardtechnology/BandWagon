@@ -114,31 +114,31 @@ export default function LoginPage() {
   return <main style={{minHeight:"100vh",display:"grid",placeItems:"center",padding:24,background:"#f8fafc",fontFamily:"system-ui,sans-serif"}}>
     <section style={{width:"100%",maxWidth:460,background:"white",padding:28,borderRadius:22,boxShadow:"0 14px 50px rgba(15,23,42,.10)"}}>
       <div style={{fontSize:13,fontWeight:900,letterSpacing:1,color:"#64748b"}}>BANDWAGON</div>
-      <h1 style={{fontSize:34,margin:"8px 0 6px"}}>{mode==="create_account"?"Create account":"Sign in"}</h1>
+      <h1 style={{fontSize:34,margin:"8px 0 6px"}}>{mode==="create_account"?"Create Account":"Sign In"}</h1>
       <p style={{margin:"0 0 24px",color:"#475569"}}>Use your email address or mobile number. No password to remember.</p>
 
       {!challengeId ? <>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:18}}>
-          <button type="button" aria-pressed={mode==="sign_in"} onClick={()=>{setMode("sign_in");setMessage("");}} style={{padding:10,borderRadius:9,border:"1px solid #cbd5e1",background:mode==="sign_in"?"#101b33":"white",color:mode==="sign_in"?"white":"#334155",fontWeight:800,cursor:"pointer"}}>Sign in</button>
-          <button type="button" aria-pressed={mode==="create_account"} onClick={()=>{setMode("create_account");setMessage("");}} style={{padding:10,borderRadius:9,border:"1px solid #cbd5e1",background:mode==="create_account"?"#101b33":"white",color:mode==="create_account"?"white":"#334155",fontWeight:800,cursor:"pointer"}}>Create account</button>
+          <button type="button" aria-pressed={mode==="sign_in"} onClick={()=>{setMode("sign_in");setMessage("");}} style={{padding:10,borderRadius:9,border:"1px solid #cbd5e1",background:mode==="sign_in"?"#101b33":"white",color:mode==="sign_in"?"white":"#334155",fontWeight:800,cursor:"pointer"}}>Sign In</button>
+          <button type="button" aria-pressed={mode==="create_account"} onClick={()=>{setMode("create_account");setMessage("");}} style={{padding:10,borderRadius:9,border:"1px solid #cbd5e1",background:mode==="create_account"?"#101b33":"white",color:mode==="create_account"?"white":"#334155",fontWeight:800,cursor:"pointer"}}>Create Account</button>
         </div>
         {mode==="sign_in" && passkeyReady && <div style={{marginBottom:18}}>
-          <button type="button" disabled={working} onClick={()=>void signInWithPasskey(false)} style={{...button,background:"white",color:"#101b33",border:"2px solid #101b33",opacity:working ? .65 : 1}}>Sign in with a passkey</button>
+          <button type="button" disabled={working} onClick={()=>void signInWithPasskey(false)} style={{...button,background:"white",color:"#101b33",border:"2px solid #101b33",opacity:working ? .65 : 1}}>Sign In With A Passkey</button>
           <p style={{fontSize:13,color:"#64748b",margin:"8px 0 0",textAlign:"center"}}>{PASSKEY_EXPLAINER}</p>
-          <div role="separator" style={{display:"flex",alignItems:"center",gap:10,margin:"16px 0 0",color:"#94a3b8",fontSize:13}}><span style={{flex:1,height:1,background:"#e2e8f0"}}/>or get a code<span style={{flex:1,height:1,background:"#e2e8f0"}}/></div>
+          <div role="separator" style={{display:"flex",alignItems:"center",gap:10,margin:"16px 0 0",color:"#94a3b8",fontSize:13}}><span style={{flex:1,height:1,background:"#e2e8f0"}}/>Or Get A Code<span style={{flex:1,height:1,background:"#e2e8f0"}}/></div>
         </div>}
         <fieldset style={{border:0,padding:0,margin:"0 0 16px"}}>
           <legend style={{fontWeight:700,marginBottom:7}}>How should we send your code?</legend>
           <div className="contact-method-tabs">
             <button type="button" aria-pressed={contactMethod==="email"} onClick={()=>{setContactMethod("email");setMessage("");}}>Email</button>
-            <button type="button" aria-pressed={contactMethod==="phone"} onClick={()=>{setContactMethod("phone");setMessage("");}}>Mobile phone</button>
+            <button type="button" aria-pressed={contactMethod==="phone"} onClick={()=>{setContactMethod("phone");setMessage("");}}>Mobile Phone</button>
           </div>
         </fieldset>
         {contactMethod==="email" ? <>
-          <label htmlFor="login-email" style={{fontWeight:700}}>Email address</label>
+          <label htmlFor="login-email" style={{fontWeight:700}}>Email Address</label>
           <input id="login-email" type="email" autoComplete="username webauthn" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" style={{...input,margin:"7px 0 16px"}} />
         </> : <>
-          <label htmlFor="login-phone" style={{display:"block",fontWeight:700,marginBottom:7}}>Mobile number</label>
+          <label htmlFor="login-phone" style={{display:"block",fontWeight:700,marginBottom:7}}>Mobile Number</label>
           <PhoneNumberInput id="login-phone" value={phone} onChange={setPhone} required />
           <label style={{display:"flex",gap:10,alignItems:"flex-start",margin:"12px 0 16px",fontSize:13,lineHeight:1.5,color:"#334155"}}>
             <input type="checkbox" checked={smsConsent} onChange={e=>setSmsConsent(e.target.checked)} style={{marginTop:3,flex:"0 0 auto"}} />
@@ -146,10 +146,10 @@ export default function LoginPage() {
           </label>
         </>}
         {mode==="create_account" && <div style={{padding:16,background:"#f8fafc",borderRadius:14,marginBottom:16}}>
-          <div style={{fontWeight:800,marginBottom:10}}>Create your BandWagon account</div>
-          <label style={{fontWeight:700}}>Your name</label>
+          <div style={{fontWeight:800,marginBottom:10}}>Create Your BandWagon Account</div>
+          <label style={{fontWeight:700}}>Your Name</label>
           <input value={displayName} onChange={e=>setDisplayName(e.target.value)} placeholder="Harrison Ward" style={{...input,margin:"7px 0 14px"}} />
-          <label style={{fontWeight:700}}>Birth month and year</label>
+          <label style={{fontWeight:700}}>Birth Month And Year</label>
           <div style={{display:"grid",gridTemplateColumns:"1.4fr 1fr",gap:8,margin:"7px 0 14px"}}>
             <select value={birthMonth} onChange={e=>setBirthMonth(e.target.value)} style={input}>
               <option value="">Month</option>{months.map((m,i)=><option key={m} value={i+1}>{m}</option>)}
@@ -157,16 +157,16 @@ export default function LoginPage() {
             <input inputMode="numeric" maxLength={4} value={birthYear} onChange={e=>setBirthYear(e.target.value.replace(/\D/g,""))} placeholder="Year" style={input}/>
           </div>
           <p style={{fontSize:12,color:"#64748b",margin:"-5px 0 14px",lineHeight:1.5}}>Direct accounts are for ages 13+. We ask only for month and year. Younger students can be added by a parent or guardian as a managed profile.</p>
-          <label style={{fontWeight:700}}>Household name <span style={{fontWeight:400,color:"#64748b"}}>(optional)</span></label>
+          <label style={{fontWeight:700}}>Household Name <span style={{fontWeight:400,color:"#64748b"}}>(Optional)</span></label>
           <input value={householdName} onChange={e=>setHouseholdName(e.target.value)} placeholder="Ward Family" style={{...input,marginTop:7}} />
         </div>}
         <TurnstileWidget action="otp_request" onToken={setTurnstileToken} resetKey={turnstileReset}/>
-        <button disabled={working || !turnstileToken || !(contactMethod==="email"?email.trim():phone) || (mode==="create_account" && (!displayName || !birthMonth || birthYear.length!==4))} onClick={requestCode} style={{...button,opacity:working ? .65 : 1}}>{working ? "Sending…" : "Send verification code"}</button>
+        <button disabled={working || !turnstileToken || !(contactMethod==="email"?email.trim():phone) || (mode==="create_account" && (!displayName || !birthMonth || birthYear.length!==4))} onClick={requestCode} style={{...button,opacity:working ? .65 : 1}}>{working ? "Sending…" : "Send Verification Code"}</button>
       </> : <>
-        <label style={{fontWeight:700}}>6-digit verification code</label>
+        <label style={{fontWeight:700}}>6-Digit Verification Code</label>
         <input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,""))} placeholder="123456" style={{...input,margin:"7px 0 16px",fontSize:24,letterSpacing:6,textAlign:"center"}} />
         <button disabled={working || code.length!==6} onClick={verify} style={{...button,opacity:working ? .65 : 1}}>{working ? "Checking…" : "Continue"}</button>
-        <button onClick={()=>{setChallengeId("");setCode("");setMessage("");}} style={{width:"100%",marginTop:10,padding:10,border:0,background:"transparent",cursor:"pointer"}}>Use a different email or number</button>
+        <button onClick={()=>{setChallengeId("");setCode("");setMessage("");}} style={{width:"100%",marginTop:10,padding:10,border:0,background:"transparent",cursor:"pointer"}}>Use A Different Email Or Number</button>
       </>}
 
       {message && <div style={{marginTop:18,padding:13,borderRadius:10,background:"#eef2ff",color:"#1e293b"}}>{message}</div>}

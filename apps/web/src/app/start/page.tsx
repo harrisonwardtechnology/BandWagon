@@ -100,34 +100,34 @@ export default function StartCommunityPage() {
   return <main style={{ maxWidth: 860, margin: "40px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif" }}>
     <section style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1 }}>BANDWAGON</div>
-      <h1 style={{ fontSize: 38, margin: "6px 0" }}>Start a community</h1>
+      <h1 style={{ fontSize: 38, margin: "6px 0" }}>Start A Community</h1>
       <p style={{ margin: 0, opacity: .9 }}>Bring private, parent-led carpools to your band, team, or group. BandWagon is free for organizations. We review each request before it goes live.</p>
     </section>
 
     {!loaded && <section style={card}><p>Loading...</p></section>}
 
     {loaded && !signedIn && <section style={card}>
-      <h2 style={{ marginTop: 0 }}>Sign in first</h2>
+      <h2 style={{ marginTop: 0 }}>Sign In First</h2>
       <p>You need a BandWagon account to request a community. The person who signs in becomes the first owner if it is approved.</p>
-      <a href="/login" style={{ ...button, display: "inline-block", textDecoration: "none" }}>Sign in or create an account</a>
+      <a href="/login" style={{ ...button, display: "inline-block", textDecoration: "none" }}>Sign In Or Create An Account</a>
       <p style={{ color: "#475569", fontSize: 14 }}>After you sign in, come back to this page.</p>
     </section>}
 
     {signedIn && requests.length > 0 && <section style={card}>
-      <h2 style={{ marginTop: 0 }}>Your requests</h2>
+      <h2 style={{ marginTop: 0 }}>Your Requests</h2>
       {requests.map(r => <div key={r.id} style={{ padding: "12px 0", borderTop: "1px solid #eef2f7" }}>
         <strong>{r.organization_name}</strong> <span style={{ color: "#475569" }}>({r.requested_slug}.{meta.baseDomain})</span>
         <div style={{ marginTop: 4 }}>Status: <strong>{STATUS_LABEL[r.status] || r.status}</strong> <span style={{ color: "#64748b", fontSize: 14 }}>sent {new Date(r.created_at).toLocaleDateString()}</span></div>
         {r.status === "rejected" && r.review_notes && <p style={{ margin: "6px 0", color: "#475569" }}>Note: {r.review_notes}</p>}
-        {r.status === "approved" && <p style={{ margin: "6px 0" }}><a href={`/admin/setup?organizationId=${r.organization_id}`}>Open your setup checklist</a>{r.tenant_hostname && <> or visit <a href={`https://${r.tenant_hostname}`}>{r.tenant_hostname}</a></>}</p>}
+        {r.status === "approved" && <p style={{ margin: "6px 0" }}><a href={`/admin/setup?organizationId=${r.organization_id}`}>Open Your Setup Checklist</a>{r.tenant_hostname && <> or visit <a href={`https://${r.tenant_hostname}`}>{r.tenant_hostname}</a></>}</p>}
         {r.status === "pending" && <button onClick={() => withdraw(r.id)} style={{ marginTop: 6 }}>Withdraw</button>}
       </div>)}
     </section>}
 
     {signedIn && <section style={card}>
-      <h2 style={{ marginTop: 0 }}>{hasOpen ? "Request another community" : "Tell us about your group"}</h2>
-      {field("organizationName", "Organization name", { maxLength: 120, placeholder: "Example High School Band" })}
-      <label style={{ display: "block" }}><strong>Web address</strong>
+      <h2 style={{ marginTop: 0 }}>{hasOpen ? "Request Another Community" : "Tell Us About Your Group"}</h2>
+      {field("organizationName", "Organization Name", { maxLength: 120, placeholder: "Example High School Band" })}
+      <label style={{ display: "block" }}><strong>Web Address</strong>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <input value={form.slug} onChange={e => { setSlugTouched(true); update("slug", slugify(e.target.value)); }} style={{ ...input, flex: 1 }} maxLength={50} aria-invalid={Boolean(fields.slug)} />
           <span style={{ color: "#475569", whiteSpace: "nowrap" }}>.{meta.baseDomain}</span>
@@ -138,7 +138,7 @@ export default function StartCommunityPage() {
         {slugCheck && slugCheck.slug === form.slug && (slugOk ? <span style={{ color: "#15803d" }}>Available.</span> : <span style={{ color: "#b91c1c" }}>{slugCheck.error}</span>)}
       </div>
       {err("slug")}
-      <label style={{ display: "block" }}><strong>Type of group</strong>
+      <label style={{ display: "block" }}><strong>Type Of Group</strong>
         <select value={form.organizationType} onChange={e => update("organizationType", e.target.value)} style={input}>{TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
       </label>
       {err("organizationType")}
@@ -147,9 +147,9 @@ export default function StartCommunityPage() {
         {field("state", "State", { maxLength: 40 })}
       </div>
       {field("approximateFamilies", "About how many families?", { type: "number", min: 1, max: 100000, inputMode: "numeric" })}
-      {field("requesterRole", "Your role", { maxLength: 120, placeholder: "Band director, booster president, coach..." })}
-      {field("sponsoringOrganization", "Sponsoring school or parent group (optional)", { maxLength: 160 })}
-      {field("website", "Website (optional)", { maxLength: 300, placeholder: "example.org" })}
+      {field("requesterRole", "Your Role", { maxLength: 120, placeholder: "Band director, booster president, coach..." })}
+      {field("sponsoringOrganization", "Sponsoring School Or Parent Group (Optional)", { maxLength: 160 })}
+      {field("website", "Website (Optional)", { maxLength: 300, placeholder: "example.org" })}
       <label style={{ display: "block" }}><strong>How would rides work?</strong>
         <textarea value={form.rideDescription} onChange={e => update("rideDescription", e.target.value)} rows={4} maxLength={2000} style={input} placeholder="For example: parents share rides to Saturday competitions and early practices." aria-invalid={Boolean(fields.rideDescription)} />
       </label>
@@ -160,7 +160,7 @@ export default function StartCommunityPage() {
       </label>
       {err("agreementAccepted")}
       {meta.turnstileRequired && <TurnstileWidget action="organization_request" onToken={setToken} resetKey={resetKey} />}
-      <button onClick={submit} disabled={!canSubmit} style={{ ...button, marginTop: 12, opacity: canSubmit ? 1 : .6 }}>{working ? "Sending..." : "Send request"}</button>
+      <button onClick={submit} disabled={!canSubmit} style={{ ...button, marginTop: 12, opacity: canSubmit ? 1 : .6 }}>{working ? "Sending..." : "Send Request"}</button>
     </section>}
 
     {message && <p role="status" style={{ padding: 14, background: "#f8fafc", border: "1px solid #dbe3ef", borderRadius: 10 }}>{message}</p>}

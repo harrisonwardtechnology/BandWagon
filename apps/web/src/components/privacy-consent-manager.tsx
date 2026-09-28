@@ -43,7 +43,7 @@ export function requestPrivacyPreferences() {
 }
 
 export function PrivacyPreferencesButton() {
-  return <button className="footer-privacy-button" type="button" onClick={requestPrivacyPreferences}>Cookie preferences</button>;
+  return <button className="footer-privacy-button" type="button" onClick={requestPrivacyPreferences}>Cookie Preferences</button>;
 }
 
 export default function PrivacyConsentManager() {
@@ -86,23 +86,23 @@ export default function PrivacyConsentManager() {
         <p className="privacy-banner-links"><Link href="/cookies">Cookie Policy</Link><Link href="/privacy">Privacy Policy</Link></p>
       </div>
       <div className="privacy-banner-actions">
-        <button type="button" className="consent-button consent-accept" onClick={() => choose(true)}>Accept optional</button>
-        <button type="button" className="consent-button consent-reject" onClick={() => choose(false)}>Reject optional</button>
-        <button type="button" className="consent-button consent-manage" onClick={() => setManageOpen(true)}>Manage preferences</button>
+        <button type="button" className="consent-button consent-accept" onClick={() => choose(true)}>Accept Optional</button>
+        <button type="button" className="consent-button consent-reject" onClick={() => choose(false)}>Reject Optional</button>
+        <button type="button" className="consent-button consent-manage" onClick={() => setManageOpen(true)}>Manage Preferences</button>
       </div>
     </section>}
 
     {manageOpen && <div className="privacy-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && preferences) setManageOpen(false); }}>
       <section className="privacy-modal" role="dialog" aria-modal="true" aria-labelledby="privacy-modal-title" aria-describedby="privacy-modal-description">
         <div className="privacy-modal-heading">
-          <div><div className="privacy-banner-kicker">PRIVACY PREFERENCES</div><h2 id="privacy-modal-title">Choose what BandWagon may store</h2></div>
+          <div><div className="privacy-banner-kicker">PRIVACY PREFERENCES</div><h2 id="privacy-modal-title">Choose What BandWagon May Store</h2></div>
           {preferences && <button className="privacy-modal-close" type="button" aria-label="Close privacy preferences" onClick={() => setManageOpen(false)}>×</button>}
         </div>
         <p id="privacy-modal-description">Your choice applies to this browser for 12 months. You can return here from the footer at any time. A material policy or technology change will require a new choice.</p>
 
         <div className="privacy-category">
           <div><h3>Essential</h3><p>Authentication, account security, support-mode protection, consent memory, and Cloudflare Turnstile bot protection.</p></div>
-          <span className="privacy-always-on" aria-label="Essential technology is always active">Always active</span>
+          <span className="privacy-always-on" aria-label="Essential technology is always active">Always Active</span>
         </div>
         <label className="privacy-category privacy-category-toggle">
           <div><h3>Functional</h3><p>Stores the public offline app shell so BandWagon can provide its installable PWA experience. Push notifications remain a separate, explicit device choice.</p></div>
@@ -116,10 +116,10 @@ export default function PrivacyConsentManager() {
         </div>
 
         <div className="privacy-modal-actions">
-          <button type="button" className="consent-button consent-accept" onClick={() => choose(functional)}>Save my choices</button>
-          <button type="button" className="consent-button consent-reject" onClick={() => choose(false)}>Reject optional</button>
+          <button type="button" className="consent-button consent-accept" onClick={() => choose(functional)}>Save My Choices</button>
+          <button type="button" className="consent-button consent-reject" onClick={() => choose(false)}>Reject Optional</button>
         </div>
-        <p className="privacy-modal-policy"><Link href="/cookies">Read the full Cookie Policy</Link></p>
+        <p className="privacy-modal-policy"><Link href="/cookies">Read The Full Cookie Policy</Link></p>
       </section>
     </div>}
   </>;

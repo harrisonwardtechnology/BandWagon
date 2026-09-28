@@ -64,7 +64,7 @@ export function RiderWaitlists({ waitlists, act, working, reload }: { waitlists:
         <div><b>{w.passenger_name}</b> · {w.event_title || "Carpool"} · {directionLabel(w.direction)}
           <div style={{ fontSize: 13, color: "#475569", marginTop: 3 }}>{when(w.departure_at)} · {statusText(w)}{w.status === "waiting" ? ` of ${w.waitlist_count}` : ""}</div>
         </div>
-        <span style={{ ...badge, background: w.status === "offered" ? "#fef3c7" : "white" }}>{w.status === "offered" ? "Action needed" : w.status === "waiting" ? "On waitlist" : "Closed"}</span>
+        <span style={{ ...badge, background: w.status === "offered" ? "#fef3c7" : "white" }}>{w.status === "offered" ? "Action Needed" : w.status === "waiting" ? "On Waitlist" : "Closed"}</span>
       </div>
       {w.status === "offered" && <div role="group" aria-label="Standby offer" style={{ marginTop: 10, padding: 12, border: "2px solid #f59e0b", borderRadius: 12 }}>
         <p style={{ margin: "0 0 8px" }}>A seat opened. It is held for you for a short time. <OfferCountdown seconds={Number(w.seconds_remaining || 0)} onExpire={reload} /></p>
@@ -94,7 +94,7 @@ export function CarpoolFinder({ carpools, people, waitlists, act, working }: { c
           <div style={{ fontSize: 13, color: "#475569", marginTop: 3 }}>{when(c.departure_at)}{c.pickup_area ? ` · near ${c.pickup_area}` : ""} · {full ? "Full" : `${c.open_seats} open ${Number(c.open_seats) === 1 ? "seat" : "seats"}`}{Number(c.waitlist_count) > 0 ? ` · ${c.waitlist_count} on waitlist` : ""}</div>
         </div>
         {full && c.waitlists_enabled && (onList
-          ? <span style={badge}>On waitlist</span>
+          ? <span style={badge}>On Waitlist</span>
           : <button style={button} disabled={working || !rider} onClick={() => act({ action: "join_waitlist", rideId: c.id, passengerPersonId: rider })}>Join Waitlist</button>)}
         {full && !c.waitlists_enabled && <span style={badge}>Full</span>}
       </div>;
@@ -110,7 +110,7 @@ export function DriverWaitlist({ ride, act, working }: { ride: Row; act: Act; wo
   return <div style={{ marginTop: 10, padding: 12, background: "#f8fafc", borderRadius: 12 }}>
     <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
       <b>Waitlist: {list.length}</b>
-      <label style={{ marginLeft: "auto" }}>Seats in car <input type="number" min={1} max={12} value={seats} onChange={(e) => setSeats(e.target.value)} style={{ width: 60, padding: 6, borderRadius: 8, border: "1px solid #cbd5e1" }} /></label>
+      <label style={{ marginLeft: "auto" }}>Seats In Car <input type="number" min={1} max={12} value={seats} onChange={(e) => setSeats(e.target.value)} style={{ width: 60, padding: 6, borderRadius: 8, border: "1px solid #cbd5e1" }} /></label>
       <button style={secondary} disabled={working || Number(seats) === Number(ride.capacity_snapshot)} onClick={() => act({ action: "update_ride_seats", rideId: ride.id, seats: Number(seats) })}>Save Seats</button>
     </div>
     {list.length > 0 && <ol style={{ margin: "8px 0 0", paddingLeft: 20 }}>

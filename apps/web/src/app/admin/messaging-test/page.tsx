@@ -67,7 +67,7 @@ export default function MessagingTestPage() {
               checked={mode === "auto"}
               onChange={() => setMode("auto")}
             />{" "}
-            <strong>RCS preferred + SMS fallback</strong>
+            <strong>RCS Preferred + SMS Fallback</strong>
             <div style={{fontSize:13, color:"#64748b", marginLeft:22, marginTop:4}}>
               Sends through the BandWagon Messaging Service. Twilio chooses RCS first when the sender/device supports it, then falls back to SMS.
             </div>
@@ -80,7 +80,7 @@ export default function MessagingTestPage() {
               checked={mode === "sms"}
               onChange={() => setMode("sms")}
             />{" "}
-            <strong>Force SMS from (223) BANDWAG</strong>
+            <strong>Force SMS From (223) BANDWAG</strong>
             <div style={{fontSize:13, color:"#64748b", marginLeft:22, marginTop:4}}>
               Forces the configured TWILIO_PHONE_NUMBER while retaining Messaging Service features.
             </div>
@@ -110,7 +110,7 @@ export default function MessagingTestPage() {
           background: result.ok ? "#ecfdf5" : "#fef2f2",
           border: `1px solid ${result.ok ? "#a7f3d0" : "#fecaca"}`
         }}>
-          <h2 style={{marginTop:0}}>{result.ok ? "Accepted by Twilio" : "Test Failed"}</h2>
+          <h2 style={{marginTop:0}}>{result.ok ? "Accepted By Twilio" : "Test Failed"}</h2>
           {result.error && <p>{result.error}</p>}
           {result.sid && <p><strong>Message SID:</strong> <code>{result.sid}</code></p>}
           {result.status && <p><strong>Initial status:</strong> {result.status}</p>}

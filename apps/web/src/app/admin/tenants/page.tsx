@@ -41,19 +41,19 @@ export default function TenantsAdmin() {
       <div style={{fontSize:13,fontWeight:800,letterSpacing:1}}>PLATFORM ADMIN</div>
       <h1 style={{fontSize:38,margin:"6px 0"}}>SaaS Tenants</h1>
       <p style={{margin:0,opacity:.9}}>Every organization gets <strong>tenant.{baseDomain||"<tenant base domain>"}</strong>, with an optional custom domain.</p>
-      <p style={{margin:"10px 0 0"}}><a href="/admin/organization-requests" style={{color:"white",fontWeight:800}}>Review community requests</a></p>
+      <p style={{margin:"10px 0 0"}}><a href="/admin/organization-requests" style={{color:"white",fontWeight:800}}>Review Community Requests</a></p>
     </section>
 
     <section style={card}>
       <p><strong>Platform owner access required.</strong> Tenant administration uses your signed-in session.</p>
       <button onClick={refresh}>Refresh Organizations</button>
-      <p style={{marginBottom:0}}><a href="/admin/usage">Texting and AI usage by organization</a> · adjust each organization&apos;s monthly texting allowance.</p>
+      <p style={{marginBottom:0}}><a href="/admin/usage">Texting And AI Usage By Organization</a> · adjust each organization&apos;s monthly texting allowance.</p>
     </section>
 
     <section style={card}>
       <h2>Create Organization</h2>
       <label>Name</label><input value={name} onChange={e=>setName(e.target.value)} style={input}/>
-      <label>Tenant slug</label><input value={slug} onChange={e=>setSlug(e.target.value)} style={input}/>
+      <label>Tenant Slug</label><input value={slug} onChange={e=>setSlug(e.target.value)} style={input}/>
       <p>Default URL: <code>{slug||"tenant"}.{baseDomain||"<tenant base domain>"}</code></p>
       <button onClick={()=>act({action:"create",name,slug})}>Create Tenant</button>
     </section>
@@ -68,22 +68,22 @@ export default function TenantsAdmin() {
     </section>}
 
     <section style={card}>
-      <h2>Connect a Custom Domain</h2>
+      <h2>Connect A Custom Domain</h2>
       <p style={{color:"#475569"}}>Choose the easiest setup for the person who manages the domain. You can switch to manual setup at any time.</p>
       <label>Organization</label>
       <select value={selectedOrg} onChange={e=>setSelectedOrg(e.target.value)} style={input}>
-        <option value="">Select organization</option>
+        <option value="">Select Organization</option>
         {organizations.map(org=><option key={org.id} value={org.id}>{org.display_name||org.name}</option>)}
       </select>
-      <label>Customer hostname</label>
+      <label>Customer Hostname</label>
       <input value={customDomain} onChange={e=>setCustomDomain(e.target.value)} style={input}/>
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12,margin:"16px 0"}}>
         <button type="button" disabled={!domainSetup.automaticAvailable} onClick={()=>setSetupMode("automatic")} style={{textAlign:"left",padding:18,borderRadius:14,border:setupMode==="automatic"?"2px solid #101b33":"1px solid #cbd5e1",background:setupMode==="automatic"?"#f1f5f9":"#fff",opacity:domainSetup.automaticAvailable?1:.55}}>
-          <strong>Automatic setup — Recommended</strong><div style={{fontSize:14,color:"#475569",marginTop:6}}>{domainSetup.automaticAvailable?"We detect the DNS provider and automate or guide the connection through DoDomain.":"Automatic setup is not configured yet."}</div>
+          <strong>Automatic Setup — Recommended</strong><div style={{fontSize:14,color:"#475569",marginTop:6}}>{domainSetup.automaticAvailable?"We detect the DNS provider and automate or guide the connection through DoDomain.":"Automatic setup is not configured yet."}</div>
         </button>
         <button type="button" onClick={()=>setSetupMode("manual")} style={{textAlign:"left",padding:18,borderRadius:14,border:setupMode==="manual"?"2px solid #101b33":"1px solid #cbd5e1",background:setupMode==="manual"?"#f1f5f9":"#fff"}}>
-          <strong>Manual setup</strong><div style={{fontSize:14,color:"#475569",marginTop:6}}>Show the exact DNS record, copy buttons, provider hints, and let BandWagon check it.</div>
+          <strong>Manual Setup</strong><div style={{fontSize:14,color:"#475569",marginTop:6}}>Show the exact DNS record, copy buttons, provider hints, and let BandWagon check it.</div>
         </button>
       </div>
 
@@ -99,11 +99,11 @@ export default function TenantsAdmin() {
       {result?.automatic&&!result.automatic.available&&<div style={{marginTop:16,padding:18,background:"#fff7ed",border:"1px solid #fed7aa",borderRadius:12}}>
         <strong>Manual setup is needed for this domain</strong>
         <p>{result.automatic.reason}</p>
-        <button onClick={()=>setSetupMode("manual")}>Switch to Manual Setup</button>
+        <button onClick={()=>setSetupMode("manual")}>Switch To Manual Setup</button>
       </div>}
 
       {result?.cname&&(!result?.automatic?.available||setupMode==="manual")&&<div style={{marginTop:16,padding:14,background:"#f8fafc",borderRadius:10}}>
-        <strong>Customer DNS record</strong>
+        <strong>Customer DNS Record</strong>
         <p>Type: <code>CNAME</code></p>
         <p>Name: <code>{result.cname.name}</code> <button onClick={()=>navigator.clipboard?.writeText(result.cname.name)}>Copy</button></p>
         <p>Target: <code>{result.cname.target}</code> <button onClick={()=>navigator.clipboard?.writeText(result.cname.target)}>Copy</button></p>

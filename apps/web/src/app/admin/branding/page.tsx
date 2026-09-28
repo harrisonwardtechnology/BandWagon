@@ -68,13 +68,13 @@ export default function BrandingAdmin() {
       <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1 }}>ORGANIZATION ADMIN</div>
       <h1 style={{ fontSize: 36, margin: "6px 0" }}>Branding</h1>
       <p style={{ margin: 0, opacity: .9 }}>Make your community homepage look like yours. The BandWagon safety notice and attribution always stay on the page.</p>
-      <p style={{ margin: "10px 0 0" }}><a href="/admin/setup" style={{ color: "white", fontWeight: 800 }}>Back to setup checklist</a></p>
+      <p style={{ margin: "10px 0 0" }}><a href="/admin/setup" style={{ color: "white", fontWeight: 800 }}>Back To Setup Checklist</a></p>
     </section>
 
     {organizations.length > 1 && <section style={card}>
       <label style={{ fontWeight: 700 }} htmlFor="brand-org">Organization</label>
       <select id="brand-org" value={org} onChange={e => void loadOrg(e.target.value)} style={input}>
-        <option value="">Choose an organization</option>
+        <option value="">Choose An Organization</option>
         {organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
       </select>
     </section>}
@@ -83,21 +83,21 @@ export default function BrandingAdmin() {
 
     {data && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 20 }}>
       <section style={card}>
-        <h2 style={{ marginTop: 0 }}>Your details</h2>
-        {field("displayName", "Community name", "Shown as the big heading, like \"FloMoGo\".")}
-        {field("communityName", "Who it's for (optional)", "For example \"Flower Mound Band Community\".")}
-        {field("tagline", "Tagline (optional)", `One short line. Leave blank for "${DEFAULT_TAGLINE}"`)}
-        {field("welcomeText", "Welcome message (optional)", "A few sentences families see on your homepage.", true)}
-        {field("logoUrl", "Logo link (optional)", "An https:// link to a square PNG or SVG you already host, like on your school or booster site.")}
+        <h2 style={{ marginTop: 0 }}>Your Details</h2>
+        {field("displayName", "Community Name", "Shown as the big heading, like \"FloMoGo\".")}
+        {field("communityName", "Who It's For (Optional)", "For example \"Flower Mound Band Community\".")}
+        {field("tagline", "Tagline (Optional)", `One short line. Leave blank for "${DEFAULT_TAGLINE}"`)}
+        {field("welcomeText", "Welcome Message (Optional)", "A few sentences families see on your homepage.", true)}
+        {field("logoUrl", "Logo Link (Optional)", "An https:// link to a square PNG or SVG you already host, like on your school or booster site.")}
         <div style={{ marginBottom: 14 }}>
-          <label style={{ fontWeight: 700 }} htmlFor="brand-accent">Button color (optional)</label>
+          <label style={{ fontWeight: 700 }} htmlFor="brand-accent">Button Color (Optional)</label>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <input type="color" aria-label="Pick button color" value={accent} onChange={e => setForm({ ...form, accentColor: e.target.value })} style={{ width: 52, height: 44, border: 0, background: "none" }} />
             <input id="brand-accent" value={form.accentColor} onChange={set("accentColor")} placeholder={DEFAULT_ACCENT} style={{ ...input, margin: 0 }} />
           </div>
           <div style={{ fontSize: 13, color: errors.accentColor || !accentOk ? "#b91c1c" : "#64748b" }}>{errors.accentColor || (!accentOk ? accentColorError(form.accentColor.toLowerCase()) : "Lighter colors work best, since button text is dark navy.")}</div>
         </div>
-        <button onClick={save} disabled={working} style={{ padding: "12px 20px", border: 0, borderRadius: 10, background: "#101b33", color: "white", fontWeight: 800, cursor: "pointer", opacity: working ? .6 : 1 }}>{working ? "Saving..." : "Save branding"}</button>
+        <button onClick={save} disabled={working} style={{ padding: "12px 20px", border: 0, borderRadius: 10, background: "#101b33", color: "white", fontWeight: 800, cursor: "pointer", opacity: working ? .6 : 1 }}>{working ? "Saving..." : "Save Branding"}</button>
       </section>
 
       <section style={card} aria-label="Preview">
@@ -108,7 +108,7 @@ export default function BrandingAdmin() {
           <div style={{ fontSize: 32, fontWeight: 900, margin: "4px 0" }}>{form.displayName || "Your community"}</div>
           <div style={{ opacity: .9 }}>{form.tagline || DEFAULT_TAGLINE}</div>
           {form.welcomeText && <p style={{ opacity: .85, lineHeight: 1.55, whiteSpace: "pre-line" }}>{form.welcomeText}</p>}
-          <span style={{ display: "inline-block", marginTop: 14, padding: "10px 18px", borderRadius: 12, background: accent, color: "#071a33", fontWeight: 850 }}>Get started</span>
+          <span style={{ display: "inline-block", marginTop: 14, padding: "10px 18px", borderRadius: 12, background: accent, color: "#071a33", fontWeight: 850 }}>Get Started</span>
         </div>
         <p style={{ fontSize: 13, color: "#64748b" }}>Live at <code>{data.tenantHostname}</code> after you save.</p>
       </section>

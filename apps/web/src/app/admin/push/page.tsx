@@ -50,7 +50,7 @@ export default function PushAdmin() {
       <input value={title} onChange={e=>setTitle(e.target.value)} style={{display:"block",width:"100%",padding:12,margin:"8px 0"}}/>
       <textarea value={body} onChange={e=>setBody(e.target.value)} rows={4}
         style={{display:"block",width:"100%",padding:12,margin:"8px 0 14px"}}/>
-      <button onClick={test}>Send to Active Test Devices</button>
+      <button onClick={test}>Send To Active Test Devices</button>
       {message&&<p style={{padding:14,background:"#f8fafc",borderRadius:10}}>{message}</p>}
     </section>
   </main>;

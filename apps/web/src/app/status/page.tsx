@@ -22,7 +22,7 @@ export default function StatusPage() {
       </header>
 
       <section style={card} aria-labelledby="live-check-title">
-        <h2 id="live-check-title" style={{ marginTop: 0, color: "#101b33" }}>Live check</h2>
+        <h2 id="live-check-title" style={{ marginTop: 0, color: "#101b33" }}>Live Check</h2>
         <ReadinessCheck />
         <p style={{ color: "#64748b", fontSize: 14, marginBottom: 0 }}>
           This asks the server you are connected to whether it is ready. If it says up but something still looks wrong, try refreshing the page or signing in again.
@@ -31,10 +31,10 @@ export default function StatusPage() {
 
       {statusUrl && (
         <section style={card} aria-labelledby="status-page-title">
-          <h2 id="status-page-title" style={{ marginTop: 0, color: "#101b33" }}>Public status page</h2>
+          <h2 id="status-page-title" style={{ marginTop: 0, color: "#101b33" }}>Public Status Page</h2>
           <p style={{ color: "#475569", lineHeight: 1.6 }}>See uptime history, planned maintenance, and incident updates for BandWagon and each community.</p>
           <a href={statusUrl} target="_blank" rel="noreferrer" style={{ display: "inline-block", padding: "12px 16px", borderRadius: 10, background: "#2458d8", color: "#fff", textDecoration: "none", fontWeight: 900 }}>
-            Open the status page<span className="sr-only"> (opens in a new tab)</span>
+            Open The Status Page<span className="sr-only"> (opens in a new tab)</span>
           </a>
         </section>
       )}

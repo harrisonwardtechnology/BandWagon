@@ -80,7 +80,7 @@ export default function PlatformRolesPage() {
       <section style={card}>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 760 }}>
-            <thead><tr><th align="left">Account</th><th align="left">Current role</th><th align="center">Organizations</th><th align="left">Change role</th></tr></thead>
+            <thead><tr><th align="left">Account</th><th align="left">Current Role</th><th align="center">Organizations</th><th align="left">Change Role</th></tr></thead>
             <tbody>{accounts.map((account) => {
               const self = account.user_account_id === operatorId;
               return <tr key={account.user_account_id} style={{ borderTop: "1px solid #e2e8f0" }}>

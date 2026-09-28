@@ -144,7 +144,7 @@ export default function PrivacySettingsPage() {
       <nav aria-label="Settings sections" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
         <a href="/app/settings/notifications" style={{ padding: "9px 12px", borderRadius: 9, background: "#f1f5f9", color: "#334155", textDecoration: "none", fontWeight: 800 }}>Notifications</a>
         <a href="/app/settings/privacy" aria-current="page" style={{ padding: "9px 12px", borderRadius: 9, background: "#101b33", color: "white", textDecoration: "none", fontWeight: 800 }}>Privacy &amp; Data</a>
-        <a href="/app/settings/security" style={{padding:"9px 12px",borderRadius:9,background:"#f1f5f9",color:"#334155",textDecoration:"none",fontWeight:800}}>Security</a><a href="/help/ideas" style={{ padding: "9px 12px", borderRadius: 9, background: "#f1f5f9", color: "#334155", textDecoration: "none", fontWeight: 800 }}>Suggest a Feature</a>
+        <a href="/app/settings/security" style={{padding:"9px 12px",borderRadius:9,background:"#f1f5f9",color:"#334155",textDecoration:"none",fontWeight:800}}>Security</a><a href="/help/ideas" style={{ padding: "9px 12px", borderRadius: 9, background: "#f1f5f9", color: "#334155", textDecoration: "none", fontWeight: 800 }}>Suggest A Feature</a>
         <a href="/help" style={{ padding: "9px 12px", borderRadius: 9, background: "#f1f5f9", color: "#334155", textDecoration: "none", fontWeight: 800 }}>Help</a>
       </nav>
 
@@ -162,7 +162,7 @@ export default function PrivacySettingsPage() {
           Get a JSON file containing your profile, contacts, memberships, household relationships, ride history, private locations, credential metadata, notifications, consents, and account activity. Credential file contents are not embedded.
         </p>
         <button type="button" onClick={exportData} disabled={Boolean(working)} style={{ ...buttonStyle, background: "#101b33", color: "white", opacity: working ? 0.65 : 1 }}>
-          {working === "export" ? "Preparing export..." : "Download my data"}
+          {working === "export" ? "Preparing Export..." : "Download My Data"}
         </button>
       </section>
 
@@ -179,7 +179,7 @@ export default function PrivacySettingsPage() {
             </div>
             {cancellableDeletionStatuses.has(activeDeletion.status) && (
               <button type="button" onClick={() => cancelDeletion(activeDeletion.id)} disabled={Boolean(working)} style={{ ...buttonStyle, background: "white", color: "#991b1b", border: "1px solid #ef4444" }}>
-                {working === "cancel" ? "Cancelling..." : "Cancel account deletion"}
+                {working === "cancel" ? "Cancelling..." : "Cancel Account Deletion"}
               </button>
             )}
             {activeDeletion.status === "processing" && <p>Your deletion is being processed and can no longer be cancelled.</p>}
@@ -203,7 +203,7 @@ export default function PrivacySettingsPage() {
               </div>
             )}
             <label htmlFor="delete-confirmation" style={{ display: "block", fontWeight: 850, marginBottom: 6 }}>
-              Type <code>{ACCOUNT_DELETION_CONFIRMATION}</code> to continue
+              Type <code>{ACCOUNT_DELETION_CONFIRMATION}</code> To Continue
             </label>
             <input
               id="delete-confirmation"
@@ -219,7 +219,7 @@ export default function PrivacySettingsPage() {
               disabled={Boolean(working) || blockers.length > 0 || confirmation.trim() !== ACCOUNT_DELETION_CONFIRMATION}
               style={{ ...buttonStyle, background: "#b91c1c", color: "white", opacity: Boolean(working) || blockers.length > 0 || confirmation.trim() !== ACCOUNT_DELETION_CONFIRMATION ? 0.5 : 1 }}
             >
-              {working === "delete" ? "Scheduling..." : "Schedule account deletion"}
+              {working === "delete" ? "Scheduling..." : "Schedule Account Deletion"}
             </button>
           </>
         )}
@@ -232,7 +232,7 @@ export default function PrivacySettingsPage() {
         ) : (
           requests.map((request) => (
             <div key={request.id} style={{ padding: "10px 0", borderBottom: "1px solid #e2e8f0" }}>
-              <strong>{request.request_type === "export" ? "Data export" : "Account deletion"}</strong>
+              <strong>{request.request_type === "export" ? "Data Export" : "Account Deletion"}</strong>
               <div style={{ marginTop: 3, fontSize: 13, color: "#64748b" }}>
                 {request.status.replaceAll("_", " ")} - requested {formatDate(request.requested_at)}
               </div>

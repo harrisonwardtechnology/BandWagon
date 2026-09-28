@@ -66,32 +66,32 @@ export default function ProductHome() {
       <JsonLd data={productJsonLd(siteOrigin())} />
       <section className="home-hero" aria-labelledby="home-heading">
         <div className="hero-copy">
-          <div className="hero-kicker"><span aria-hidden="true">●</span> For bands, teams, troops, and other trusted groups</div>
-          <div className="eyebrow">BandWagon for organizations</div>
+          <div className="hero-kicker"><span aria-hidden="true">●</span> For Bands, Teams, Troops, And Other Trusted Groups</div>
+          <div className="eyebrow">BandWagon For Organizations</div>
           <h1 id="home-heading">Free, private carpools for bands, teams, and school groups.</h1>
           <p className="hero-lede">
             BandWagon is a free carpool app for community groups. It helps families in your group share rides to rehearsals, games, and events. No public addresses. No live tracking. No messy group texts.
             Free for organizations and families.
           </p>
           <div className="actions">
-            <Link className="button" href="/start">Start a community <span aria-hidden="true">→</span></Link>
-            <a className="button ghost" href={DEMO_URL} target="_blank" rel="noreferrer">Try the demo<span className="sr-only"> (opens in a new tab)</span></a>
-            <Link className="button ghost" href="/login">Sign in</Link>
+            <Link className="button" href="/start">Start A Community <span aria-hidden="true">→</span></Link>
+            <a className="button ghost" href={DEMO_URL} target="_blank" rel="noreferrer">Try The Demo<span className="sr-only"> (opens in a new tab)</span></a>
+            <Link className="button ghost" href="/login">Sign In</Link>
           </div>
           <div className="hero-trust" aria-label="Platform commitments">
-            <span>Free to use</span><span>Guardian controlled</span><span>Never sells data</span>
+            <span>Free To Use</span><span>Guardian Controlled</span><span>Never Sells Data</span>
           </div>
         </div>
 
         <div className="ride-preview" aria-label="Example BandWagon ride workflow">
-          <div className="preview-topline"><span>Saturday rehearsal</span><span className="status-pill">Ride matched</span></div>
+          <div className="preview-topline"><span>Saturday Rehearsal</span><span className="status-pill">Ride Matched</span></div>
           <div className="route-line" aria-hidden="true"><span></span><i></i><span></span><i></i><span></span></div>
           <ol className="ride-steps">
-            <li><span className="step-icon">1</span><div><strong>Request made</strong><small>General area shared</small></div><time>8:10 AM</time></li>
-            <li><span className="step-icon">2</span><div><strong>Eligible driver matched</strong><small>Guardian approved</small></div><time>8:22 AM</time></li>
-            <li><span className="step-icon verified">✓</span><div><strong>Pickup verified</strong><small>Exact details stay private</small></div><time>9:00 AM</time></li>
+            <li><span className="step-icon">1</span><div><strong>Request Made</strong><small>General Area Shared</small></div><time>8:10 AM</time></li>
+            <li><span className="step-icon">2</span><div><strong>Eligible Driver Matched</strong><small>Guardian Approved</small></div><time>8:22 AM</time></li>
+            <li><span className="step-icon verified">✓</span><div><strong>Pickup Verified</strong><small>Exact Details Stay Private</small></div><time>9:00 AM</time></li>
           </ol>
-          <div className="privacy-chip"><span aria-hidden="true">◆</span><div><strong>Privacy by design</strong><small>No passive location tracking</small></div></div>
+          <div className="privacy-chip"><span aria-hidden="true">◆</span><div><strong>Privacy By Design</strong><small>No Passive Location Tracking</small></div></div>
         </div>
       </section>
 
@@ -105,7 +105,7 @@ export default function ProductHome() {
 
       <section className="feature-section" aria-labelledby="audience-heading">
         <div className="section-heading">
-          <div className="eyebrow">Who it is for</div>
+          <div className="eyebrow">Who It Is For</div>
           <h2 id="audience-heading">Built for groups whose families already know each other.</h2>
           <p>
             BandWagon is a carpool organizer for parents and volunteer drivers in the same group. A band director, booster club, coach, troop leader,
@@ -124,7 +124,7 @@ export default function ProductHome() {
 
       <section className="feature-section" aria-labelledby="how-heading">
         <div className="section-heading">
-          <div className="eyebrow">How it works</div>
+          <div className="eyebrow">How It Works</div>
           <h2 id="how-heading">Up and running in four steps.</h2>
           <p>You stay in charge of who joins and who can drive. Families stay in charge of every ride.</p>
         </div>
@@ -141,7 +141,7 @@ export default function ProductHome() {
 
       <section className="feature-section" aria-labelledby="safety-heading">
         <div className="section-heading">
-          <div className="eyebrow">Safety built in</div>
+          <div className="eyebrow">Safety Built In</div>
           <h2 id="safety-heading">Safety features that are in the product today.</h2>
           <p>These are working features, not plans. Your organization sets the rules. BandWagon enforces them.</p>
         </div>
@@ -158,7 +158,7 @@ export default function ProductHome() {
       <section className="feature-section" aria-labelledby="privacy-heading">
         <div style={{ ...grid(300), alignItems: "start" }}>
           <div className="section-heading" style={{ marginBottom: 0 }}>
-            <div className="eyebrow">Privacy promises</div>
+            <div className="eyebrow">Privacy Promises</div>
             <h2 id="privacy-heading">Your families' information stays theirs.</h2>
             <p>
               Read the <Link href="/privacy">Privacy Policy</Link>, the <Link href="/legal/student-data">student data statement</Link>, and the{" "}
@@ -186,7 +186,7 @@ export default function ProductHome() {
       <section className="feature-section" aria-labelledby="faq-heading">
         <div className="section-heading">
           <div className="eyebrow">Questions</div>
-          <h2 id="faq-heading">Frequently asked questions</h2>
+          <h2 id="faq-heading">Frequently Asked Questions</h2>
           <p>Reviewing BandWagon for a board or school? Download the <a href="/api/review-package">organization review package</a>.</p>
         </div>
         <div style={{ ...card, padding: "6px 24px" }}>
@@ -201,14 +201,14 @@ export default function ProductHome() {
 
       <section className="community-banner">
         <div>
-          <div className="eyebrow">Ready when your community is</div>
+          <div className="eyebrow">Ready When Your Community Is</div>
           <h2>Bring your group on board.</h2>
           <p>Start a free community, try the demo with fake data, or read the review package and legal documents first.</p>
         </div>
         <div className="actions">
-          <Link className="button light" href="/start">Start a community</Link>
+          <Link className="button light" href="/start">Start A Community</Link>
           <a className="button outline-light" href={DEMO_URL} target="_blank" rel="noreferrer">Demo<span className="sr-only"> (opens in a new tab)</span></a>
-          <a className="button outline-light" href="/api/review-package">Review package</a>
+          <a className="button outline-light" href="/api/review-package">Review Package</a>
           <Link className="button outline-light" href="/legal">Legal</Link>
         </div>
       </section>

@@ -33,7 +33,7 @@ export function PublicSiteHeader() {
               <Link key={href} href={href} aria-current={current ? "page" : undefined}>{label}</Link>
             );
           })}
-          <Link className="public-nav-sign-in" href="/login" aria-current={pathname === "/login" ? "page" : undefined}>Sign in</Link>
+          <Link className="public-nav-sign-in" href="/login" aria-current={pathname === "/login" ? "page" : undefined}>Sign In</Link>
         </nav>
       </div>
     </header>
