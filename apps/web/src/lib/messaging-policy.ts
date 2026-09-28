@@ -16,6 +16,7 @@ export const MOBILE_NOTIFICATION_TYPES = [
   "platform_test",
   "waitlist_offer",
   "waitlist_update",
+  "sms_welcome",
 ] as const;
 
 export type MobileNotificationType = typeof MOBILE_NOTIFICATION_TYPES[number];

@@ -62,3 +62,30 @@ test("Send path no longer skips consent when LOOKUP_HASH_KEY is unset", async ()
   assert.doesNotMatch(send, /if \(process\.env\.LOOKUP_HASH_KEY\)/);
   assert.match(send, /sms_opt_outs/);
 });
+
+test("Welcome text carries brand, frequency, rates, HELP/STOP and a support contact", async () => {
+  const { SMS_WELCOME_TEXT, SMS_HELP_TEXT } = await import("../src/lib/sms-consent-policy.ts");
+  for (const text of [SMS_WELCOME_TEXT, SMS_HELP_TEXT]) {
+    assert.match(text, /BandWagon/);
+    assert.match(text, /frequency varies/i);
+    assert.match(text, /Msg & data rates may apply/);
+    assert.match(text, /STOP/);
+    assert.match(text, /support@bandwagon\.club/);
+  }
+  assert.match(SMS_WELCOME_TEXT, /HELP/);
+  assert.ok(SMS_WELCOME_TEXT.length <= 306, "welcome text should fit in two SMS segments");
+});
+
+test("Every SMS opt-in shows Terms and Privacy links and sends one welcome text", async () => {
+  for (const file of ["../src/app/login/page.tsx", "../src/app/notifications/page.tsx", "../src/app/sms-opt-in/page.tsx"]) {
+    const src = await readFile(new URL(file, import.meta.url), "utf8");
+    assert.match(src, /href="\/terms"/, file);
+    assert.match(src, /href="\/privacy"/, file);
+  }
+  const optIn = await readFile(new URL("../src/app/sms-opt-in/page.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(optIn, /disabled/);
+  const auth = await readFile(new URL("../src/lib/auth-service.ts", import.meta.url), "utf8");
+  assert.match(auth, /COMMIT"\);\s*if \(smsWelcome\) void sendSmsWelcome/);
+  const route = await readFile(new URL("../src/app/api/sms-consent/route.ts", import.meta.url), "utf8");
+  assert.match(route, /if \(consent\.newlyOptedIn\) void sendSmsWelcome/);
+});

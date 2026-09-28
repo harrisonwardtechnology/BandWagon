@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SMS_CONSENT_TEXT } from "@/lib/sms-consent-policy";
+import { SMS_CONSENT_TEXT, SMS_WELCOME_TEXT } from "@/lib/sms-consent-policy";
 import { publicPageMetadata } from "@/lib/seo";
 
 export const metadata = publicPageMetadata({
@@ -37,10 +37,10 @@ export default function SmsOptInPage() {
             <span>{SMS_CONSENT_TEXT}</span>
           </label>
 
-          <p className="fine-print">SMS consent is optional and is not required to create or use a BandWagon account. The checkbox above is intentionally unchecked by default.</p>
+          <p className="fine-print">SMS consent is optional and is not required to create or use a BandWagon account. The checkbox above is intentionally unchecked by default. By opting in you agree to our <Link href="/terms">Terms of Use</Link> and <Link href="/privacy">Privacy Policy</Link>.</p>
 
-          <button type="button" disabled style={{marginTop:"8px",padding:"11px 18px",borderRadius:"8px",border:"1px solid #cbd5e1",cursor:"not-allowed"}}>Save Preferences</button>
-          <p className="fine-print">This public page demonstrates the consent language and presentation. The button is disabled because this page does not enroll a visitor in messaging.</p>
+          <Link href="/login" style={{display:"inline-block",marginTop:"8px",padding:"11px 18px",borderRadius:"8px",background:"#101b33",color:"#fff",textDecoration:"none",fontWeight:800}}>Sign Up For Ride Texts</Link>
+          <p className="fine-print">Opting in happens on the sign-in page (choose Mobile Phone and tick the box) or later under Notifications. After opting in you receive one welcome text: {SMS_WELCOME_TEXT}</p>
         </div>
 
         <h2>What Users Are Consenting To</h2>
