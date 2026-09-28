@@ -70,7 +70,7 @@ test("product homepage covers the organization front door", () => {
 test("status and help desk links come from env and are optional", () => {
   assert.equal(safePublicUrl(""), null);
   assert.equal(safePublicUrl("javascript:alert(1)"), null);
-  assert.equal(safePublicUrl("https://help.harrisonward.net"), "https://help.harrisonward.net/");
+  assert.equal(safePublicUrl("https://help.bandwagon.club"), "https://help.bandwagon.club/");
   const links = fs.readFileSync("src/lib/public-links.ts", "utf8");
   assert.match(links, /NEXT_PUBLIC_HELP_DESK_URL/);
   assert.match(links, /NEXT_PUBLIC_STATUS_PAGE_URL/);

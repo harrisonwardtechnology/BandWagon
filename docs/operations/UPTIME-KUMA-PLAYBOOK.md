@@ -30,14 +30,14 @@ Use names that are easy for users to understand and do not reveal unnecessary in
 
 Recommended:
 
-- Private Kuma admin: `monitor.harrisonward.org`
-- Public status page: `status.harrisonward.org`
+- Private Kuma admin: `uptime.harrisonward.net`
+- Public status page: `status.bandwagon.club`
 - Status page title: `BandWagon Status`
 - Tagline / description: `Current availability for BandWagon community ride services.`
 
 If different domains are selected, keep the operator dashboard protected and the public status page intentionally public.
 
-Set `NEXT_PUBLIC_STATUS_PAGE_URL` to the public status page URL (for example `https://status.harrisonward.org`) as a build variable. BandWagon's `/status` page links to it and also shows a live up or down check from `/api/health/ready`. The footer's Platform Status link goes to `/status`.
+Set `NEXT_PUBLIC_STATUS_PAGE_URL` to the public status page URL (for example `https://status.bandwagon.club`) as a build variable. BandWagon's `/status` page links to it and also shows a live up or down check from `/api/health/ready`. The footer's Platform Status link goes to `/status`.
 
 ## Deploy Uptime Kuma
 
@@ -178,7 +178,7 @@ bandwagon
 Recommended public hostname:
 
 ```text
-status.harrisonward.org
+status.bandwagon.club
 ```
 
 Add the hostname to the Uptime Kuma status page's domain list so the domain opens the status page directly.
