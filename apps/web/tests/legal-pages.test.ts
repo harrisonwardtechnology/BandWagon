@@ -59,7 +59,7 @@ test("product homepage covers the organization front door", () => {
   assert.match(page, /tenant\.type !== "organization"\) return <ProductHome \/>/);
   assert.match(home, /href="\/start"/);
   assert.match(home, /href="\/login"/);
-  assert.match(home, /bandwagon-demo\.harrisonward\.net/);
+  assert.match(home, /demo\.bandwagon\.club/);
   for (const q of ["Is this school transportation?", "What does it cost?", "What data do sponsors get?", "Do students need accounts?", "How are drivers checked?"]) {
     assert.ok(home.includes(q), `missing FAQ: ${q}`);
   }

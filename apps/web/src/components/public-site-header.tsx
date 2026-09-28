@@ -7,7 +7,7 @@ import { BrandLogo } from "@/components/brand-logo";
 const links = [
   ["Home", "/"],
   ["Help", "/help"],
-  ["Demo", "https://bandwagon-demo.harrisonward.net/"],
+  ["Demo", "https://demo.bandwagon.club/"],
   ["Review package", "/api/review-package"],
   ["Support", "/support"],
 ] as const;

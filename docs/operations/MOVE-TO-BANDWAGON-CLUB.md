@@ -85,7 +85,7 @@ Do the Google and Microsoft items **in the same sitting as Step 2**. The calenda
 | **DoDomain** | Change the webhook URL to `https://bandwagon.club/api/webhooks/dodomain`. |
 | **Uptime Kuma** | Point the BandWagon monitors at `https://bandwagon.club/api/health/ready` and `/api/health/deep`. Add one for `https://flomogo.bandwagon.club/`. |
 | **GitHub** | Set the repo "Website" to `https://bandwagon.club`. |
-| **Demo site** (optional) | Move `bandwagon-demo.harrisonward.net` to `demo.bandwagon.club`, then update `DEMO_URL` in `src/app/ProductHome.tsx` and `src/components/public-site-header.tsx`. |
+| **Demo site** (done) | Moved `bandwagon-demo.harrisonward.net` to `demo.bandwagon.club`, then update `DEMO_URL` in `src/app/ProductHome.tsx` and `src/components/public-site-header.tsx`. |
 
 ## Step 5. Check It
 
