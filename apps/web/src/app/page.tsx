@@ -10,7 +10,7 @@ import { NOINDEX, OG_IMAGE, publicPageMetadata, TWITTER_IMAGE } from "@/lib/seo"
 import { tenantCanonicalOrigin } from "@/lib/seo-policy";
 import ProductHome from "./ProductHome";
 
-const productTitle = "BandWagon: Free community carpools for schools, bands, and teams";
+const productTitle = "BandWagon: Free Community Carpools For Schools, Bands, And Teams";
 const productDescription =
   "Free, privacy-first carpool coordination for school bands, teams, clubs, troops, and other trusted groups. Guardian controlled, no live tracking, and never sells data.";
 
