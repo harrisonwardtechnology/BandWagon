@@ -10,7 +10,7 @@
 <p align="center">
   <a href="https://bandwagon.club">Platform</a> ·
   <a href="https://flomogo.app">FloMoGo</a> ·
-  <a href="https://bandwagon-demo.harrisonward.net/">Interactive demo</a> ·
+  <a href="https://demo.bandwagon.club/">Interactive demo</a> ·
   <a href="docs/ROADMAP-TO-V1.md">Roadmap</a> ·
   <a href="docs/operations/V1-LAUNCH-CHECKLIST.md">Launch checklist</a> ·
   <a href="CONTRIBUTING.md">Contributing</a>
@@ -33,7 +33,7 @@ BandWagon is a privacy-first community carpool coordination platform developed a
 
 ## Try the interactive demo
 
-Explore the complete fake-data walkthrough at **[bandwagon-demo.harrisonward.net](https://bandwagon-demo.harrisonward.net/)**. It demonstrates the BandWagon experience without connecting to production APIs, sending messages, or creating real rides.
+Explore the complete fake-data walkthrough at **[demo.bandwagon.club](https://demo.bandwagon.club/)**. It demonstrates the BandWagon experience without connecting to production APIs, sending messages, or creating real rides.
 
 ## Built for real community coordination
 

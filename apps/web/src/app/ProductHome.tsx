@@ -8,7 +8,7 @@ import { siteOrigin } from "@/lib/seo";
 // Keep every claim here matched to shipped features (README feature table,
 // docs/ORGANIZATION-REVIEW-GUIDE.md, docs/LOCATION-PRIVACY.md).
 
-export const DEMO_URL = "https://bandwagon-demo.harrisonward.net/";
+export const DEMO_URL = "https://demo.bandwagon.club/";
 
 const audiences = [
   ["School bands and marching bands", "Rides to rehearsals, football games, competitions, and concerts, planned around your band calendar."],
