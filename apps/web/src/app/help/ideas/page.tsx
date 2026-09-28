@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import FeatureIdeas from "@/components/feature-ideas";
 
 export const metadata: Metadata = {
-  title: "Suggest a Feature | BandWagon Help",
+  title: "Suggest A Feature | BandWagon Help",
   description: "Share an idea for BandWagon, vote on ideas from other families and drivers, and follow what the team is building.",
 };
 

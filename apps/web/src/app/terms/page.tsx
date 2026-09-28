@@ -2,7 +2,7 @@ import Link from "next/link";
 import { publicPageMetadata } from "@/lib/seo";
 
 export const metadata = publicPageMetadata({
-  title: "Terms of Use",
+  title: "Terms Of Use",
   description: "Terms of Use and messaging terms for BandWagon, the free community carpool coordination platform.",
   path: "/terms",
 });

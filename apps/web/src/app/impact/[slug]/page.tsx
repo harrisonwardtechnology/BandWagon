@@ -19,7 +19,7 @@ const loadImpact = cache((slug: string) => getPublicImpact(slug).catch(() => nul
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const data = await loadImpact(slug);
-  if (!data) return { title: "Community impact", robots: NOINDEX };
+  if (!data) return { title: "Community Impact", robots: NOINDEX };
   return publicPageMetadata({
     title: `${data.organization.name} community impact`,
     description: `How families in ${data.organization.name} share rides with BandWagon: completed carpools, car trips avoided, and estimated miles and CO2 saved. Totals only.`,

@@ -1,7 +1,7 @@
 import { publicPageMetadata } from "@/lib/seo";
 
 export const metadata = publicPageMetadata({
-  title: "Security and responsible disclosure",
+  title: "Security And Responsible Disclosure",
   description: "Report a security, privacy, or safety vulnerability in BandWagon. How we handle reports and what is in scope.",
   path: "/security",
 });
