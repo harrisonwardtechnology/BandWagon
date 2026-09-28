@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import ReadinessCheck from "./ReadinessCheck";
 import { SupportContact } from "@/components/support-contact";
 import { statusPageUrl } from "@/lib/public-links";
+import { publicPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: "Platform Status",
   description: "Check whether BandWagon is up right now and find the public status page.",
-  alternates: { canonical: "/status" },
-};
+  path: "/status",
+});
 
 export default function StatusPage() {
   const statusUrl = statusPageUrl();

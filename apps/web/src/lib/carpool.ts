@@ -1,5 +1,7 @@
 import { getDb } from "@/lib/db";
 import { queueNotification } from "@/lib/notification-queue";
+import { requestWaitlistProcessing } from "@/lib/ride-waitlist-queue";
+import { canActForChild } from "@/lib/child-access";
 
 function dbRequired() {
   const db = getDb();
@@ -14,12 +16,8 @@ function minutesBetween(a?: Date | string | null, b?: Date | string | null) {
 
 async function actorCanManageRequest(client: any, actorPersonId: string, request: any) {
   if (actorPersonId === request.requester_person_id) return true;
-  const guardian = await client.query(
-    `select 1 from guardian_relationships
-     where guardian_person_id=$1 and minor_person_id=$2 and can_approve_rides=true limit 1`,
-    [actorPersonId,request.passenger_person_id]
-  );
-  return Boolean(guardian.rowCount);
+  const access = await canActForChild(actorPersonId, request.passenger_person_id, "manage_ride_request", { organizationId: request.organization_id, client });
+  return access.allowed;
 }
 
 async function resequenceStops(client: any, rideId: string) {
@@ -32,6 +30,55 @@ async function resequenceStops(client: any, rideId: string) {
      )
      update ride_stops rs set sequence=ranked.new_sequence,updated_at=now()
      from ranked where rs.id=ranked.id`, [rideId]);
+}
+
+/**
+ * Put an open ride request into a ride. The caller must already hold row locks
+ * (SELECT ... FOR UPDATE) on the ride and the request inside its transaction
+ * and must have checked capacity. Shared by manual pooling and standby offers.
+ */
+export async function reserveSeatForRequest(client: any, input: { ride: any; request: any; actorPersonId: string | null; eventType: string; remainingBefore: number; metadata?: Record<string, unknown> }) {
+  const { ride, request } = input;
+  const assignment = await client.query(
+      `insert into ride_request_assignments (ride_id,ride_request_id,seats_reserved,status,assigned_by_person_id)
+       values ($1,$2,$3,'confirmed',$4)
+       on conflict (ride_request_id) do update set
+         ride_id=excluded.ride_id,seats_reserved=excluded.seats_reserved,status='confirmed',
+         assigned_by_person_id=excluded.assigned_by_person_id,updated_at=now()
+       where ride_request_assignments.status='cancelled'
+       returning *`, [ride.id,request.id,request.seats_needed,input.actorPersonId]);
+  if (!assignment.rowCount) throw new Error("Ride request is already assigned to another active ride");
+
+  await client.query(
+      `insert into ride_passengers (ride_id,person_id,ride_request_id,seats_reserved,assignment_status)
+       values ($1,$2,$3,$4,'confirmed')
+       on conflict (ride_id,person_id) do update set
+         ride_request_id=excluded.ride_request_id,seats_reserved=excluded.seats_reserved,assignment_status='confirmed'`,
+      [ride.id,request.passenger_person_id,request.id,request.seats_needed]);
+
+  const nextSequence = await client.query(`select coalesce(max(sequence),0)+10 as next_sequence from ride_stops where ride_id=$1`, [ride.id]);
+  let sequence = Number(nextSequence.rows[0]?.next_sequence || 10);
+  if (request.pickup_location_id) {
+    await client.query(
+        `insert into ride_stops (ride_id,ride_request_id,person_id,private_location_id,stop_type,sequence,planned_at)
+         values ($1,$2,$3,$4,'pickup',$5,$6)`,
+        [ride.id,request.id,request.passenger_person_id,request.pickup_location_id,sequence,request.requested_pickup_at]);
+    sequence += 10;
+  }
+  if (request.dropoff_location_id) {
+    await client.query(
+        `insert into ride_stops (ride_id,ride_request_id,person_id,private_location_id,stop_type,sequence,planned_at)
+         values ($1,$2,$3,$4,'dropoff',$5,$6)`,
+        [ride.id,request.id,request.passenger_person_id,request.dropoff_location_id,sequence,request.requested_dropoff_at]);
+  }
+  await resequenceStops(client,ride.id);
+
+  await client.query(`update rides set seats_reserved=seats_reserved+$1,updated_at=now() where id=$2`, [request.seats_needed,ride.id]);
+  await client.query(`update ride_requests set status='matched',updated_at=now() where id=$1`, [request.id]);
+  await client.query(
+      `insert into ride_status_events (ride_id,ride_request_id,actor_person_id,event_type,from_status,to_status,metadata)
+       values ($1,$2,$3,$4,'open','matched',$5::jsonb)`,
+      [ride.id,request.id,input.actorPersonId,input.eventType,JSON.stringify({ seatsReserved:request.seats_needed, remainingSeats:input.remainingBefore-request.seats_needed, ...(input.metadata || {}) })]);
 }
 
 export async function attachRequestToRide(input: {rideId:string;rideRequestId:string;actorPersonId:string}) {
@@ -73,53 +120,18 @@ export async function attachRequestToRide(input: {rideId:string;rideRequestId:st
       throw new Error(`Pickup times differ by more than ${allowedGap} minutes`);
     }
 
-    const remaining = Number(ride.capacity_snapshot) - Number(ride.seats_reserved);
+    // Seats held for an open standby offer are not available for manual pooling.
+    const held = await client.query(
+      `select coalesce(sum(seats_needed),0)::int as held from ride_waitlist_entries
+        where offered_ride_id=$1 and status='offered' and ride_request_id<>$2`, [ride.id,request.id]);
+    const remaining = Number(ride.capacity_snapshot) - Number(ride.seats_reserved) - Number(held.rows[0]?.held || 0);
     if (remaining < Number(request.seats_needed)) throw new Error("Ride does not have enough remaining seats");
 
     const actorIsDriver = input.actorPersonId === ride.driver_person_id;
     const actorCanManage = await actorCanManageRequest(client,input.actorPersonId,request);
     if (!actorIsDriver && !actorCanManage) throw new Error("Person is not authorized to combine this ride request");
 
-    const assignment = await client.query(
-      `insert into ride_request_assignments (ride_id,ride_request_id,seats_reserved,status,assigned_by_person_id)
-       values ($1,$2,$3,'confirmed',$4)
-       on conflict (ride_request_id) do update set
-         ride_id=excluded.ride_id,seats_reserved=excluded.seats_reserved,status='confirmed',
-         assigned_by_person_id=excluded.assigned_by_person_id,updated_at=now()
-       where ride_request_assignments.status='cancelled'
-       returning *`, [ride.id,request.id,request.seats_needed,input.actorPersonId]);
-    if (!assignment.rowCount) throw new Error("Ride request is already assigned to another active ride");
-
-    await client.query(
-      `insert into ride_passengers (ride_id,person_id,ride_request_id,seats_reserved,assignment_status)
-       values ($1,$2,$3,$4,'confirmed')
-       on conflict (ride_id,person_id) do update set
-         ride_request_id=excluded.ride_request_id,seats_reserved=excluded.seats_reserved,assignment_status='confirmed'`,
-      [ride.id,request.passenger_person_id,request.id,request.seats_needed]);
-
-    const nextSequence = await client.query(`select coalesce(max(sequence),0)+10 as next_sequence from ride_stops where ride_id=$1`, [ride.id]);
-    let sequence = Number(nextSequence.rows[0]?.next_sequence || 10);
-    if (request.pickup_location_id) {
-      await client.query(
-        `insert into ride_stops (ride_id,ride_request_id,person_id,private_location_id,stop_type,sequence,planned_at)
-         values ($1,$2,$3,$4,'pickup',$5,$6)`,
-        [ride.id,request.id,request.passenger_person_id,request.pickup_location_id,sequence,request.requested_pickup_at]);
-      sequence += 10;
-    }
-    if (request.dropoff_location_id) {
-      await client.query(
-        `insert into ride_stops (ride_id,ride_request_id,person_id,private_location_id,stop_type,sequence,planned_at)
-         values ($1,$2,$3,$4,'dropoff',$5,$6)`,
-        [ride.id,request.id,request.passenger_person_id,request.dropoff_location_id,sequence,request.requested_dropoff_at]);
-    }
-    await resequenceStops(client,ride.id);
-
-    await client.query(`update rides set seats_reserved=seats_reserved+$1,updated_at=now() where id=$2`, [request.seats_needed,ride.id]);
-    await client.query(`update ride_requests set status='matched',updated_at=now() where id=$1`, [request.id]);
-    await client.query(
-      `insert into ride_status_events (ride_id,ride_request_id,actor_person_id,event_type,from_status,to_status,metadata)
-       values ($1,$2,$3,'ride_request_pooled','open','matched',$4::jsonb)`,
-      [ride.id,request.id,input.actorPersonId,JSON.stringify({ seatsReserved:request.seats_needed, remainingSeats:remaining-request.seats_needed })]);
+    await reserveSeatForRequest(client, { ride, request, actorPersonId: input.actorPersonId, eventType: 'ride_request_pooled', remainingBefore: remaining });
     await client.query('COMMIT');
 
     await Promise.allSettled([
@@ -164,6 +176,8 @@ export async function removeRequestFromRide(input: {rideId:string;rideRequestId:
        values ($1,$2,$3,'ride_request_unpooled','matched','open',$4::jsonb)`,
       [ride.id,request.id,input.actorPersonId,JSON.stringify({ reason:input.reason || null })]);
     await client.query('COMMIT');
+    // A seat just opened: let the waitlist know.
+    await requestWaitlistProcessing(ride.id, "passenger_removed");
     return getRideManifest(ride.id);
   } catch (error) {
     await client.query('ROLLBACK').catch(() => {}); throw error;

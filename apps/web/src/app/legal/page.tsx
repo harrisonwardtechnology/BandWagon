@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalDraftBanner } from "@/components/legal-draft-banner";
+import { publicPageMetadata } from "@/lib/seo";
 import { ORGANIZATION_AGREEMENT_VERSION, STUDENT_DATA_STATEMENT_VERSION, SUBPROCESSOR_LIST_VERSION } from "@/lib/legal-versions";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: "Legal",
   description: "BandWagon legal documents: terms, privacy, organization agreement, subprocessors, and student data statement.",
-  alternates: { canonical: "/legal" },
-};
+  path: "/legal",
+});
 
 const current = [
   ["/terms", "Terms of Use", "Rules for everyone who uses BandWagon."],

@@ -9,7 +9,7 @@ import { ORG_TEXTING_LIMIT_ERROR } from "@/lib/org-messaging-cap-policy";
 export type NotificationUrgency="routine"|"important"|"critical";
 export type NotificationType=
   |"new_ride_available"|"driver_offer"|"ride_matched"|"reminder_24h"|"reminder_1h"|"driver_arriving"
-  |"last_minute_cancellation"|"pickup_changed"|"safety_alert"|"credential_expiring"|"organization_removed"|"organization_decommission_confirmation"|"otp"|"platform_test"|string;
+  |"last_minute_cancellation"|"pickup_changed"|"safety_alert"|"credential_expiring"|"organization_removed"|"organization_decommission_confirmation"|"otp"|"platform_test"|"waitlist_offer"|"waitlist_update"|"event_proposal_submitted"|"event_proposal_decision"|string;
 
 export type NotificationRequest={notificationType:NotificationType;title:string;body:string;url?:string;personId?:string|null;organizationId?:string|null;phone?:string|null;email?:string|null;correlationId?:string|null;forceUrgency?:NotificationUrgency;};
 type Policy={urgency:NotificationUrgency;push:boolean;emailFallback:boolean;emailAlways?:boolean;smsFallback:boolean;smsImmediate:boolean;smsOnly?:boolean;};
@@ -28,7 +28,11 @@ const POLICIES:Record<string,Policy>={
   organization_removed:{urgency:"important",push:true,emailFallback:true,emailAlways:true,smsFallback:false,smsImmediate:false},
   organization_decommission_confirmation:{urgency:"critical",push:true,emailFallback:true,emailAlways:true,smsFallback:false,smsImmediate:true},
   otp:{urgency:"critical",push:false,emailFallback:false,smsFallback:false,smsImmediate:true,smsOnly:true},
+  waitlist_offer:{urgency:"important",push:true,emailFallback:true,smsFallback:true,smsImmediate:false},
+  waitlist_update:{urgency:"routine",push:true,emailFallback:true,smsFallback:false,smsImmediate:false},
   platform_test:{urgency:"important",push:true,emailFallback:false,smsFallback:true,smsImmediate:false},
+  event_proposal_submitted:{urgency:"routine",push:true,emailFallback:true,smsFallback:false,smsImmediate:false},
+  event_proposal_decision:{urgency:"routine",push:true,emailFallback:true,smsFallback:false,smsImmediate:false},
 };
 const DEFAULT_POLICY:Policy={urgency:"routine",push:true,emailFallback:true,smsFallback:false,smsImmediate:false};
 function policyFor(type:string,forced?:NotificationUrgency):Policy{const base=POLICIES[type]||DEFAULT_POLICY;return forced?{...base,urgency:forced}:base;}

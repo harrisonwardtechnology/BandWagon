@@ -30,6 +30,14 @@ async function handle(job: BackgroundJob) {
     const { routeNotification } = await import("@/lib/notification-router");
     return routeNotification(job.payload as any);
   }
+  if (job.kind === "waitlist.process_ride") {
+    const { processRideWaitlist } = await import("@/lib/ride-waitlists");
+    return processRideWaitlist(String(job.payload.rideId || ""));
+  }
+  if (job.kind === "waitlist.offer_expire") {
+    const { expireStandbyOffer } = await import("@/lib/ride-waitlists");
+    return expireStandbyOffer(String(job.payload.entryId || ""));
+  }
   if (job.kind.startsWith("scheduled:")) {
     return runScheduledTask(job.kind.slice("scheduled:".length));
   }

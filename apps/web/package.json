@@ -26,6 +26,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",
     "@aws-sdk/s3-request-presigner": "^3.850.0",
+    "@simplewebauthn/browser": "^13.3.0",
+    "@simplewebauthn/server": "^13.3.3",
     "ioredis": "^5.4.2",
     "libphonenumber-js": "^1.12.15",
     "next": "^15.5.0",

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { SupportContact } from "@/components/support-contact";
+import { publicPageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Privacy Policy | BandWagon",
-  description: "BandWagon privacy policy and explicit data handling practices."
-};
+export const metadata = publicPageMetadata({
+  title: "Privacy Policy",
+  description: "How BandWagon collects, uses, protects, and deletes information for families, students, drivers, and organizations. BandWagon never sells personal information.",
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return <main className="shell legal-shell">

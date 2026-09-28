@@ -141,9 +141,11 @@ export default function PrivacySettingsPage() {
   return (
     <main style={appPageStyle}>
       <AppNav active="Settings" />
-      <nav aria-label="Settings sections" style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+      <nav aria-label="Settings sections" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
         <a href="/app/settings/notifications" style={{ padding: "9px 12px", borderRadius: 9, background: "#f1f5f9", color: "#334155", textDecoration: "none", fontWeight: 800 }}>Notifications</a>
         <a href="/app/settings/privacy" aria-current="page" style={{ padding: "9px 12px", borderRadius: 9, background: "#101b33", color: "white", textDecoration: "none", fontWeight: 800 }}>Privacy &amp; Data</a>
+        <a href="/app/settings/security" style={{padding:"9px 12px",borderRadius:9,background:"#f1f5f9",color:"#334155",textDecoration:"none",fontWeight:800}}>Security</a><a href="/help/ideas" style={{ padding: "9px 12px", borderRadius: 9, background: "#f1f5f9", color: "#334155", textDecoration: "none", fontWeight: 800 }}>Suggest a Feature</a>
+        <a href="/help" style={{ padding: "9px 12px", borderRadius: 9, background: "#f1f5f9", color: "#334155", textDecoration: "none", fontWeight: 800 }}>Help</a>
       </nav>
 
       <section style={{ ...appCardStyle, marginBottom: 18 }}>

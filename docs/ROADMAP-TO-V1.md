@@ -117,7 +117,7 @@ BLUE COW                    BLUE COW
 - [x] Google / Microsoft sync controls per organization
 - [x] duplicate / conflict handling
 - [x] organizer-created manual events
-- [ ] decide whether organizations may opt into member-created event proposals after v1
+- [x] organizations may opt into moderated member event proposals (off by default, see docs/EVENTS.md)
 
 ### Privacy / family controls
 - [x] user data export

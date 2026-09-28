@@ -52,6 +52,18 @@ const requiredTables = [
   "organization_messaging_limits",
   "organization_messaging_alerts",
   "organization_impact_settings",
+  "feature_requests",
+  "feature_request_votes",
+  "webauthn_credentials",
+  "webauthn_challenges",
+  "auth_rate_limit_events",
+  "organization_waitlist_settings",
+  "ride_waitlist_entries",
+  "organization_event_proposal_settings",
+  "event_proposals",
+  "household_delegates",
+  "household_delegate_children",
+  "household_delegate_invitations",
 ];
 
 await client.connect();
@@ -145,6 +157,13 @@ try {
         and indexname in ('auth_otp_request_ip_time_idx','auth_sessions_active_seen_idx')`
   );
   assert.equal(authIndexes.rowCount, 2, "Required authentication hardening indexes are missing");
+
+  // Managed-student passkeys are tied to the guardian-authorized login email.
+  const passkeyLoginEmail = await client.query(
+    `select 1 from information_schema.columns
+      where table_schema='public' and table_name='webauthn_credentials' and column_name='login_email_id'`
+  );
+  assert.equal(passkeyLoginEmail.rowCount, 1, "webauthn_credentials.login_email_id is missing");
 
   const organizationPolicyIndex = await client.query(
     `select 1 from pg_indexes

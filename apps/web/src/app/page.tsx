@@ -4,36 +4,37 @@ import type { CSSProperties } from "react";
 import { platformBrand } from "@/lib/branding";
 import { resolveBranding } from "@/lib/branding-policy";
 import { resolveTenant } from "@/lib/tenant";
+import { legacyTenantBaseDomains, tenantBaseDomain } from "@/lib/platform-hosts";
+import { isStagingEnvironment } from "@/lib/public-links";
+import { NOINDEX, OG_IMAGE, publicPageMetadata, TWITTER_IMAGE } from "@/lib/seo";
+import { tenantCanonicalOrigin } from "@/lib/seo-policy";
 import ProductHome from "./ProductHome";
 
-const productTitle = "BandWagon for Organizations: private carpools for trusted groups";
+const productTitle = "BandWagon: Free community carpools for schools, bands, and teams";
 const productDescription =
-  "Free, privacy-first carpool coordination for school bands, teams, troops, and other trusted groups. Guardian controlled, no live tracking, and never sells data.";
+  "Free, privacy-first carpool coordination for school bands, teams, clubs, troops, and other trusted groups. Guardian controlled, no live tracking, and never sells data.";
 
 export async function generateMetadata(): Promise<Metadata> {
   const tenant = await resolveTenant();
-  // Tenant hosts keep the layout defaults. Only the product site gets the
-  // "For Organizations" title and share card.
-  if (tenant.type === "organization") return {};
-  return {
-    title: { absolute: productTitle },
-    description: productDescription,
-    alternates: { canonical: "/" },
-    openGraph: {
-      title: productTitle,
-      description: productDescription,
-      url: "/",
-      siteName: "BandWagon",
-      images: [{ url: "/social/bandwagon-social.png", width: 1280, height: 640, alt: "BandWagon - Community-powered rides" }],
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: productTitle,
-      description: productDescription,
-      images: ["/social/bandwagon-social.png"],
-    },
-  };
+  if (tenant.type === "organization") {
+    // A community's landing page: its own name, canonical on its own host.
+    // Only this page may be indexed on a community host. Everything else there
+    // is noindex (robots.ts and the middleware X-Robots-Tag). follow:false
+    // keeps crawlers from walking into sign-in links.
+    const org = resolveBranding({ displayName: tenant.displayName, name: tenant.name, branding: tenant.branding });
+    const origin = tenantCanonicalOrigin({ primaryHostname: tenant.primaryHostname, hostname: tenant.hostname, tenantBase: tenantBaseDomain(), legacyTenantBases: legacyTenantBaseDomains() });
+    const description = `${org.name} uses BandWagon to coordinate carpools for its families. ${org.tagline}`.slice(0, 300);
+    return {
+      title: { absolute: `${org.name} carpools on BandWagon` },
+      description,
+      applicationName: org.name,
+      alternates: { canonical: `${origin}/` },
+      openGraph: { title: org.name, description, url: `${origin}/`, siteName: org.name, type: "website", images: [OG_IMAGE] },
+      twitter: { card: "summary_large_image", title: org.name, description, images: [TWITTER_IMAGE] },
+      robots: isStagingEnvironment() ? NOINDEX : { index: true, follow: false },
+    };
+  }
+  return publicPageMetadata({ title: productTitle, description: productDescription, path: "/", absoluteTitle: true });
 }
 
 export default async function Home() {

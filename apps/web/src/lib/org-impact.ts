@@ -155,6 +155,25 @@ export async function listPublicSponsors(organizationId: string) {
   }));
 }
 
+/**
+ * Slugs of organizations whose public impact page is on, for the sitemap.
+ * Same conditions as getPublicImpact: active org and public_impact_enabled=true.
+ * Returns [] when no database is configured (for example during a build).
+ */
+export async function listPublicImpactSlugs(): Promise<string[]> {
+  const db = getDb();
+  if (!db) return [];
+  const rows = (
+    await db.query(
+      `select o.slug from organizations o
+         join organization_impact_settings s on s.organization_id=o.id and s.public_impact_enabled=true
+        where o.status='active'
+        order by o.slug limit 5000`
+    )
+  ).rows;
+  return rows.map((row) => String(row.slug || "")).filter(Boolean);
+}
+
 /** Public impact page data. Returns null unless the organization turned the page on. */
 export async function getPublicImpact(slug: string) {
   const db = dbRequired();

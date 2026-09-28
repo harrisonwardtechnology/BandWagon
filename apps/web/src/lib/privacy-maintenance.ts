@@ -179,6 +179,10 @@ async function purgeExpiredAuthArtifacts() {
       where coalesce(revoked_at,expires_at)<now()-interval '30 days'
       returning id`
   );
+  // Passkey challenges are single use and short lived; rate-limit counters
+  // only matter for about an hour.
+  await db.query(`delete from webauthn_challenges where expires_at<now()`).catch(() => undefined);
+  await db.query(`delete from auth_rate_limit_events where created_at<now()-interval '1 day'`).catch(() => undefined);
   return {
     challengesDeleted: challenges.rowCount || 0,
     otpDeliveriesRedacted: redactedDeliveries.rowCount || 0,
@@ -386,6 +390,9 @@ async function anonymizeAccount(request: any) {
     await client.query(`delete from organization_join_events where person_id=$1`, [row.person_id]);
     await client.query(`delete from guardian_consents where guardian_person_id=$1 or minor_person_id=$1`, [row.person_id]);
     await client.query(`delete from guardian_relationships where guardian_person_id=$1 or minor_person_id=$1`, [row.person_id]);
+    await client.query(`delete from household_delegate_children where child_person_id=$1`, [row.person_id]);
+    await client.query(`update household_delegates set status='revoked',revoked_at=coalesce(revoked_at,now()),updated_at=now() where delegate_person_id=$1 and status<>'revoked'`, [row.person_id]);
+    await client.query(`update household_delegate_invitations set revoked_at=coalesce(revoked_at,now()) where invited_by_person_id=$1 and accepted_at is null and revoked_at is null`, [row.person_id]);
     await client.query(`delete from household_members where person_id=$1`, [row.person_id]);
     await client.query(`delete from memberships where person_id=$1`, [row.person_id]);
     await client.query(`delete from emails where person_id=$1`, [row.person_id]);
@@ -400,6 +407,7 @@ async function anonymizeAccount(request: any) {
       [row.person_id]
     );
     await client.query(`delete from auth_otp_challenges where person_id=$1 or user_account_id=$2`, [row.person_id,row.user_account_id]);
+    await client.query(`delete from webauthn_credentials where person_id=$1`, [row.person_id]);
     await client.query(
       `update auth_events set user_account_id=null,person_id=null,metadata='{"redacted":true}'::jsonb
         where person_id=$1 or user_account_id=$2`,

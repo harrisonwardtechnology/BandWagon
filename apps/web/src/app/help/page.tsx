@@ -1,6 +1,15 @@
 import HelpContactForm from "@/components/help-contact-form";
 import { SupportContact } from "@/components/support-contact";
+import { JsonLd } from "@/components/json-ld";
+import { faqJsonLd } from "@/lib/json-ld";
 import { helpDeskUrl } from "@/lib/public-links";
+import { publicPageMetadata } from "@/lib/seo";
+
+export const metadata = publicPageMetadata({
+  title: "Help Center",
+  description: "Plain-language help for BandWagon community admins, parents, and volunteer drivers: starting a community, requesting rides, driver requirements, privacy, and support.",
+  path: "/help",
+});
 
 const reviewPackageUrl = "/api/review-package";
 
@@ -62,6 +71,7 @@ export default function HelpPage() {
   const card = { background: "white", border: "1px solid #e2e8f0", borderRadius: 16, padding: 18 } as const;
   return (
     <main style={{ maxWidth: 1120, margin: "32px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif", background: "#f8fafc" }}>
+      <JsonLd data={faqJsonLd(review)} />
       <header style={{ background: "#101b33", color: "white", padding: 30, borderRadius: 22, marginBottom: 18 }}>
         <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1 }}>BANDWAGON HELP CENTER</div>
         <h1 style={{ fontSize: 40, margin: "6px 0" }}>What are you trying to do?</h1>
@@ -107,9 +117,15 @@ export default function HelpPage() {
         ))}
       </section>
 
+      <section style={{ ...card, marginBottom: 18, background: "#f5f3ff", borderColor: "#c4b5fd" }} aria-labelledby="ideas-title">
+        <h2 id="ideas-title" style={{ marginTop: 0 }}>Have an Idea?</h2>
+        <p style={{ color: "#475569" }}>Suggest a feature, vote for ideas from other families and drivers, and see what the BandWagon team is planning.</p>
+        <a href="/help/ideas" style={{ display: "inline-block", padding: "12px 16px", borderRadius: 10, background: "#101b33", color: "white", textDecoration: "none", fontWeight: 900 }}>Suggest a Feature</a>
+      </section>
+
       <section style={{ ...card, marginBottom:18 }} aria-labelledby="contact-support-title">
         <h2 id="contact-support-title" style={{ marginTop: 0 }}>Contact BandWagon Support</h2>
-        <p style={{color:"#475569"}}>Send an account, technical, organization, ride, event, or general question directly to BandWagon Support.</p>
+        <p style={{color:"#475569"}}>Send an account, technical, organization, ride, event, or general question directly to BandWagon Support. For a new feature idea, use <a href="/help/ideas"><strong>Suggest a Feature</strong></a> so others can vote on it.</p>
         {desk && <p style={{color:"#475569"}}>You can also open a ticket and follow replies in the <a href={desk} target="_blank" rel="noreferrer"><strong>BandWagon help desk</strong><span className="sr-only"> (opens in a new tab)</span></a>.</p>}
         <HelpContactForm />
       </section>

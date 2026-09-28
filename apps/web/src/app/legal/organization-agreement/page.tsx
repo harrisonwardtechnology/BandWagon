@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalDraftBanner } from "@/components/legal-draft-banner";
+import { publicPageMetadata } from "@/lib/seo";
 import { SupportContact } from "@/components/support-contact";
 import { ORGANIZATION_AGREEMENT_VERSION } from "@/lib/legal-versions";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: "Organization Agreement (Draft)",
   description: "Draft agreement an organization leader accepts when requesting a BandWagon community.",
-  alternates: { canonical: "/legal/organization-agreement" },
-};
+  path: "/legal/organization-agreement",
+});
 
 export default function OrganizationAgreementPage() {
   return (

@@ -267,6 +267,67 @@ function inputOrEmpty(value: string) {
   return value || "";
 }
 
+/**
+ * The single post-authentication step shared by every sign-in method (code,
+ * passkey). Records the sign-in and issues a session. Run inside the caller's
+ * transaction after the account has passed its eligibility checks.
+ */
+export async function completeSignIn(client: any, input: {
+  userAccountId: string;
+  personId: string;
+  eventType: string;
+  metadata?: Record<string, unknown>;
+  requestIp?: string | null;
+  userAgent?: string | null;
+}) {
+  await client.query(`update user_accounts set last_login_at=now(),updated_at=now() where id=$1`, [input.userAccountId]);
+  await client.query(
+    `insert into auth_events (user_account_id,person_id,event_type,outcome,metadata)
+     values ($1,$2,$3,'success',$4::jsonb)`,
+    [input.userAccountId,input.personId,input.eventType,JSON.stringify(input.metadata || {})]
+  );
+  return createSession(client,input.userAccountId,input.requestIp,input.userAgent);
+}
+
+/**
+ * Account restrictions for sign-in methods that are not tied to a contact
+ * address (passkeys). Mirrors the email code rules in findExistingAccount:
+ * the person and account must be active, and a managed student may sign in
+ * only while guardian-enabled access and active guardian consent both exist.
+ * Suspended, deleting, or deleted accounts never match.
+ */
+export async function findSignInEligibleAccount(client: any, personId: string, credentialLoginEmailId: string | null) {
+  // For a managed student, the credential must have been registered under the
+  // login email the guardian currently authorizes (email code sign-in has the
+  // same msa.login_email_id=e.id rule). A NULL credential email never matches.
+  const result = await client.query(
+    `select p.id as person_id,ua.id as user_account_id
+       from people p join user_accounts ua on ua.person_id=p.id
+      where p.id=$1 and p.status='active' and ua.status='active'
+        and (
+          p.person_type<>'minor'
+          or not exists(select 1 from managed_student_account_access msa where msa.person_id=p.id)
+          or exists(
+            select 1 from managed_student_account_access msa
+             where msa.person_id=p.id and msa.enabled=true
+               and msa.login_email_id=$2::uuid
+               and exists(select 1 from emails e where e.id=msa.login_email_id and e.person_id=p.id)
+               and exists(select 1 from guardian_consents gc
+                           where gc.minor_person_id=p.id and gc.consent_type='platform_minor_use' and gc.status='active')
+          )
+        )
+      limit 1
+      for update of ua`,
+    [personId, credentialLoginEmailId]
+  );
+  return (result.rows[0] as { person_id: string; user_account_id: string } | undefined) || null;
+}
+
+/** HMAC of a request IP, matching the hashes stored with auth events. */
+export function requestIpHash(requestIp: string | null | undefined) {
+  return requestIp ? digest(`ip:${requestIp}`) : null;
+}
+
 export async function verifyOtp(input: {
   challengeId: string;
   code: string;
@@ -406,13 +467,14 @@ export async function verifyOtp(input: {
       await recordSmsConsent({ phone: destination, action: "opt_in", source: "signup_checkbox", personId, db: client });
     }
     await client.query(`update auth_otp_challenges set consumed_at=now(),attempts=attempts+1 where id=$1`, [challenge.id]);
-    await client.query(`update user_accounts set last_login_at=now(),updated_at=now() where id=$1`, [userAccountId]);
-    await client.query(
-      `insert into auth_events (user_account_id,person_id,event_type,outcome,metadata)
-       values ($1,$2,$3,'success',$4::jsonb)`,
-      [userAccountId,personId,challenge.purpose === "sign_up" ? "account_created" : challenge.purpose === "managed_student_claim" ? "managed_student_account_claimed" : "otp_sign_in",JSON.stringify({ destinationType:challenge.destination_type,requestIpHash:verificationIpHash })]
-    );
-    const session = await createSession(client,userAccountId,input.requestIp,input.userAgent);
+    const session = await completeSignIn(client, {
+      userAccountId,
+      personId,
+      eventType: challenge.purpose === "sign_up" ? "account_created" : challenge.purpose === "managed_student_claim" ? "managed_student_account_claimed" : "otp_sign_in",
+      metadata: { destinationType:challenge.destination_type,requestIpHash:verificationIpHash },
+      requestIp: input.requestIp,
+      userAgent: input.userAgent,
+    });
     await client.query("COMMIT");
     return { ...session, personId, userAccountId, createdAccount: challenge.purpose === "sign_up" || challenge.purpose === "managed_student_claim" };
   } catch (error) {
