@@ -27,7 +27,7 @@ const siteDescription =
 // X-Robots-Tag header set in middleware.
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin()),
-  title: { default: "BandWagon: Free community carpools for schools, bands, and teams", template: "%s | BandWagon" },
+  title: { default: "BandWagon: Free Community Carpools For Schools, Bands, And Teams", template: "%s | BandWagon" },
   description: siteDescription,
   applicationName: "BandWagon",
   keywords: [
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "BandWagon", statusBarStyle: "default" },
   formatDetection: { telephone: false, email: false, address: false },
   openGraph: {
-    title: "BandWagon: Free community carpools for schools, bands, and teams",
+    title: "BandWagon: Free Community Carpools For Schools, Bands, And Teams",
     description: siteDescription,
     url: "/",
     siteName: "BandWagon",
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "BandWagon: Free community carpools for schools, bands, and teams",
+    title: "BandWagon: Free Community Carpools For Schools, Bands, And Teams",
     description: siteDescription,
     images: [TWITTER_IMAGE],
   },
