@@ -20,7 +20,7 @@ export const envSchema = z.object({
   LEGACY_PLATFORM_HOSTNAMES: z.string().default("bandwagon.harrisonward.net,www.bandwagon.harrisonward.net"), // page visits redirect to the platform host
   LEGACY_TENANT_BASE_DOMAINS: z.string().default("harrisonward.org"), // <slug>.harrisonward.org redirects to <slug>.bandwagon.club
   // Public links (build time). Blank hides the link and falls back to email.
-  NEXT_PUBLIC_HELP_DESK_URL: z.string().url().optional().or(z.literal("")), // e.g. https://help.harrisonward.net
+  NEXT_PUBLIC_HELP_DESK_URL: z.string().url().optional().or(z.literal("")), // e.g. https://help.bandwagon.club
   NEXT_PUBLIC_STATUS_PAGE_URL: z.string().url().optional().or(z.literal("")),
   NEXT_PUBLIC_ENVIRONMENT: z.enum(["production", "staging", "development"]).default("production"),
   // Error tracking. GlitchTip is Sentry-compatible; paste the project's DSN.

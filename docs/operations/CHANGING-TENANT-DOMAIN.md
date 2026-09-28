@@ -15,7 +15,7 @@ Both settings live in `apps/web/src/lib/platform-hosts.ts`. Nothing in the app h
 
 ## Example
 
-Moving from `harrisonward.org` to a new product domain, `bandwagonrides.com`:
+Moving from `bandwagon.club` to a new product domain, `bandwagonrides.com`:
 
 - Product site: `bandwagonrides.com` and `www.bandwagonrides.com`
 - Tenants: `<slug>.bandwagonrides.com` (for example `flomogo.bandwagonrides.com`)
@@ -42,7 +42,7 @@ Moving from `harrisonward.org` to a new product domain, `bandwagonrides.com`:
 In Coolify, for every role (web, worker, migrate):
 
 ```text
-PLATFORM_HOSTNAMES=bandwagonrides.com,www.bandwagonrides.com,bandwagon.harrisonward.net,www.bandwagon.harrisonward.net
+PLATFORM_HOSTNAMES=bandwagonrides.com,www.bandwagonrides.com,bandwagon.club,www.bandwagon.club
 TENANT_BASE_DOMAIN=bandwagonrides.com
 APP_URL=https://bandwagonrides.com
 ```

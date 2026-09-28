@@ -48,7 +48,7 @@ Branding asset:
 
 Public/shareable ride URLs should use:
 
-`https://bandwagon.harrisonward.net/r/K7M4X9QP`
+`https://bandwagon.club/r/K7M4X9QP`
 
 The 8-character public reference should be random, uppercase, non-sequential, and exclude ambiguous characters where practical.
 
@@ -76,12 +76,12 @@ After pushing:
 2. Redeploy BandWagon (Web).
 3. Confirm `/api/health` returns `status: ok`.
 4. Verify:
-   - https://bandwagon.harrisonward.net/
-   - https://bandwagon.harrisonward.net/privacy
-   - https://bandwagon.harrisonward.net/terms
-   - https://bandwagon.harrisonward.net/messaging
-   - https://bandwagon.harrisonward.net/sms-opt-in
-   - https://bandwagon.harrisonward.net/admin/messaging-test
+   - https://bandwagon.club/
+   - https://bandwagon.club/privacy
+   - https://bandwagon.club/terms
+   - https://bandwagon.club/messaging
+   - https://bandwagon.club/sms-opt-in
+   - https://bandwagon.club/admin/messaging-test
 
 ## Do not commit secrets
 
@@ -99,7 +99,7 @@ Real values for these belong in Coolify runtime configuration only:
 ## Current infrastructure state
 
 The deployment design assumes:
-- `bandwagon.harrisonward.net`
+- `bandwagon.club`
 - Cloudflare Tunnel -> `http://localhost:80`
 - Coolify proxy -> BandWagon container port 3000
 - Coolify HTTP->HTTPS redirect disabled for this tunneled application
