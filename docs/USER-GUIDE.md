@@ -97,3 +97,11 @@ Users can use the supported privacy process to access, correct, export or delete
 2. Contact your organization admin for membership, driver approval, event or organization-policy questions.
 3. Contact BandWagon Support for account, platform, privacy or technical problems.
 4. Never send your password, one-time code, full payment-card data or unrelated sensitive documents in a support message.
+
+## More Guides
+
+- [Feature Requests](FEATURE-REQUESTS.md): suggest and vote on ideas.
+- [Ride Waitlists](WAITLISTS.md): join a full carpool's waitlist and accept an open seat.
+- [Event Proposals](EVENT-PROPOSALS.md): suggest an event for your organization.
+- [Household Delegates](HOUSEHOLD-DELEGATES.md): invite a trusted adult to help with your kids' rides.
+- [SMS Consent And Texts](SMS-CONSENT-AND-TEXTS.md): opt in or out of ride texts.

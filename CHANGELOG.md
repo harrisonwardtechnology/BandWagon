@@ -2,6 +2,20 @@
 
 ## v1.0.0-rc1 - Unreleased
 
+### September 2026 Wave (PRs #35 to #50)
+
+- **New logo: Route To The Show** (#46). Site icons, PWA icons, header wordmark, Stripe logo, share card, BIMI, README image, Google sign-in logo (`/brand/google-oauth-logo-120.png`) and RCS images (`/brand/rcs-*.png`, #49). File list in `docs/BRANDING.md`.
+- **SMS welcome and opt-in links** (#45). One carrier-compliant welcome text on a new opt-in; HELP text constant; Terms, Privacy and Messaging links at every opt-in; `/sms-opt-in` has an enabled button. `docs/SMS-CONSENT-AND-TEXTS.md`.
+- **Next wave features** (#37): SEO (sitemap, robots, JSON-LD, X-Robots-Tag), feature request form, passkeys, seat waitlists, member event proposals, trusted household delegates. Migrations 057 to 062.
+- **Demo refresh** (#39, #47, #48): moved to `demo.bandwagon.club`, new logo and icons, BandWagon naming, phone layout fix, nginx caching, service worker, and automatic content-hash cache busting.
+- **Custom hostname certs pinned to Google CA** (#38).
+- **Contact emails on bandwagon.club** (#35), `security.txt`, BIMI SVG (#36).
+- **Status page link** in header and footer (#41). Old `harrisonward.net`/`.org` crumbs removed from docs (#40).
+- **Title Case everywhere** (#42, #43, #44) with a guard test; HSTS header and 7-day cache on `/icons` and `/brand` (#44).
+- **Docs refresh**: docs index, new ops guides (email, Cloudflare, Google verification), new feature guides, notification routing table rebuilt from code, stale setup notes moved to `docs/archive/`.
+
+### Earlier In RC1
+
 - GlitchTip error tracking (Sentry-compatible, self-hosted): server request errors, browser errors (via same-origin `/api/client-errors`), dead worker jobs, failed scheduled tasks, and unhandled process errors are sent as redacted Sentry envelopes when `GLITCHTIP_DSN` is set. No SDK, no third-party browser script, per-process flood guard, 3 s timeout. Platform Health shows GlitchTip status and has a "Send GlitchTip test event" button. Setup: `docs/operations/ERROR-MONITORING.md`.
 
 - Domain: BandWagon moves to `bandwagon.club` (product site) and `<slug>.bandwagon.club` (communities). Old `bandwagon.harrisonward.net` and `<slug>.harrisonward.org` page visits redirect (308); API calls and webhooks on old hosts keep working, and Twilio signatures validate for both. `npm run tenants:move-domain` moves existing communities. Runbook: `docs/operations/MOVE-TO-BANDWAGON-CLUB.md`.
