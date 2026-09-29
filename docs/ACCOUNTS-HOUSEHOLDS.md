@@ -30,6 +30,8 @@ A household is platform-level, not owned by one organization. Each person joins 
 
 A trusted household delegate is an adult outside the household, such as a grandparent, nanny, or co-parent in another home, who can help with a family's rides. Migration `061_household_delegates.sql` adds the model.
 
+Plain-English guide: [HOUSEHOLD-DELEGATES.md](HOUSEHOLD-DELEGATES.md).
+
 ### Tables
 
 - `household_delegates` is one grant per household and delegate. It stores the scopes the guardian chose (`can_request_rides`, `can_approve_rides`, `can_view_ride_details`, `can_receive_notifications`), `child_scope` (`all` or `selected`), an optional `ends_at`, and `status` (`active`, `paused`, `revoked`). Revoked rows are kept as history; only one live grant per household and delegate is allowed.

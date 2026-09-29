@@ -37,6 +37,8 @@ Ordinary members never publish events directly. They can suggest events through 
 
 Member event proposals are an optional organization feature. It is **off by default**.
 
+Plain-English guide: [EVENT-PROPOSALS.md](EVENT-PROPOSALS.md).
+
 ### Turning it on
 
 1. An organization owner or admin opens `/admin/event-proposals` (also linked from `/admin/events`).

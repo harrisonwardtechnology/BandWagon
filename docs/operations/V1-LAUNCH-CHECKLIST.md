@@ -2,6 +2,20 @@
 
 This is the authoritative go/no-go list for the FloMoGo v1 launch. A checked item must have dated evidence in the private launch record; configuration existing in source code is not evidence that a production control works.
 
+## Status Notes (2026-09-29)
+
+Progress only. Boxes stay unchecked until there is dated evidence.
+
+| Item | Where It Stands |
+| --- | --- |
+| Twilio RCS sender | In review (ticket 29651215). Opt-in screenshots, samples, welcome and HELP text sent. See [SMS-CONSENT-AND-TEXTS.md](../SMS-CONSENT-AND-TEXTS.md). |
+| Google OAuth verification | Branding and new logo submitted. Waiting on Google. See [GOOGLE-OAUTH-VERIFICATION.md](GOOGLE-OAUTH-VERIFICATION.md). |
+| Email domain | Proofpoint, M365, DMARC reject, MTA-STS, TLS-RPT, BIMI live. See [EMAIL-DOMAIN.md](EMAIL-DOMAIN.md). |
+| Domain move | bandwagon.club live, old hosts redirect. FloMoGo community move still needs the move script over SSH. |
+| Monitoring | Status page at status.bandwagon.club, GlitchTip wired. |
+| Search | Sitemap submitted to Google Search Console and Bing, Crawler Hints on. |
+| Still To Do | Phone walkthrough (sign up, welcome text, STOP/START, passkey, $1 donation), backup restore test, lawyer review of legal pages. |
+
 ## Automated release gate
 
 - [ ] Pull request CI passes migrations, schema verification, migration repeatability, unit tests, TypeScript, production build, cron/deep-health smoke, and load smoke.
@@ -44,7 +58,7 @@ Twilio and Google approval are launch blockers, not code blockers. Do not mark t
 - [ ] Seed users, test rides, test events, and test documents are removed.
 - [ ] Parent, student, and driver pilot participants are confirmed.
 
-Member-created event proposals are deliberately out of scope for v1. A future organization policy may enable moderated proposals; members must never directly publish an event by default.
+Member event proposals shipped in PR #37 as a moderated flow: members propose, organization admins approve, and members never publish an event directly. See [EVENT-PROPOSALS.md](../EVENT-PROPOSALS.md).
 
 ## Human regression and safety drills
 
