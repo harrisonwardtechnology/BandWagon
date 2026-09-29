@@ -2,19 +2,36 @@
 
 BandWagon uses a push-first notification strategy to reduce SMS/RCS cost while preserving reliable delivery for time-sensitive ride events.
 
-## Routing model
+SMS/RCS consent, STOP/HELP handling, and Twilio setup: [SMS-CONSENT-AND-TEXTS.md](SMS-CONSENT-AND-TEXTS.md).
 
-| Event | Urgency | Primary | Fallback / additional channel |
-|---|---|---|---|
-| New ride available | Routine | Push | Email if push unavailable |
-| Driver offer | Routine | Push | Email if push unavailable |
-| Ride matched | Important | Push | SMS/RCS if push unavailable and user preferences allow it |
-| 24-hour reminder | Routine | Push | Email if reminder email is enabled |
-| 1-hour reminder | Important | Push | SMS/RCS fallback if reminder SMS is enabled |
-| Driver arriving | Critical | Push | SMS/RCS immediately |
-| Last-minute cancellation | Critical | Push | SMS/RCS immediately + email when available |
-| Pickup/location changed | Critical | Push | SMS/RCS immediately |
-| OTP / phone verification | Critical | SMS/RCS | No push |
+## Routing Model
+
+Straight from `POLICIES` in `apps/web/src/lib/notification-router.ts`:
+
+| Event | Urgency | Push | Email | SMS/RCS |
+|---|---|---|---|---|
+| `new_ride_available` | Routine | Yes | If push unavailable | No |
+| `driver_offer` | Routine | Yes | If push unavailable | No |
+| `ride_matched` | Important | Yes | If push unavailable | Fallback, if preferences allow |
+| `reminder_24h` | Routine | Yes | If push unavailable | No |
+| `reminder_1h` | Important | Yes | No | Fallback, if reminder SMS is on |
+| `driver_arriving` | Critical | Yes | No | Immediately |
+| `last_minute_cancellation` | Critical | Yes | If push unavailable | Immediately |
+| `pickup_changed` | Critical | Yes | No | Immediately |
+| `safety_alert` | Critical | Yes | If push unavailable | Immediately |
+| `credential_expiring` | Important | Yes | If push unavailable | No |
+| `organization_removed` | Important | Yes | Always | No |
+| `organization_decommission_confirmation` | Critical | Yes | Always | Immediately |
+| `waitlist_offer` | Important | Yes | If push unavailable | Fallback |
+| `waitlist_update` | Routine | Yes | If push unavailable | No |
+| `event_proposal_submitted` | Routine | Yes | If push unavailable | No |
+| `event_proposal_decision` | Routine | Yes | If push unavailable | No |
+| `otp` (sign-in code) | Critical | No | No | Only channel |
+| `platform_test` | Important | Yes | No | Fallback |
+
+Any type not listed falls back to routine: push, then email.
+
+The one-time `sms_welcome` text is sent straight through Twilio (not the router) right after someone newly opts in.
 
 ## User preferences
 
@@ -61,6 +78,6 @@ Sign in with a platform administrator account to load routing policies. Sending 
 
 If `ADMIN_TEST_PHONE` is configured, SMS/RCS tests are restricted to that number.
 
-## Current limitation
+## Phone Numbers
 
-Phone numbers are not resolved from `phones.e164_ciphertext` yet because the account/household encryption workflow is not complete. The router accepts an explicit E.164 phone number today. The upcoming Accounts/Households milestone will resolve the user's verified phone internally before calling the router.
+The router looks up the person's verified phone (`getVerifiedPhone` in `notification-router.ts`) when `personId` is given. An explicit E.164 `phone` still works for tests and OTP.

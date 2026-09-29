@@ -11,6 +11,8 @@
   <a href="https://bandwagon.club">Platform</a> ·
   <a href="https://flomogo.app">FloMoGo</a> ·
   <a href="https://demo.bandwagon.club/">Interactive demo</a> ·
+  <a href="https://status.bandwagon.club/">Status</a> ·
+  <a href="docs/README.md">Docs</a> ·
   <a href="docs/ROADMAP-TO-V1.md">Roadmap</a> ·
   <a href="docs/operations/V1-LAUNCH-CHECKLIST.md">Launch checklist</a> ·
   <a href="CONTRIBUTING.md">Contributing</a>
@@ -121,23 +123,34 @@ The demo never calls production APIs, uses production credentials, sends real no
 
 ## Documentation
 
+**Full index: [docs/README.md](docs/README.md)**
+
 ### Get started
 
+- [User guide](docs/USER-GUIDE.md)
 - [Organization setup](docs/ORGANIZATION-SETUP.md)
 - [Parent and student guide](docs/PARENT-STUDENT-GUIDE.md)
 - [Driver guide](docs/DRIVER-GUIDE.md)
+- [Household delegates](docs/HOUSEHOLD-DELEGATES.md)
+- [Waitlists](docs/WAITLISTS.md)
+- [Events and calendars](docs/EVENTS.md) and [event proposals](docs/EVENT-PROPOSALS.md)
+- [Passkeys](docs/PASSKEYS.md)
+- [SMS consent and texts](docs/SMS-CONSENT-AND-TEXTS.md)
 - [PWA installation](docs/PWA-INSTALL.md)
-- [Events and calendars](docs/EVENTS.md)
 
 ### Deploy and operate
 
 - [Coolify deployment](docs/COOLIFY.md)
 - [GitHub-to-Coolify launch guide](docs/GITHUB-DEPLOY.md)
+- [V1 launch checklist and status](docs/operations/V1-LAUNCH-CHECKLIST.md)
+- [Email domain (Proofpoint, M365, DMARC, MTA-STS, BIMI)](docs/operations/EMAIL-DOMAIN.md)
+- [Cloudflare and caching](docs/operations/CLOUDFLARE-PERFORMANCE.md)
+- [Google OAuth verification](docs/operations/GOOGLE-OAUTH-VERIFICATION.md)
 - [Custom organization domains](docs/CUSTOM-DOMAINS.md)
 - [Production security](docs/SECURITY-DEPLOYMENT.md)
 - [Messaging abuse controls](docs/MESSAGING-ABUSE-CONTROLS.md)
 - [Staging environment](docs/operations/STAGING.md)
-- [Changing the tenant domain](docs/operations/CHANGING-TENANT-DOMAIN.md)
+- [Branding and logo files](docs/BRANDING.md)
 
 Before a FloMoGo production release, run `npm run release:check-env:flomogo` from `apps/web`. The checker reports missing controls without printing secret values.
 
