@@ -2,7 +2,7 @@
 
 BandWagon models a household separately from an organization. A family can therefore participate in more than one BandWagon organization without duplicating its people or contact information.
 
-## Core model
+## Core Model
 
 - `people` is the person profile.
 - `user_accounts` is the sign-in identity for a person who can authenticate.
@@ -14,19 +14,23 @@ BandWagon models a household separately from an organization. A family can there
 - `phones` stores the E.164 phone encrypted with `DATA_ENCRYPTION_KEY`; only a keyed lookup hash is searchable.
 - `organization_join_codes` provides the foundation for self-service organization enrollment.
 
-## Privacy rules
+## Privacy Rules
 
 Phone numbers are encrypted at rest using AES-256-GCM and are never stored in plaintext. Email and phone visibility remain hidden by default. The notification router resolves a verified phone internally only when SMS/RCS is actually required.
 
-## Parent / student behavior
+## Parent / Student Behavior
 
 Students default to `student_approval_required=true`. A guardian relationship records whether the adult can approve rides and manage the student's profile. This is intentionally separate from household membership so custody/guardian arrangements do not have to be inferred from a shared household.
 
-## Multi-tenant behavior
+## Multi-tenant Behavior
 
 A household is platform-level, not owned by one organization. Each person joins organizations independently through `memberships`. This allows the same household to participate in FloMoGo and another future tenant without maintaining duplicate family records.
 
-## Trusted household delegates
+## Trusted Household Members
+
+Guardians can let a trusted adult outside the household help with their children's rides. The app calls them Trusted Adults. The code calls them household delegates. For a short guide to what guardians, delegates, and organization admins can do, see [HOUSEHOLD-DELEGATES.md](HOUSEHOLD-DELEGATES.md). The full model and rules follow below.
+
+## Trusted Household Delegates
 
 A trusted household delegate is an adult outside the household, such as a grandparent, nanny, or co-parent in another home, who can help with a family's rides. Migration `061_household_delegates.sql` adds the model.
 
@@ -38,7 +42,7 @@ A trusted household delegate is an adult outside the household, such as a grandp
 - `organizations.household_delegates_enabled` (default `true`) lets an organization turn delegates off.
 - `audit_events.on_behalf_of_person_id` records the child when someone acts for them. `actor_person_id` is the delegate.
 
-### Who can do what
+### Who Can Do What
 
 A household manager (an adult with `can_manage_household`) invites, edits, pauses, turns back on, and removes delegates from the Household page. A delegate can also step away on their own.
 
@@ -64,7 +68,7 @@ A delegate who can ask for rides but not approve them creates requests that stil
 - Pausing or removing a delegate cancels every open invite in that household sent to any email or phone on that person's account. Accepting an invite cancels the person's other open invites for the household.
 - An invite can never turn a paused grant back on, and an invite sent before the grant was paused or removed cannot be used. The guardian must send a new one. The inviter must still manage the household when the invite is accepted (deleting an account also cancels that person's open invites).
 
-### Permission checks
+### Permission Checks
 
 `src/lib/child-access.ts` exports `canActForChild(identity, childId, action, { organizationId })`. It is the only place that decides whether someone may request, approve, or manage rides for a child, and it reads fresh rows on every call, so pausing or removing a delegate takes effect on the very next request. The pure rules live in `src/lib/household-delegate-policy.ts` and are covered by `tests/household-delegate-policy.test.ts`.
 
@@ -74,14 +78,14 @@ Callers: `rides.ts` (request membership fallback, auto approval, guardian approv
 
 Delegates are never added to `memberships`. When a delegate is not a member of the child's organization, the product layer lets the specific child-scoped action through only when `canActForChild` grants it through a delegate grant and the organization allows delegates. They get no other organization access. Organization admins can turn delegates off at `/admin/household-delegates`; guardians are not affected.
 
-### Notifications and audit
+### Notifications And Audit
 
 - Household managers are notified when a delegate accepts or steps away.
 - Guardians are notified when a delegate asks for, approves, declines, confirms, cancels, or otherwise updates a ride.
 - Delegates are notified when their permissions change, are paused, or are removed, and (with the notifications scope) about ride updates for covered children.
 - Audit actions use the `household_delegate.*` prefix. The Household page shows this history to the household manager.
 
-## Admin development console
+## Admin Development Console
 
 After applying migration `007_accounts_households.sql`:
 
@@ -89,7 +93,7 @@ After applying migration `007_accounts_households.sql`:
 
 The console can create a test household, parent/manager, student, verified contact methods, FloMoGo memberships and guardian relationships. It requires a signed-in platform owner and is intended for development/testing, not end-user production onboarding.
 
-## Next authentication work
+## Next Authentication Work
 
 The production onboarding flow will replace the admin console with:
 

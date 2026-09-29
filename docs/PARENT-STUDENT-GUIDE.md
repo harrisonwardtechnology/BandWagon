@@ -11,7 +11,7 @@
 7. Choose email, RCS/SMS or both for notifications.
 8. Review phone/email visibility and **What People Can See**.
 
-## Request a ride
+## Request A Ride
 
 1. Choose a calendar event or **Other**.
 2. Select passenger(s).

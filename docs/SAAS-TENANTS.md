@@ -2,7 +2,7 @@
 
 BandWagon is a multi-tenant SaaS platform.
 
-## Domain model
+## Domain Model
 
 Platform/admin:
 
@@ -36,7 +36,7 @@ Tenants must never be nested deeper (for example `band.school.bandwagon.club`), 
 
 Until 2026-09-27 tenants lived at `{tenant}.harrisonward.org` and the product at `bandwagon.harrisonward.net`. Those hosts still resolve and redirect. See [operations/MOVE-TO-BANDWAGON-CLUB.md](operations/MOVE-TO-BANDWAGON-CLUB.md).
 
-## Required DNS / Coolify setup
+## Required DNS / Coolify Setup
 
 Create a wildcard DNS record for bandwagon.club that points all tenant hostnames at the BandWagon application/proxy.
 
@@ -57,7 +57,7 @@ Migration `006_saas_tenants.sql` creates/updates FloMoGo as tenant #1:
 - default tenant hostname: `flomogo.bandwagon.club`
 - custom domain planned: `flomogo.app`
 
-## Custom domains
+## Custom Domains
 
 The admin console is:
 
@@ -78,7 +78,7 @@ Optional runtime variables:
 
 The API token should be narrowly scoped to the SaaS zone/custom-hostname actions required by BandWagon.
 
-## Tenant lifecycle
+## Tenant Lifecycle
 
 1. Create organization.
 2. BandWagon assigns `{slug}.bandwagon.club` immediately.
@@ -88,10 +88,10 @@ The API token should be narrowly scoped to the SaaS zone/custom-hostname actions
 6. DNS and SSL are verified.
 7. Custom hostname may be promoted to primary while the bandwagon.club hostname remains a fallback.
 
-## Security boundary
+## Security Boundary
 
 Tenant resolution occurs only after a database lookup against an active domain and active organization. Never derive tenant authorization from the hostname string alone.
 
-## Moving to a new domain
+## Moving To A New Domain
 
 Both domains are settings, not code. See [operations/CHANGING-TENANT-DOMAIN.md](operations/CHANGING-TENANT-DOMAIN.md) for the full move: wildcard DNS and certificates, new domain rows for existing communities, provider URLs, and redirects.

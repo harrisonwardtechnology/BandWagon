@@ -2,14 +2,14 @@
 
 BandWagon community-support messaging should use simple, understandable operating-cost examples.
 
-## Current planning assumptions
+## Current Planning Assumptions
 
 - A typical coordinated ride costs about **$0.25** in technology, messaging, maps, and other operating services.
 - Validating a driver costs about **$0.50** in document processing, AI-assisted review, storage, and related verification services.
 
 These are planning/communication estimates, not guarantees of exact per-transaction provider cost.
 
-## Suggested public impact examples
+## Suggested Public Impact Examples
 
 - **$0.50** helps cover validation of one driver.
 - **$1** helps cover about four rides or validation of about two drivers.

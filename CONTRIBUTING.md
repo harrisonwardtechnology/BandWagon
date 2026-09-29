@@ -1,4 +1,4 @@
-# Contributing to BandWagon
+# Contributing To BandWagon
 
 Thank you for helping improve BandWagon.
 

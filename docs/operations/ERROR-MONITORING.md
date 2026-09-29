@@ -19,7 +19,7 @@ BandWagon also sends every error to a self-hosted [GlitchTip](https://glitchtip.
 
 There's no Sentry SDK and no third-party script. BandWagon posts Sentry "envelopes" straight to GlitchTip from the server, using the same redaction as the local store.
 
-### What gets sent
+### What Gets Sent
 
 | Source | What | Tag `source` |
 |---|---|---|
@@ -35,7 +35,7 @@ Every event carries:
 - `release`: from `GLITCHTIP_RELEASE` or Coolify's `SOURCE_COMMIT`. This lets GlitchTip show which deploy started a problem.
 - `server_name`: `<APP_ROLE>@<container>`.
 
-### What never gets sent
+### What Never Gets Sent
 
 - No user IDs, names, emails, phone numbers, IP addresses, cookies, headers, or request bodies.
 - Messages and stacks go through `redactApplicationErrorText`, which strips emails, phone-like numbers, six-digit codes, bearer tokens, database URLs, and sensitive query parameters.
@@ -48,11 +48,11 @@ Every event carries:
 
   The browser always gets a 204, so reporting never shows up for users.
 
-### Flood protection
+### Flood Protection
 
 Each process sends a given error at most once a minute, and at most `GLITCHTIP_MAX_EVENTS_PER_MINUTE` events (default 60) a minute overall. A bad deploy shows up as one loud issue, not thousands of requests. A send never waits more than 3 seconds and never throws.
 
-### Setup on Coolify
+### Setup On Coolify
 
 1. **Deploy GlitchTip.** In Coolify: **+ New > Service > GlitchTip**. That's one-click, with its own Postgres and Redis. Give it a hostname like `glitchtip.bandwagon.club`, and add that hostname to the Cloudflare tunnel.
 2. **Put it behind Cloudflare Access** for the web UI. Add a **bypass** policy for `/api/*` so BandWagon can post events. Keep `/_health/` reachable too; BandWagon's health page checks it.

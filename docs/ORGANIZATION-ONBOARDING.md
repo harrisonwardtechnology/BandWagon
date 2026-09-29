@@ -2,7 +2,7 @@
 
 BandWagon is free for organizations. Anyone with a BandWagon account can ask to start a community; the platform owner reviews each request before a tenant exists. This replaces creating every organization by hand in `/admin/tenants` (that page still works for manual setups).
 
-## Flow at a glance
+## Flow At A Glance
 
 1. **Request** (`/start`). A signed-in user fills in the organization name, web address (`slug.<TENANT_BASE_DOMAIN>`), type, city/state, approximate families, their role, optional sponsor and website, how rides would work, and accepts the Organization Agreement (`/legal/organization-agreement`, version `2026-09-26-draft`). The address is checked live against the reserved list, existing tenants and other pending requests.
 2. **Notify.** The platform owner gets an email at `PLATFORM_OWNER_EMAIL` (falls back to `SUPPORT_EMAIL`) with a link to the queue.
@@ -25,7 +25,7 @@ BandWagon is free for organizations. Anyone with a BandWagon account can ask to 
 
 Manual ticks live in `organization_setup_progress`.
 
-## Admin invitations
+## Admin Invitations
 
 - Owners can invite admins and managers. Admins can invite managers. Managers cannot invite. The platform owner can invite either role.
 - The email contains a one-time link `/invite/<token>` valid for 7 days. The token is 32 random bytes; only its SHA-256 hash is stored.
@@ -33,7 +33,7 @@ Manual ticks live in `organization_setup_progress`.
 - Sending a new invite to the same email cancels the older open one. Invites can be canceled from the setup page.
 - If email is not configured, the inviter sees the link once so they can share it directly. It still only works for the invited email.
 
-## Limits and abuse controls
+## Limits And Abuse Controls
 
 - Sign-in required for requests and invite acceptance.
 - Cloudflare Turnstile (`organization_request` action) when `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` are set.

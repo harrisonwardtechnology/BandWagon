@@ -2,6 +2,8 @@
 
 Live at https://demo.bandwagon.club. Fake data only. It creates no real rides and uses no Twilio, SMTP, Google Maps, Google Calendar, Microsoft Graph or production database credentials.
 
+Full details: [docs/operations/DEMO-SITE.md](../docs/operations/DEMO-SITE.md).
+
 ## Coolify
 
 Deploy this directory as a separate application using the included Dockerfile. No environment variables are required.

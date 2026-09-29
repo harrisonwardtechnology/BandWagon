@@ -1,4 +1,4 @@
-# Changing the Product and Tenant Domains
+# Changing The Product And Tenant Domains
 
 BandWagon has two domain settings. They default to `bandwagon.club` (moved from the Harrison Ward Technology domains on 2026-09-27; that specific move is in [MOVE-TO-BANDWAGON-CLUB.md](MOVE-TO-BANDWAGON-CLUB.md)). Use this general guide for any future domain change.
 
@@ -20,7 +20,7 @@ Moving from `bandwagon.club` to a new product domain, `bandwagonrides.com`:
 - Product site: `bandwagonrides.com` and `www.bandwagonrides.com`
 - Tenants: `<slug>.bandwagonrides.com` (for example `flomogo.bandwagonrides.com`)
 
-## Step 1. DNS and Cloudflare
+## Step 1. DNS And Cloudflare
 
 1. Add the new zone to Cloudflare.
 2. Create records for the product site: `bandwagonrides.com` and `www` pointing at the Coolify server (or the Traefik load balancer).
@@ -28,7 +28,7 @@ Moving from `bandwagon.club` to a new product domain, `bandwagonrides.com`:
 4. If you use Cloudflare for SaaS custom hostnames, set the fallback origin in the new zone and update `CLOUDFLARE_SAAS_ZONE_ID` if the custom hostname zone changes. Existing customer custom domains CNAME to their tenant hostname, so update them only if you retire the old tenant hostnames.
 5. Keep the old zone and its wildcard record active. Old links must keep working.
 
-## Step 2. Coolify and Traefik certificates
+## Step 2. Coolify And Traefik Certificates
 
 1. Wildcard certificates need a DNS challenge. In Coolify, configure Traefik with a Cloudflare DNS challenge provider (a Cloudflare API token scoped to DNS edit on the new zone).
 2. Add a router rule for the new hosts. For the HA layout, extend the web label in `docker-compose.coolify.ha.yml`, for example:
@@ -37,7 +37,7 @@ Moving from `bandwagon.club` to a new product domain, `bandwagonrides.com`:
 3. Keep the old host rules in place until Step 7.
 4. Deploy and confirm `https://anything.bandwagonrides.com/api/health/live` returns 200 with a valid certificate.
 
-## Step 3. Update environment variables
+## Step 3. Update Environment Variables
 
 In Coolify, for every role (web, worker, migrate):
 
@@ -49,7 +49,7 @@ APP_URL=https://bandwagonrides.com
 
 Keep the old platform hosts in `PLATFORM_HOSTNAMES` so they still serve the product site (and can redirect later). Redeploy. New communities now get `<slug>.bandwagonrides.com`.
 
-## Step 4. Add new hostnames for existing communities
+## Step 4. Add New Hostnames For Existing Communities
 
 For each existing organization, add a new active domain row and make it primary. Keep the old row active.
 
@@ -65,7 +65,7 @@ Then use `/admin/tenants` (Set Primary) or update `is_primary` and `organization
 
 Because `resolveTenant` matches any active domain row, the old and new hostnames both load the same community.
 
-## Step 5. OAuth, Twilio, Stripe, and other provider URLs
+## Step 5. OAuth, Twilio, Stripe, And Other Provider URLs
 
 | Provider | What to change |
 |---|---|
@@ -80,7 +80,7 @@ Because `resolveTenant` matches any active domain row, the old and new hostnames
 | Uptime Kuma | Add monitors for the new hostnames. The status monitoring job registers each community's `tenant_hostname`, so it follows the primary hostname after Step 4. |
 | SMTP2GO | Update sender domain (SPF, DKIM) if email moves to the new domain. Update `EMAIL_FROM`. |
 
-## Step 6. Redirect old hostnames
+## Step 6. Redirect Old Hostnames
 
 After the new hostnames are working, redirect old hostnames to new ones so bookmarks and installed PWAs land in the right place. Use a Traefik `redirectregex` middleware on the old router, for example:
 
@@ -94,7 +94,7 @@ Do not redirect `/api/webhooks/*` until every provider in Step 5 points at the n
 
 Tell families ahead of time. Installed PWAs keep their original origin, so users may need to reinstall from the new address. Sessions are per hostname, so users sign in again once.
 
-## Step 7. Retire the old domain (much later)
+## Step 7. Retire The Old Domain (Much Later)
 
 Keep the old domains redirecting for at least a full school year. Then remove the old hosts from `PLATFORM_HOSTNAMES`, remove old `organization_domains` rows (or set them inactive), remove the old Traefik routers, and let the old certificates expire.
 

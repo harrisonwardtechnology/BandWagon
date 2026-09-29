@@ -5,7 +5,7 @@ This doc covers two stages:
 - **Stage 1 (this release):** several copies of the app on one Coolify server. A crashed container, a bad deploy of one copy, or a slow Twilio call no longer takes the site down or blocks users.
 - **Stage 2 (plan):** a second server, so losing a whole box is survivable.
 
-## How the app is split
+## How The App Is Split
 
 It's still one Docker image. `APP_ROLE` decides what each container does.
 
@@ -27,7 +27,7 @@ It's still one Docker image. `APP_ROLE` decides what each container does.
             Redis                                       (send, schedule, retry)
 ```
 
-### The job queue (`background_jobs`)
+### The Job Queue (`background_jobs`)
 
 This is the same idea as the HD tracker's `jobs` table:
 
@@ -37,7 +37,7 @@ This is the same idea as the HD tracker's `jobs` table:
 - `dedupe_key` is unique. Enqueueing the same key twice is a no-op.
 - Finished jobs are pruned after 7 days by the `job-queue-maintenance` task. Notification payloads (title and body) live in the table until then.
 
-### Scheduled jobs (no more outside timers)
+### Scheduled Jobs (No More Outside Timers)
 
 Every worker runs the scheduler. Each task is enqueued with the key `task:timeSlot`, so it fires once per interval no matter how many workers are running. Each task also runs under a Postgres advisory lock. A long run and a manual `POST /api/cron/*` can't overlap.
 
@@ -65,7 +65,7 @@ These still send inline on purpose, because the caller needs the result right aw
 
 Retries cover crashes, database errors, and timeouts. A single channel failing inside a send (say, one push endpoint rejects) is recorded in `notification_deliveries` and not re-sent, so nobody gets duplicate pushes.
 
-### Other HA fixes in this release
+### Other HA Fixes In This Release
 
 - `scripts/migrate.mjs` takes an advisory lock. Several containers starting at once apply each migration exactly once.
 - Stripe webhooks dedupe on the event id (`stripe_webhook_events`). If processing fails, the row is removed so Stripe's retry goes through.
@@ -75,7 +75,7 @@ Retries cover crashes, database errors, and timeouts. A single channel failing i
   - **Workers & Job Queue** is *failed* when no worker has checked in for 3 minutes while work is waiting. It's *degraded* when the oldest ready job is over 2 minutes old or anything went dead in 24h.
   - **Redis** shows whether Redis is reachable.
 
-## Stage 1 setup on Coolify (HWTVPS01)
+## Stage 1 Setup On Coolify (HWTVPS01)
 
 1. Deploy the migration PR first, with the current single container and `APP_ROLE` unset (`all`). Nothing changes yet.
 2. In Coolify, create a new **Docker Compose** resource from this repo using `docker-compose.coolify.ha.yml`.
@@ -93,23 +93,23 @@ Retries cover crashes, database errors, and timeouts. A single channel failing i
 
 > Known Coolify quirk on HWTVPS01: the Restart button doesn't actually restart containers. Use redeploy, or `docker restart` over SSH.
 
-### Kuma monitors to add
+### Kuma Monitors To Add
 
 - HTTP: `https://bandwagon.club/api/health/ready`, every 60s
 - HTTP: `https://bandwagon.club/api/health/deep`, every 5 min (returns 503 when anything has failed, including "no live worker")
 - Push: `WORKER_KUMA_PUSH_URL`, heartbeat 60s
 
-## Stage 2: a second server
+## Stage 2: A Second Server
 
 Stage 1 keeps the site up when a container dies. It doesn't help if HWTVPS01 itself goes down, and Postgres is still one container. Here's the order that buys the most for the least work.
 
-### Step 1: Backups you've actually restored (do this first)
+### Step 1: Backups You've Actually Restored (Do This First)
 
 - Nightly `pg_dump` to Cloudflare R2. That's already the pattern for the Coolify backups.
 - Monthly: `npm run ops:verify-backup-restore` against the latest dump. That's already a launch checklist item.
 - This sets your worst case to "lose up to a day." Everything below shrinks that.
 
-### Step 2: Postgres off the app server
+### Step 2: Postgres Off The App Server
 
 Postgres is the single point of failure that matters. Pick one of these:
 
@@ -121,7 +121,7 @@ Postgres is the single point of failure that matters. Pick one of these:
 
 My recommendation: managed, if PostGIS is available. Otherwise primary + replica with a written promote runbook.
 
-### Step 3: Second app server
+### Step 3: Second App Server
 
 1. Add a second server in Coolify (for example `HWTVPS02`, ideally in a different IONOS data center).
 2. Deploy the same compose file there with `web` and `worker` only (no migrate). Point it at the same Postgres and Redis. The job queue and scheduler already work safely across servers, since they coordinate through Postgres and not the local box.
@@ -137,7 +137,7 @@ Redis holds only short-lived data: rate-limit counters, webhook dedupe keys, and
 - Managed Redis or Valkey with a replica. After that, set `HEALTH_REQUIRE_REDIS=true`.
 - Redis Sentinel across 3 nodes. It's the most work.
 
-### Stage 2 at a glance
+### Stage 2 At A Glance
 
 ```text
             Cloudflare Tunnel (2 connectors)
@@ -150,7 +150,7 @@ Redis holds only short-lived data: rate-limit counters, webhook dedupe keys, and
                   nightly dump -> R2
 ```
 
-## Env reference
+## Env Reference
 
 | Variable | Default | Meaning |
 |---|---|---|

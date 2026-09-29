@@ -2,7 +2,7 @@
 
 This is the production BandWagon application. It is intentionally separate from the fake-data-only `/demo` walkthrough at the repository root.
 
-## First deployment
+## First Deployment
 
 The scaffold can boot before PostgreSQL/Redis are configured. This is deliberate so the web container and routing can be proven first.
 
@@ -18,7 +18,7 @@ Start with only the Core environment values from `.env.example`. Leave `HEALTH_R
 
 Then add Postgres/PostGIS and Redis, set their URLs, run `npm run db:migrate`, verify `/api/health`, and change both health requirement flags to `true`.
 
-## Release verification
+## Release Verification
 
 From this directory:
 

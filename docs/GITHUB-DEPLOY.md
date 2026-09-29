@@ -2,7 +2,7 @@
 
 This package contains the BandWagon design, deployment scaffolding, documentation and interactive FloMoGo demo. The production application backend/frontend still needs to be implemented against the master specification; the `demo/` directory is intentionally fake-data-only and can be deployed immediately.
 
-## 1. Create the GitHub repository
+## 1. Create The GitHub Repository
 
 Suggested repository name: `bandwagon`
 
@@ -23,7 +23,7 @@ git push -u origin main
 
 Before the first push, confirm `.env` and real secrets are not present.
 
-## 2. GitHub repository settings
+## 2. GitHub Repository Settings
 
 Enable:
 
@@ -36,7 +36,7 @@ Enable:
 
 Add repository files such as `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, and the public Trust/Privacy documentation before calling the production software generally available.
 
-## 3. Deploy the interactive demo first
+## 3. Deploy The Interactive Demo First
 
 The `demo/` directory can be deployed now because it has no production database, API keys or personal information.
 
@@ -53,7 +53,7 @@ In Coolify:
 
 Do not represent this static demo as the production service.
 
-## 4. DNS for the platform
+## 4. DNS For The Platform
 
 Create DNS for:
 
@@ -65,7 +65,7 @@ Point it to the Coolify server per your DNS provider/Coolify setup. In Coolify, 
 
 Coolify automatically handles proxy configuration and HTTPS for configured HTTPS domains.
 
-## 5. FloMoGo domain
+## 5. FloMoGo Domain
 
 For `flomogo.app`, once registered:
 
@@ -79,7 +79,7 @@ For `flomogo.app`, once registered:
 
 Until the production custom-domain workflow is implemented, steps 2-6 can be performed manually using the same documented rules.
 
-## 6. Production Coolify services
+## 6. Production Coolify Services
 
 Production target:
 
@@ -91,7 +91,7 @@ Production target:
 
 Do not expose PostgreSQL or Redis directly to the Internet.
 
-## 7. Production environment variables
+## 7. Production Environment Variables
 
 Copy `.env.example` into Coolify's Environment Variables screen and set real values there. Never commit `.env`.
 
@@ -113,7 +113,7 @@ Then add optional integrations as they are ready:
 - Microsoft Graph Calendar OAuth
 - Coolify domain API automation
 
-## 8. Generate secrets
+## 8. Generate Secrets
 
 Examples:
 
@@ -169,7 +169,7 @@ Configure:
 
 The Entra redirect URI must be registered as a Web platform redirect. Keep the client secret in server-side secret storage. After connecting from `/admin/integrations/microsoft`, select calendars and run a manual sync. Schedule `POST /api/cron/microsoft-calendar-sync` with the existing `CALENDAR_SYNC_CRON_SECRET` authorization.
 
-## 14. Custom-domain automation
+## 14. Custom-domain Automation
 
 Start with:
 
@@ -202,7 +202,7 @@ After the production app exists and migrations complete:
 9. Review Privacy Preview and What People Can See screens.
 10. Validate export/delete/block/no-show/cancellation flows.
 
-## 16. Go-live gate
+## 16. Go-live Gate
 
 Do not invite the real community until:
 

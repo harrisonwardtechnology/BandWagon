@@ -62,7 +62,7 @@ The UI should show Copy buttons for both the name and value and make clear that 
 
 Ownership verification and traffic routing are separate steps.
 
-### Root/apex domain
+### Root/apex Domain
 
 For a root such as `flomogo.app`, use an `A`/`AAAA` record pointing to the BandWagon/Coolify server, or an ALIAS/ANAME/flattened CNAME if the DNS provider supports it.
 
@@ -79,13 +79,13 @@ Coolify's current DNS guidance supports pointing multiple domains to the same se
 
 BandWagon supports two modes:
 
-### Manual mode
+### Manual Mode
 
 `CUSTOM_DOMAIN_AUTOMATION=manual`
 
 After TXT verification, a Platform Admin adds the HTTPS hostname to the BandWagon application in Coolify and then clicks `Check Routing` in BandWagon.
 
-### Coolify API mode
+### Coolify API Mode
 
 `CUSTOM_DOMAIN_AUTOMATION=coolify-api`
 
