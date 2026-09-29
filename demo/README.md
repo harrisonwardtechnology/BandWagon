@@ -9,5 +9,5 @@ Deploy this directory as a separate application using the included Dockerfile. N
 ## Caching
 
 - `nginx.conf` serves the page and `sw.js` with `no-cache`, and everything else for a year (`immutable`).
-- CSS, JS, logo, icons and manifest are linked with `?v=N`. When you change any of them, bump `?v=` in `index.html` and `VERSION` / `SHELL` in `sw.js`.
+- CSS, JS, logo, icons and manifest are linked with `?v=2` in the source. The Docker build swaps `2` for a hash of the files, so every change gets fresh URLs automatically. Nothing to bump by hand.
 - `sw.js` makes the demo installable and loads repeat visits from the device cache.
