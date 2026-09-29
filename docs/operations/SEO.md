@@ -1,10 +1,10 @@
-# Search and discoverability (SEO)
+# Search And Discoverability (SEO)
 
 How BandWagon shows up in search engines and AI search, and what is kept out.
 Minors use BandWagon, so the rule is: **only the product site's public pages are
 indexable. Nothing behind sign-in and no member data ever is.**
 
-## What was built
+## What Was Built
 
 | Piece | File | Behavior |
 | --- | --- | --- |
@@ -19,7 +19,7 @@ indexable. Nothing behind sign-in and no member data ever is.**
 | AI search | `apps/web/public/llms.txt` | Short plain description and key public URLs. |
 | PWA | `apps/web/public/manifest.webmanifest` | Clearer name and description; now linked from `<head>`. |
 
-### Product host (bandwagon.club)
+### Product Host (bandwagon.club)
 
 - **Indexable:** `/`, `/start`, `/help`, `/status`, `/security`, `/terms`, `/privacy`,
   `/cookies`, `/sms-opt-in`, `/legal` and its sub-pages, and `/impact/<slug>`
@@ -28,7 +28,7 @@ indexable. Nothing behind sign-in and no member data ever is.**
   `/login`, `/messaging`, `/notifications`, `/support`, `/organization-decommission`.
   (`/messaging` and `/support` stay reachable by link; they are just not in search.)
 
-### Community (tenant) hosts (`<slug>.bandwagon.club`, custom domains)
+### Community (Tenant) Hosts (`<slug>.bandwagon.club`, Custom Domains)
 
 - robots.txt allows only `/` (the landing page) and the share image and icons.
 - Every other page returns `X-Robots-Tag: noindex, nofollow`.
@@ -38,7 +38,7 @@ indexable. Nothing behind sign-in and no member data ever is.**
   `organizations.discoverability` column exists (default `unlisted`) but is not
   wired to anything; it is the natural place for one if a community asks.
 
-### Impact pages
+### Impact Pages
 
 `/impact/<slug>` used to be `noindex` for everyone. It is now indexable **only while
 the organization has the public impact page on** (same check as before:
@@ -59,13 +59,13 @@ URL, otherwise the first `PLATFORM_HOSTNAMES` entry. A localhost or legacy
 Legacy hosts also 308 redirect page visits in middleware. There is no site-wide
 canonical; each public page declares its own.
 
-### Copy rules
+### Copy Rules
 
 Do not claim "open source" and do not make safety guarantees. The product home
 now has one `h1`, an audience section ("Who it is for"), and keeps the existing
 "not a rideshare, not school transportation" notice.
 
-## Checklist for Harrison (by hand)
+## Checklist For Harrison (By Hand)
 
 1. **Google Search Console**: add a *Domain* property for `bandwagon.club`.
    Copy the `google-site-verification=...` TXT value, add it in Cloudflare DNS as a

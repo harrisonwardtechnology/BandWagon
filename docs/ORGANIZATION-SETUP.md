@@ -18,7 +18,7 @@
 16. Review Trust/Privacy/Terms pages.
 17. Run a test ride before opening the community.
 
-## FloMoGo baseline
+## FloMoGo Baseline
 
 - Service: FloMoGo
 - Tagline: Hop on the BandWagon.

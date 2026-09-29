@@ -1,8 +1,8 @@
-# Backup and Restore Verification
+# Backup And Restore Verification
 
 Run this drill before v1, after material schema changes, and at least quarterly. It must use an isolated, non-production PostgreSQL/PostGIS database.
 
-## Create the Backup
+## Create The Backup
 
 Use a custom-format logical backup and encrypt it at rest:
 
@@ -12,7 +12,7 @@ pg_dump --format=custom --no-owner --no-privileges --file bandwagon.dump "$SOURC
 
 Retain the database backup, the matching deployment commit SHA, and the restricted data-encryption keys needed for that backup's retention period. Store them in separate access-controlled systems.
 
-## Restore and Verify
+## Restore And Verify
 
 Install PostgreSQL client tools in the operator container, create an empty isolated PostGIS database, then run:
 

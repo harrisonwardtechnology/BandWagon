@@ -19,7 +19,7 @@ BandWagon is a Progressive Web App (PWA). Installation is optional; the full ser
 4. Confirm the installation.
 5. Launch it from the Home Screen/app launcher.
 
-## Privacy note
+## Privacy Note
 
 Installing the PWA does not enable live tracking. Sensitive ride data should not be broadly cached for offline use.
 

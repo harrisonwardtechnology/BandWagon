@@ -1,16 +1,16 @@
-# BandWagon: Insurance and Legal Brief
+# BandWagon: Insurance And Legal Brief
 
 **Not legal or insurance advice.** This is a plain summary prepared by Harrison Ward Technology, LLC to start conversations with an insurance broker and a lawyer. It describes how the product works so they can advise on coverage and legal structure.
 
 Prepared: September 2026 · Company: Harrison Ward Technology, LLC (HWTech), Flower Mound, Texas · Product: BandWagon · First community: FloMoGo (Flower Mound band families)
 
-## 1. What BandWagon is
+## 1. What BandWagon Is
 
 BandWagon is web software (an installable web app) that helps members of a trusted group, such as a school band's families, coordinate their own carpools to rehearsals, games, and events. Families request seats, volunteer adult drivers offer seats, BandWagon suggests matches, and families confirm. It sends reminders and offers a pickup confirmation step.
 
 It is free for organizations and families. It is supported by optional donations and local sponsors. Sponsors receive no participant data.
 
-## 2. What BandWagon does not do
+## 2. What BandWagon Does Not Do
 
 - It does not provide rides, own or operate vehicles, or employ, hire, pay, dispatch, or supervise drivers.
 - **No one pays for a ride.** There is no fare, tip, reimbursement, or payment between riders and drivers, and BandWagon takes no cut. Donations go to HWTech for operating costs and do not change who gets a ride.
@@ -18,7 +18,7 @@ It is free for organizations and families. It is supported by optional donations
 - It is not school transportation and does not require the school to take part.
 - It does not track people or vehicles live. It is not emergency dispatch.
 
-## 3. Who uses it
+## 3. Who Uses It
 
 | User | Role |
 |---|---|
@@ -28,7 +28,7 @@ It is free for organizations and families. It is supported by optional donations
 | Volunteer drivers | Adults, usually other parents, who choose to offer open seats in their own vehicles. |
 | HWTech | Builds, hosts, secures, and supports the platform. |
 
-## 4. Data BandWagon holds
+## 4. Data BandWagon Holds
 
 - Names, verified email, optional mobile number, birth month and year (not full date of birth), household and guardian relationships.
 - Event details, ride requests and offers, matches, and ride history.
@@ -40,7 +40,7 @@ It is free for organizations and families. It is supported by optional donations
 
 Service providers are listed at `/legal/subprocessors` in the app (IONOS hosting and storage, Cloudflare, SMTP2GO, Twilio, Google Maps and Calendar, Microsoft Graph, Stripe, optional AI providers).
 
-## 5. Where the risk sits
+## 5. Where The Risk Sits
 
 | Risk | Example | Notes |
 |---|---|---|
@@ -51,7 +51,7 @@ Service providers are listed at `/legal/subprocessors` in the app (IONOS hosting
 | Messaging compliance | Texts sent without proper consent. | TCPA exposure. BandWagon records opt-in and honors STOP, and staging is sandboxed. |
 | Misclassification | A regulator views BandWagon as a transportation network company. | See lawyer question 3. The no-payment design is the main defense. |
 
-## 6. Coverage to ask the broker about
+## 6. Coverage To Ask The Broker About
 
 1. **General liability** for HWTech (bodily injury and property damage claims, including events or meetings we attend).
 2. **Technology errors and omissions (tech E&O) / professional liability.** Claims that the software failed or that our service caused a loss. Ask whether bodily injury arising from software use is excluded, and whether it can be added back.
@@ -63,7 +63,7 @@ Service providers are listed at `/legal/subprocessors` in the app (IONOS hosting
 8. Ask whether **volunteer driver coverage** (excess auto for volunteers, often sold to nonprofits) is something we should point organizations to.
 9. Ask what underwriters will want to see: our Terms, Organization Agreement, security practices, and incident response plan.
 
-## 7. Questions for the lawyer
+## 7. Questions For The Lawyer
 
 1. **Entity structure.** Is a single Texas LLC enough, or should BandWagon sit in a separate entity from the MSP business to contain risk? Any operating agreement or asset protection changes?
 2. **Organization Agreement review.** Review the draft at `/legal/organization-agreement` (roles, not a transportation provider, admin duties, data processing, incident notice, US$100 liability cap, Texas law, Denton County venue). Is the liability cap enforceable for a free service? Is the venue right for Flower Mound?
@@ -75,7 +75,7 @@ Service providers are listed at `/legal/subprocessors` in the app (IONOS hosting
 8. **Messaging.** Review our SMS consent flow and records against the TCPA and carrier rules.
 9. **Sponsors.** Any rules for sponsor recognition shown to families, given that sponsors get no data and the audience includes minors?
 
-## 8. Documents to share
+## 8. Documents To Share
 
 - Terms of Use (`/terms`), Privacy Policy (`/privacy`), Cookie Policy (`/cookies`), Messaging and SMS Consent (`/messaging`)
 - Draft Organization Agreement (`/legal/organization-agreement`)

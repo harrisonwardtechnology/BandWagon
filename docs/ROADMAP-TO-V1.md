@@ -28,7 +28,7 @@ This roadmap intentionally uses larger release packages: one release PR, one rev
 ## 0.14 - Operations & Engagement
 **Goal:** Make BandWagon pleasant enough that families and org admins use it without hand-holding.
 
-### Ride / notification lifecycle
+### Ride / Notification Lifecycle
 - scheduled 24-hour and 1-hour reminders
 - driver-arriving / pickup / drop-off lifecycle polish
 - no-show / cancellation UX
@@ -77,7 +77,7 @@ BLUE COW                    BLUE COW
            Ride -> Picked Up
 ```
 
-### Calendar / event experience
+### Calendar / Event Experience
 - polished upcoming-events UI
 - calendar sync health / last-sync status
 - manual event editing
@@ -85,13 +85,13 @@ BLUE COW                    BLUE COW
 - admin confirmation before AI-created event is published
 - ride arrival/departure target times
 
-### Matching / explanation
+### Matching / Explanation
 - human-in-loop smart matching UX
 - clear `Why this match?` explanations
 - better multi-passenger/carpool presentation
 - coverage / unmet-demand view
 
-### Community support
+### Community Support
 - sponsor display / logo workflow
 - organization support page branding
 - cost coverage dashboard refinement
@@ -104,7 +104,7 @@ BLUE COW                    BLUE COW
 ## 0.15 - SaaS, Privacy & Production Candidate
 **Goal:** Turn the working product into a repeatable multi-tenant SaaS and production candidate.
 
-### SaaS / tenant onboarding
+### SaaS / Tenant Onboarding
 - `{tenant}.bandwagon.club` activation workflow
 - verified custom domains
 - org branding / logo / support settings
@@ -112,14 +112,14 @@ BLUE COW                    BLUE COW
 - organization setup checklist
 - configurable join codes and policies
 
-### Calendar expansion
+### Calendar Expansion
 - [x] Microsoft Calendar integration
 - [x] Google / Microsoft sync controls per organization
 - [x] duplicate / conflict handling
 - [x] organizer-created manual events
 - [x] organizations may opt into moderated member event proposals (off by default, see docs/EVENTS.md)
 
-### Privacy / family controls
+### Privacy / Family Controls
 - [x] user data export
 - [x] right-to-be-forgotten workflow
 - [x] document deletion / retention lifecycle
@@ -128,7 +128,7 @@ BLUE COW                    BLUE COW
 - [x] organization privacy / terms acknowledgement
 - [x] exact-location retention cleanup
 
-### Security / reliability
+### Security / Reliability
 - [x] stronger auth/IP throttling
 - [x] account-enumeration hardening
 - [x] session / cookie hardening review
@@ -140,7 +140,7 @@ BLUE COW                    BLUE COW
 - [x] mobile/PWA install and privacy-safe offline-state polish
 - [x] repeatable performance / load smoke gate (staging authenticated load test remains)
 
-### AI governance
+### AI Governance
 - [x] BandWagon hard caps, in-flight reservations, and approved model aliases
 - [x] fail-closed runtime switch, input bounds, and provider timeouts
 - [x] policy decision / manual fallback audit history
@@ -157,7 +157,7 @@ BLUE COW                    BLUE COW
 
 The executable go/no-go criteria live in [`operations/V1-LAUNCH-CHECKLIST.md`](operations/V1-LAUNCH-CHECKLIST.md). Twilio and Google approval may proceed in parallel, but both remain launch blockers for the FloMoGo profile.
 
-### FloMoGo launch
+### FloMoGo Launch
 - production tenant/domain configuration
 - organization admins assigned
 - calendar sources connected
@@ -169,7 +169,7 @@ The executable go/no-go criteria live in [`operations/V1-LAUNCH-CHECKLIST.md`](o
 - safety drill / ride workflow dry run
 - verified pickup handshake dry run with parent, student, and driver scenarios
 
-### Release validation
+### Release Validation
 - end-to-end regression test
 - tenant isolation test
 - household / multi-org test
@@ -191,7 +191,7 @@ The executable go/no-go criteria live in [`operations/V1-LAUNCH-CHECKLIST.md`](o
 - incident / safety escalation guide
 - open-source installation / environment guide
 
-### v1 release
+### v1 Release
 - version / release notes
 - production change freeze for launch
 - monitoring / cost baseline
@@ -207,14 +207,14 @@ The executable go/no-go criteria live in [`operations/V1-LAUNCH-CHECKLIST.md`](o
 
 The implementation sequence, sprint ownership, release gates, and definition of done are maintained in [`V2-ROADMAP-AND-SPRINT-MAP.md`](V2-ROADMAP-AND-SPRINT-MAP.md).
 
-### Mobile architecture
+### Mobile Architecture
 - keep the BandWagon backend, data model, authorization, safety rules, tenant isolation, AI gateway, and notification engine authoritative
 - expose stable versioned application APIs for web, iOS, and Android clients
 - build one shared native codebase where practical; React Native / Expo is the leading candidate because BandWagon already uses TypeScript / React
 - keep the PWA and desktop web experience fully supported for accessibility, admin workflows, and users who do not install an app
 - define deep links / universal links so ride requests, approvals, safety alerts, and organization invitations open directly in the correct screen
 
-### Native account / identity
+### Native Account / Identity
 - secure token storage using iOS Keychain and Android Keystore
 - device registration and session management
 - passkeys / WebAuthn as the preferred phishing-resistant sign-in method; push, RCS, SMS, and email remain approval or recovery channels rather than equivalent trust factors
@@ -227,7 +227,7 @@ The implementation sequence, sprint ownership, release gates, and definition of 
 - never treat a bare inbound `YES` as login approval; require the signed challenge and number/device match to prevent reply spoofing and approval fatigue
 - account recovery and device-loss flows
 
-### V2 product workflows
+### V2 Product Workflows
 - recurring ride and event templates with explicit exception handling for holidays, cancellations, and one-off schedule changes
 - waitlists / standby offers with expiring, auditable acceptance windows instead of organizer-managed message chains
 - organization policy for member-created event proposals: members may submit drafts, but only authorized organizers may approve and publish them
@@ -236,7 +236,7 @@ The implementation sequence, sprint ownership, release gates, and definition of 
 - a user-facing security center for active devices, recent sign-ins, login approvals, recovery methods, and one-tap session revocation
 - localization and accessibility are V2 release gates, including WCAG 2.2 AA, assistive-technology testing, translated transactional notices, per-user language preferences, and organization-controlled language defaults
 
-### Native notifications
+### Native Notifications
 - Apple Push Notification Service (APNs)
 - Firebase Cloud Messaging (FCM) for Android
 - device-level notification preferences
@@ -244,7 +244,7 @@ The implementation sequence, sprint ownership, release gates, and definition of 
 - push token lifecycle / invalid-token cleanup
 - SMS/RCS remains the critical fallback rather than the primary routine channel
 
-### Safety / emergency experience
+### Safety / Emergency Experience
 - prominent native Emergency Assist entry point during active rides
 - direct device Call 911 action; BandWagon does not represent itself as an emergency dispatch service
 - one-touch guardian / safety-circle alert
@@ -253,7 +253,7 @@ The implementation sequence, sprint ownership, release gates, and definition of 
 - no passive background tracking by default
 - native share sheet for ride / safety details when appropriate
 
-### Ride experience
+### Ride Experience
 - native driver / rider active-ride screen
 - arrival / pickup / drop-off actions
 - native camera QR scanning for Verified Pickup Handshake
@@ -272,7 +272,7 @@ The implementation sequence, sprint ownership, release gates, and definition of 
 - haptics only where useful, particularly safety and ride-state confirmations
 - tablet support where reasonable, especially for administrators
 
-### Privacy / platform requirements
+### Privacy / Platform Requirements
 - Apple App Privacy disclosures
 - Google Play Data Safety disclosures
 - age rating / child-safety review
@@ -282,7 +282,7 @@ The implementation sequence, sprint ownership, release gates, and definition of 
 - no sensitive documents in crash reports, analytics events, push payloads, screenshots, or logs
 - App Store / Play Store privacy-policy and account-deletion requirements
 
-### App distribution / operations
+### App Distribution / Operations
 - Apple Developer Program and App Store Connect
 - Google Play Console
 - TestFlight beta channel
@@ -293,7 +293,7 @@ The implementation sequence, sprint ownership, release gates, and definition of 
 - release compatibility policy between mobile app versions and BandWagon API versions
 - minimum supported OS policy
 
-### Product opportunities enabled by native
+### Product Opportunities Enabled By Native
 - richer actionable push notifications
 - home-screen widgets for next ride / upcoming event
 - Live Activities / Dynamic Island on supported iPhones for an active ride, if privacy review supports it
@@ -304,7 +304,7 @@ The implementation sequence, sprint ownership, release gates, and definition of 
 - improved Emergency Assist UX
 - optional CarPlay / Android Auto investigation only if it can be done safely and within platform rules
 
-### Native admin scope
+### Native Admin Scope
 The initial native apps should prioritize parents, students, and drivers. Complex organization administration can remain web-first unless real usage shows a clear need for native admin screens.
 
 **Exit:** A user can install BandWagon from the Apple App Store or Google Play, sign in, switch organizations, manage household rides, receive native notifications, complete an active ride, use Emergency Assist, complete the Verified Pickup Handshake, and upload driver credentials while all authoritative rules remain server-side.

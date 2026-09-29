@@ -1,4 +1,4 @@
-# BandWagon V2 Roadmap and Sprint Map
+# BandWagon V2 Roadmap And Sprint Map
 
 ## Purpose
 
@@ -6,7 +6,7 @@ V2 delivers accessible native iOS and Android applications and the highest-value
 
 Accessibility, localization, privacy, child safety, and tenant isolation are release requirements. They are not cleanup work deferred until the final sprint.
 
-## Planning assumptions
+## Planning Assumptions
 
 - Two-week sprints.
 - A small delivery team with one or two primary engineers plus part-time product, design, security, and testing support.
@@ -15,7 +15,7 @@ Accessibility, localization, privacy, child safety, and tenant isolation are rel
 - Apple, Google, legal/privacy, and provider reviews run in parallel and may affect the release date.
 - Every new capability is remotely feature flagged until its release gate passes.
 
-## Release trains
+## Release Trains
 
 | Release | Target sprints | Outcome |
 | --- | --- | --- |
@@ -24,7 +24,7 @@ Accessibility, localization, privacy, child safety, and tenant isolation are rel
 | V2.1 Workflow Expansion | 11-14 | Recurring rides/events, waitlists, moderated member event proposals, and trusted household delegates |
 | V2.2 Smart Mobility + GA | 15-19 | Capacity-aware pooled planning, widgets/live status, privacy/security hardening, public release candidate, staged rollout, and post-launch review |
 
-## Product principles
+## Product Principles
 
 1. Safety and privacy outrank convenience.
 2. Accessibility and localization are part of the acceptance criteria for every feature.
@@ -37,7 +37,7 @@ Accessibility, localization, privacy, child safety, and tenant isolation are rel
 9. Complex organization administration remains web-first unless user evidence justifies native work.
 10. No advertising SDKs, open social feed, or general-purpose chat platform.
 
-## Accessibility and localization standard
+## Accessibility And Localization Standard
 
 The following requirements apply to every sprint:
 
@@ -60,7 +60,7 @@ The following requirements apply to every sprint:
 - Transactional email, push, SMS, and RCS use the recipient's approved language when a reviewed template exists.
 - Automated accessibility checks are supplemented by manual assistive-technology testing and beta participants with lived experience.
 
-## Definition of done for every feature
+## Definition Of Done For Every Feature
 
 A feature is not done until all applicable items pass:
 
@@ -75,9 +75,9 @@ A feature is not done until all applicable items pass:
 - Feature flag, rollout plan, monitoring, support instructions, and rollback path.
 - Updated user and organization-admin documentation.
 
-## Sprint map
+## Sprint Map
 
-### Sprint 0 - V2 charter and risk foundation
+### Sprint 0 - V2 Charter And Risk Foundation
 
 **Deliverables**
 
@@ -92,7 +92,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** Architecture decision, threat model, accessibility policy, locale policy, scope, owners, and release metrics are approved.
 
-### Sprint 1 - API and native delivery foundation
+### Sprint 1 - API And Native Delivery Foundation
 
 **Deliverables**
 
@@ -107,7 +107,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** Both platforms build automatically, open the accessible shell, change locale, and report scrubbed health data.
 
-### Sprint 2 - Session, navigation, and offline shell
+### Sprint 2 - Session, Navigation, And Offline Shell
 
 **Deliverables**
 
@@ -121,7 +121,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** A test user can sign in, switch organizations, reopen offline, and navigate the complete shell with VoiceOver, TalkBack, and keyboard controls.
 
-### Sprint 3 - Passkeys and security center
+### Sprint 3 - Passkeys And Security Center
 
 **Deliverables**
 
@@ -135,7 +135,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** Passkey, recovery, revocation, replay, stolen-session, and cross-tenant tests pass.
 
-### Sprint 4 - Push, RCS, and login approval
+### Sprint 4 - Push, RCS, And Login Approval
 
 **Deliverables**
 
@@ -150,7 +150,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** Push-first approval and every fallback pass legitimate, replay, spoofing, rate-limit, opt-out, and translation tests.
 
-### Sprint 5 - Native active-ride core
+### Sprint 5 - Native Active-Ride Core
 
 **Deliverables**
 
@@ -163,7 +163,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** A complete ride works on iOS and Android under normal and poor-connectivity conditions without bypassing server-side lifecycle rules.
 
-### Sprint 6 - Emergency Assist and controlled location sharing
+### Sprint 6 - Emergency Assist And Controlled Location Sharing
 
 **Deliverables**
 
@@ -190,7 +190,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** Parent, student, driver, assistive-technology, replay, mismatch, and offline-fallback tests pass.
 
-### Sprint 8 - Driver credential capture
+### Sprint 8 - Driver Credential Capture
 
 **Deliverables**
 
@@ -203,7 +203,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** Valid, invalid, expired, revoked, offline, oversized, malicious-file, and privacy tests pass.
 
-### Sprint 9 - Localization and accessibility completion pass
+### Sprint 9 - Localization And Accessibility Completion Pass
 
 **Deliverables**
 
@@ -217,7 +217,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** No critical untranslated strings or severity 1/2 accessibility defects; human accessibility and Spanish-language walkthroughs pass.
 
-### Sprint 10 - V2.0 beta and store readiness
+### Sprint 10 - V2.0 Beta And Store Readiness
 
 **Deliverables**
 
@@ -230,7 +230,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** V2.0 beta completes the parent/student/driver matrix with no open severity 1/2 defects and approved privacy/store evidence.
 
-### Sprint 11 - Recurring rides and events
+### Sprint 11 - Recurring Rides And Events
 
 **Deliverables**
 
@@ -244,7 +244,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** Daylight-saving, time-zone, holiday, cancellation, duplicate, and notification tests pass.
 
-### Sprint 12 - Waitlists and standby offers
+### Sprint 12 - Waitlists And Standby Offers
 
 **Deliverables**
 
@@ -257,7 +257,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** Concurrency, capacity, expiry, guardian, notification, accessibility, and fairness tests pass.
 
-### Sprint 13 - Moderated member event proposals
+### Sprint 13 - Moderated Member Event Proposals
 
 **Deliverables**
 
@@ -270,7 +270,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** Role, tenant, policy-disabled, abuse, approval, rejection, and publication tests pass.
 
-### Sprint 14 - Trusted household delegates
+### Sprint 14 - Trusted Household Delegates
 
 **Deliverables**
 
@@ -283,7 +283,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** Expired, revoked, wrong-student, wrong-organization, guardian-dispute, and audit tests pass.
 
-### Sprint 15 - Capacity-aware pooled planning
+### Sprint 15 - Capacity-aware Pooled Planning
 
 **Deliverables**
 
@@ -296,7 +296,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** Capacity, accessibility, safety, route failure, fairness, cost-limit, and organizer-override tests pass.
 
-### Sprint 16 - Widgets and live ride status
+### Sprint 16 - Widgets And Live Ride Status
 
 **Deliverables**
 
@@ -308,7 +308,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** Stale-state, lock-screen exposure, logout, account-switch, accessibility, battery, and unsupported-device tests pass.
 
-### Sprint 17 - Privacy, abuse, and resilience hardening
+### Sprint 17 - Privacy, Abuse, And Resilience Hardening
 
 **Deliverables**
 
@@ -322,7 +322,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** No unresolved severity 1/2 defect; security/privacy sign-off and restore/rollback evidence complete.
 
-### Sprint 18 - V2 public release candidate
+### Sprint 18 - V2 Public Release Candidate
 
 **Deliverables**
 
@@ -335,7 +335,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** Every required V2 launch checklist item has dated evidence and named approval.
 
-### Sprint 19 - Staged GA and stabilization
+### Sprint 19 - Staged GA And Stabilization
 
 **Deliverables**
 
@@ -347,7 +347,7 @@ A feature is not done until all applicable items pass:
 
 **Exit gate:** V2 is generally available with stable health, support ownership, recorded baselines, and no unresolved launch blocker.
 
-## Feature-to-release map
+## Feature-to-release Map
 
 | Capability | V2.0 | V2.1 | V2.2 |
 | --- | :---: | :---: | :---: |
@@ -367,7 +367,7 @@ A feature is not done until all applicable items pass:
 | Widgets/live ride status |  |  | Yes |
 | Public mobile GA |  |  | Yes |
 
-## Deliberately excluded from V2
+## Deliberately Excluded From V2
 
 - General-purpose or open-ended chat.
 - Public social feed or public people directory.
@@ -380,7 +380,7 @@ A feature is not done until all applicable items pass:
 - White-label mobile applications unless paid demand justifies the ongoing operational burden.
 - CarPlay/Android Auto until safety and platform-policy review is complete.
 
-## Schedule and staffing reality
+## Schedule And Staffing Reality
 
 For a conventional small product team, this represents approximately 40 weeks of planned work. A practical conventional-team range is:
 
@@ -390,7 +390,7 @@ For a conventional small product team, this represents approximately 40 weeks of
 
 Adding engineers does not linearly compress provider approval, beta feedback, accessibility testing, privacy review, or store review. Those gates should run in parallel as early as possible.
 
-### Codex-led delivery target
+### Codex-led Delivery Target
 
 When Codex performs the bulk of architecture, coding, migrations, automated testing, documentation, and CI/CD work, the 20 sprints are executed as compressed work packages:
 
@@ -403,7 +403,7 @@ When Codex performs the bulk of architecture, coding, migrations, automated test
 
 This schedule assumes prompt product decisions and access to required provider accounts. Codex can compress implementation, test creation, documentation, and remediation. It cannot responsibly eliminate physical-device testing, real-user accessibility testing, human review of Spanish safety/legal translations, child-privacy review, beta observation, or Apple/Google approval time.
 
-## V2 success measures
+## V2 Success Measures
 
 - A parent, student, or driver can complete the essential ride workflow on iOS, Android, or web without assistance.
 - English and Spanish users receive consistent, reviewed transactional and safety information.

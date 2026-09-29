@@ -97,7 +97,7 @@ One person may temporarily hold multiple roles, but ownership should be explicit
 9. What incident and pause authority exists?
 10. Have test rides and privacy/safety workflows been completed before broad launch?
 
-## Suggested Evidence to Retain
+## Suggested Evidence To Retain
 
 - the organization’s official decision/minutes/memo/ticket/email/conditions;
 - named owners and contacts;

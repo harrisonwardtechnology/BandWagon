@@ -2,14 +2,14 @@
 
 Staging is a full copy of BandWagon that runs the code you are about to ship, against fake data, with messaging locked down. Use it to test a build before it goes to production.
 
-## Rules that never bend
+## Rules That Never Bend
 
 1. **Never production data.** Staging has its own database. Never restore a production backup into staging, and never point staging at the production database, Redis, or S3 bucket.
 2. **Never production secrets.** Generate new `AUTH_SECRET`, `DATA_ENCRYPTION_KEY`, and `LOOKUP_HASH_KEY` values. Use test or separate credentials for every provider.
 3. **Messaging sandbox is always on.** Staging only texts and emails people on an allowlist. Everyone else is recorded as skipped.
 4. **Staging is visibly staging.** A red STAGING banner shows on every page, and responses carry `X-Robots-Tag: noindex, nofollow`.
 
-## What the compose file sets up
+## What The Compose File Sets Up
 
 `docker-compose.coolify.staging.yml` at the repo root runs:
 
@@ -30,7 +30,7 @@ Key settings baked into the file:
 | `PLATFORM_HOSTNAMES` | the staging hostname | Staging answers as the product site on its own hostname. |
 | `TENANT_BASE_DOMAIN` | `staging.bandwagon.club` by default | Staging tenants never share production's tenant domain. |
 
-## How the messaging sandbox works
+## How The Messaging Sandbox Works
 
 - `MESSAGING_SANDBOX=true` (or `NEXT_PUBLIC_ENVIRONMENT=staging`, or `APP_ENVIRONMENT=staging`) turns it on.
 - `SANDBOX_ALLOWED_PHONES` is a comma list of E.164 numbers, for example `+19725550100,+19725550101`.
@@ -42,7 +42,7 @@ Key settings baked into the file:
 
 `npm run release:check-env` fails if `MESSAGING_SANDBOX=true` in a production environment, so the flag cannot leak into production by accident.
 
-## Coolify setup, step by step
+## Coolify Setup, Step By Step
 
 1. **Create a separate Coolify project** (or at least a separate environment) named `BandWagon Staging`. Do not add staging resources to the production project.
 2. **Add a resource** from the GitHub repo using the **Docker Compose** build pack, and set the compose file to `docker-compose.coolify.staging.yml`.
@@ -67,7 +67,7 @@ Key settings baked into the file:
 9. **Check it.** Open the staging URL. You should see the red STAGING banner. Open `/status` and confirm the live check says Up. Sign in with an allowlisted email.
 10. **Seed test data by hand** (a test organization, fake households, fake events). Never import real member lists.
 
-## Promoting a build to production
+## Promoting A Build To Production
 
 Staging and production build the same Dockerfile from the same Git commit, so promotion means "deploy the commit you tested."
 
@@ -81,6 +81,6 @@ Staging and production build the same Dockerfile from the same Git commit, so pr
 
 Do not promote by copying a staging container or database. Always rebuild production from Git.
 
-## Resetting staging
+## Resetting Staging
 
 Staging data is disposable. To start fresh, stop the resource, delete the `staging-postgres-data` and `staging-redis-data` volumes in Coolify, and redeploy. Migrations recreate the schema.

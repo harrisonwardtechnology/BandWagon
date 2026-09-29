@@ -31,7 +31,7 @@
 - Back up persistent PostgreSQL volumes and test restoration.
 - Restrict preview/development deployments from using production Twilio/SMTP credentials.
 
-## Optional Public Links and Domain Settings
+## Optional Public Links And Domain Settings
 
 | Variable | Example | Notes |
 |---|---|---|

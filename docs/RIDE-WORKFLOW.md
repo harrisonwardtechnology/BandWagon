@@ -2,7 +2,7 @@
 
 The ride engine is organization-scoped and event-aware. It deliberately separates a **ride request** from a **driver offer** and the final **ride** so multiple drivers can offer without exposing unnecessary personal information.
 
-## Core lifecycle
+## Core Lifecycle
 
 ```text
 Request
@@ -19,13 +19,13 @@ Request
 
 Cancellation and no-show states are recorded explicitly rather than deleting records.
 
-## Minor / guardian behavior
+## Minor / Guardian Behavior
 
 A minor with `student_approval_required=true` cannot create an immediately open ride request unless the requester is a guardian with `can_approve_rides=true`.
 
 A student-created request becomes `pending_approval`. Drivers cannot offer against it until an authorized guardian approves it.
 
-## Driver offers
+## Driver Offers
 
 A ride request can have several offers. Accepting one offer happens in a database transaction:
 
@@ -53,7 +53,7 @@ When a carpool is full, a rider (or a guardian for a minor) can join its waitlis
 - A rider cannot join twice (unique index on ride and rider for active entries), cannot join a carpool they are already in, and cannot join when they already have a seat in another carpool for the same event and an overlapping direction. Joining closes at the departure cutoff.
 - Riders see their place in line and the size of the waitlist. They do not see other riders' names.
 
-### Standby offers
+### Standby Offers
 
 A seat can open when a passenger is removed, the driver adds seats, or a new carpool is created for the same event and direction. Each of these enqueues a `waitlist.process_ride` job. Processing:
 
@@ -74,12 +74,12 @@ A seat can open when a passenger is removed, the driver adds seats, or a new car
 
 A `ride-waitlists` scheduled task runs every 5 minutes as a safety net (late expiries, missed seat openings, departed carpools).
 
-### Drivers and organizers
+### Drivers And Organizers
 
 - The driver sees the waitlist count and list on their carpool card: display name, seats needed, generalized pickup area, and whether a seat is currently offered. This is the same information drivers already see on open ride requests. The driver can change the number of seats in the car; adding seats wakes the waitlist.
 - Organization admins manage settings and see every open waitlist at `/admin/waitlists`: waitlists on or off (default on), minutes to accept (5 to 240, default 30), and the departure cutoff (0 to 240 minutes, default 15).
 
-### Notifications and audit
+### Notifications And Audit
 
 - Offers use the `waitlist_offer` type (important: push first, then text or email if push is not available). Joined, expired, removed, and closed use `waitlist_update` (routine). A cancelled carpool uses `last_minute_cancellation`. All go through the normal router, so notification preferences, SMS consent, opt-outs, and organization texting limits apply. Minors' households are notified through the guardian who asked.
 - Audit events use `ride_waitlist.<action>` with `target_type='ride_waitlist_entry'`: `joined`, `left`, `offered`, `accepted`, `declined`, `expired`, `offer_withdrawn`, `closed`, `removed`, `cancelled`, and `settings_updated`.
@@ -99,13 +99,13 @@ Verified encrypted phone numbers are resolved by the notification layer only whe
 
 The initial workflow stores pickup/drop-off **notes**, not public street addresses. The upcoming location/privacy milestone will add encrypted precise locations plus generalized map areas for discovery. Drivers should not receive a precise address until a ride is matched and the user's visibility policy permits it.
 
-## Admin development console
+## Admin Development Console
 
 `/admin/rides`
 
 Sign in as a platform owner to exercise the development workflow. The console no longer accepts the shared bootstrap token.
 
-## Next layers
+## Next Layers
 
 - Encrypted pickup/drop-off locations and polygon/generalized visibility
 - Driver capacity and willingness zones

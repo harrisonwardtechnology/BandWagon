@@ -25,6 +25,6 @@ Enable production AI only after all items are complete:
 - Policy allows, denials, and manual fallbacks are recorded without raw prompts.
 - AI outputs remain untrusted and require human review for credentials and event publication.
 
-## Kill Switch and Fallback
+## Kill Switch And Fallback
 
 Set `AI_RUNTIME_ENABLED=false` and redeploy to stop new provider calls while retaining organization choices and history. Failed or denied credential automation returns the document to manual review. Failed event intake leaves the organizer able to use the manual event publisher. Matching, safety, eligibility, and emergency decisions never depend on AI.

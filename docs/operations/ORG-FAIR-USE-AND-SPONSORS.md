@@ -1,10 +1,10 @@
-# Organization Fair Use, Impact Reports, and Sponsors
+# Organization Fair Use, Impact Reports, And Sponsors
 
 BandWagon is free to organizations and families. Revenue is optional community support and local sponsors. This note explains the per-organization texting allowance, how impact numbers are estimated, and the rules for sponsors.
 
 Migration: `apps/web/database/migrations/056_org_caps_impact_sponsors.sql`.
 
-## 1. Texting fair use (per organization)
+## 1. Texting Fair Use (Per Organization)
 
 Texts (SMS/RCS) cost real money per segment, so each organization has a monthly texting allowance. Push notifications and email are not limited.
 
@@ -33,7 +33,7 @@ Texts (SMS/RCS) cost real money per segment, so each organization has a monthly 
 - `/admin/usage`: organization admins see texting usage against the allowance (read-only) and this month's AI usage, read from the existing AI governance data (`organization_ai_settings`, `ai_jobs`). AI caps stay on `/admin/ai-settings`; they are not duplicated here.
 - Platform owner sees every organization's usage on the same page and can set or reset an organization's allowance (`POST /api/admin/usage`, action `set-limit`). Changes are audited (`org_texting_limit_updated`). Linked from `/admin/tenants`.
 
-## 2. Impact report
+## 2. Impact Report
 
 `/admin/impact` (organization chooser when an admin has several) shows This month, This school year (August 1 to July 31), and All time. CSV export: `GET /api/admin/impact?organizationId=...&format=csv`.
 
@@ -60,7 +60,7 @@ The page also lists sponsorship payments made through Stripe for that organizati
 
 `/admin/sponsors/packet` is a printable page (Print or Save as PDF) with the organization's impact numbers, recognition options, and the promise to families, for pitching local businesses.
 
-### Core Funding Boundary (non-negotiable)
+### Core Funding Boundary (Non-Negotiable)
 
 Per `docs/ORGANIZATION-REVIEW-GUIDE.md`:
 

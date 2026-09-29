@@ -2,7 +2,7 @@
 
 BandWagon uses a push-first notification strategy to reduce SMS/RCS cost while preserving reliable delivery for time-sensitive ride events.
 
-## Routing model
+## Routing Model
 
 | Event | Urgency | Primary | Fallback / additional channel |
 |---|---|---|---|
@@ -16,7 +16,7 @@ BandWagon uses a push-first notification strategy to reduce SMS/RCS cost while p
 | Pickup/location changed | Critical | Push | SMS/RCS immediately |
 | OTP / phone verification | Critical | SMS/RCS | No push |
 
-## User preferences
+## User Preferences
 
 Routing respects `notification_preferences`:
 
@@ -28,7 +28,7 @@ Routing respects `notification_preferences`:
 
 Defaults deliberately favor push and limit SMS/RCS.
 
-## Delivery logging
+## Delivery Logging
 
 Every channel writes to `notification_deliveries` with:
 
@@ -51,7 +51,7 @@ Email routing supports SMTP2GO's API when these runtime variables are configured
 
 If they are not configured, email fallback is skipped safely; push and SMS/RCS continue normally.
 
-## Admin test console
+## Admin Test Console
 
 After migration `005_notification_routing.sql` is applied:
 
@@ -61,6 +61,6 @@ Sign in with a platform administrator account to load routing policies. Sending 
 
 If `ADMIN_TEST_PHONE` is configured, SMS/RCS tests are restricted to that number.
 
-## Current limitation
+## Current Limitation
 
 Phone numbers are not resolved from `phones.e164_ciphertext` yet because the account/household encryption workflow is not complete. The router accepts an explicit E.164 phone number today. The upcoming Accounts/Households milestone will resolve the user's verified phone internally before calling the router.

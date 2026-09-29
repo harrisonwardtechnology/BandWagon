@@ -2,7 +2,7 @@
 
 This guide is written for a non-technical community organizer. You should not need to understand servers, APIs, DNS, databases, or Cloudflare to complete normal setup.
 
-## 1. Create the Community
+## 1. Create The Community
 
 1. Enter the community name.
 2. Choose the short BandWagon name/slug shown in the preview.
@@ -13,11 +13,11 @@ BandWagon automatically creates the organization, its platform hostname, the pla
 
 Example: a community with slug `flomogo` receives `https://flomogo.bandwagon.club`.
 
-## 2. Complete the Organization Profile
+## 2. Complete The Organization Profile
 
 Enter the public organization name and optional logo/branding. Add the primary operational admin, privacy contact, safety escalation contact and finance/funding owner where appropriate. One person may initially fill more than one role, but the ownership should be explicit.
 
-## 3. Review the Approval / Governance Checklist
+## 3. Review The Approval / Governance Checklist
 
 BandWagon supplies a proposal and evidence package. It is not an approval form. Each organization should use its own normal process and attach its official decision, minutes, memo, email, ticket, agreement or conditions.
 
@@ -55,7 +55,7 @@ Recommended setup questions:
 5. How often does approval expire?
 6. Is Verified Pickup optional, recommended or required?
 
-## 7. Use the Free BandWagon Address
+## 7. Use The Free BandWagon Address
 
 Nothing else is required for the default BandWagon hostname. The community is routed through the platform wildcard automatically.
 

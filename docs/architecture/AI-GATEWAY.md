@@ -22,7 +22,7 @@ BandWagon Web
 
 Google Document AI is intentionally outside LiteLLM because it is a specialized document-processing service rather than a normal LLM inference endpoint. BandWagon's internal AI service remains the common application abstraction for both paths.
 
-## Coolify deployment
+## Coolify Deployment
 
 Deploy LiteLLM as a separate private service in the same Coolify environment as BandWagon. BandWagon should reach it over the internal service network rather than a public Internet hostname whenever possible.
 
@@ -51,7 +51,7 @@ Do not place provider API keys in the BandWagon application once LiteLLM is oper
 
 `AI_RUNTIME_ENABLED` is the platform kill switch and defaults closed. Set it to `true` only after the provider-retention review, a production LiteLLM virtual key, matching LiteLLM budget/rate limits, and organization hard caps are configured.
 
-## Security defaults
+## Security Defaults
 
 - LiteLLM is an internal gateway, not a public user endpoint.
 - Use a dedicated PostgreSQL database/user for LiteLLM metadata.
@@ -66,9 +66,9 @@ Do not place provider API keys in the BandWagon application once LiteLLM is oper
 - On policy denial, timeout, or provider failure, return to the documented manual workflow and retain a policy event without raw prompt content.
 - Rotate provider and LiteLLM keys without changing BandWagon business logic.
 
-## Routing policy
+## Routing Policy
 
-### bandwagon-fast
+### Bandwagon-Fast
 Default for high-volume structured work:
 
 - insurance field extraction
@@ -77,15 +77,15 @@ Default for high-volume structured work:
 - short match explanations
 - routine admin assistant requests
 
-### bandwagon-balanced
+### Bandwagon-Balanced
 Escalation for ambiguous documents or reasoning-heavy admin questions.
 
-### bandwagon-deep
+### Bandwagon-Deep
 Rare escalation only. Intended for difficult analysis where the lower-cost routes cannot produce a sufficiently reliable structured result.
 
 Safety, eligibility, COPPA/age restrictions, emergency actions, organization approvals and credential expiration remain deterministic BandWagon rules. AI may extract or explain; it does not make those decisions.
 
-## Sensitive document workflow
+## Sensitive Document Workflow
 
 ```text
 Private IONOS S3 object
@@ -103,7 +103,7 @@ Private IONOS S3 object
 
 AI output is always treated as untrusted structured input. Required fields are schema-validated before being written to credential metadata.
 
-## Cost accounting
+## Cost Accounting
 
 LiteLLM provides gateway-level usage/spend tracking. BandWagon additionally records cost by business purpose so the support dashboard can report categories such as:
 
@@ -118,6 +118,6 @@ Safety summaries
 
 The BandWagon record is the business/accounting source of truth; LiteLLM is the operational inference gateway.
 
-## Provider retention launch gate
+## Provider Retention Launch Gate
 
 Before enabling the runtime in production, record evidence that each configured provider account/project has prompt and response logging disabled where supported, zero/approved retention for submitted content, no training on submitted content, and region/access settings acceptable for credential and minor-related workflows. If those controls cannot be verified, leave the relevant feature off. Never enable request-body logging, session replay, or prompt callbacks in LiteLLM observability.

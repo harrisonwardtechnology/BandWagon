@@ -2,7 +2,7 @@
 
 BandWagon stores exact pickup/drop-off locations encrypted with `DATA_ENCRYPTION_KEY` and exposes only generalized location information before a ride is matched.
 
-## Default behavior
+## Default Behavior
 
 - Exact address is encrypted at rest.
 - Exact latitude/longitude are encrypted at rest when present.
@@ -18,7 +18,7 @@ BandWagon stores exact pickup/drop-off locations encrypted with `DATA_ENCRYPTION
 
 The service rounds coordinates to two decimal places for the generalized map point, roughly neighborhood-scale rather than house-scale. `generalized_area` can contain a human-friendly description such as `Flower Mound - Central` or `Near FMHS`.
 
-## Admin/API development flow
+## Admin/API Development Flow
 
 `POST /api/admin/location-privacy` requires a signed-in platform owner and supports:
 
@@ -28,6 +28,6 @@ The service rounds coordinates to two decimal places for the generalized map poi
 
 Production user-facing ride screens should call the same service functions rather than decrypting database fields directly.
 
-## Key management
+## Key Management
 
 `DATA_ENCRYPTION_KEY` must remain stable. Changing it without a key-rotation migration will make existing encrypted locations unreadable.

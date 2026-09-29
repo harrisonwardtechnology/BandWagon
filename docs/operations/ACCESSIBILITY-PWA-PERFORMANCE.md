@@ -1,4 +1,4 @@
-# Accessibility, PWA, and Performance Gate
+# Accessibility, PWA, And Performance Gate
 
 ## Accessibility Baseline
 
@@ -13,7 +13,7 @@ Before v1, complete this manual matrix on the production candidate:
 
 Record defects and rerun the matrix after fixes. The shared-shell regression test is a guardrail, not a substitute for assistive-technology testing.
 
-## Offline and Install Behavior
+## Offline And Install Behavior
 
 The service worker caches only the manifest, icons, and public offline document. It never caches API responses or authenticated pages. Offline navigation displays a privacy-safe explanation rather than stale household, ride, location, or account data. The manifest starts installed users at `/app` and provides Rides and Household shortcuts.
 

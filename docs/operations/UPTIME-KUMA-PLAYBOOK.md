@@ -24,7 +24,7 @@ Run Uptime Kuma outside the BandWagon application host when possible. If the Ban
 
 Use a local Docker volume for `/app/data`. Do not place the Uptime Kuma data directory on NFS or another filesystem that does not reliably support POSIX file locks.
 
-## Recommended Names and Domains
+## Recommended Names And Domains
 
 Use names that are easy for users to understand and do not reveal unnecessary infrastructure details.
 
@@ -154,7 +154,7 @@ For the keyword monitors, use stable product text such as `BandWagon` or `FloMoG
 
 Enable HTTPS certificate monitoring / expiry notification on public HTTPS monitors. Certificate issues should alert operators before expiration but should not be shown as a separate public component unless an outage actually affects users.
 
-## What NOT to Monitor Directly
+## What NOT To Monitor Directly
 
 Do not give Uptime Kuma production API credentials for Google Maps, Twilio, LiteLLM, S3, or other providers just to run synthetic checks.
 
@@ -322,7 +322,7 @@ Before planned production maintenance:
 6. Confirm FloMoGo and BandWagon public pages load.
 7. End maintenance.
 
-## Backup and Recovery
+## Backup And Recovery
 
 Uptime Kuma is operational infrastructure. Back it up.
 
@@ -362,7 +362,7 @@ After setup, test all of the following:
 - [ ] Test maintenance window suppresses expected alerts
 - [ ] Uptime Kuma data is included in backups
 
-## Relationship to BandWagon Platform Health
+## Relationship To BandWagon Platform Health
 
 These systems have different jobs:
 

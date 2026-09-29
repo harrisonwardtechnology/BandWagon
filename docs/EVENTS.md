@@ -10,7 +10,7 @@ BandWagon uses one normalized `events` table for all organization activities, re
 
 Imported provider records remain in `calendar_events` for traceability. They are then materialized into `events`, which is the model the ride workflow will use.
 
-## Organization ownership
+## Organization Ownership
 
 A calendar connection must be assigned to an organization before imported events are normalized. This prevents a platform-level calendar connection from accidentally leaking events into the wrong tenant.
 
@@ -23,21 +23,21 @@ For a production organization:
 
 Provider identifiers, selected calendars, sync health, and conflicts remain organization scoped. Google and Microsoft scheduled syncs use `CALENDAR_SYNC_CRON_SECRET`.
 
-## Ride coordination
+## Ride Coordination
 
 Every normalized event has `ride_coordination_enabled`. The default is `true`, so the upcoming ride workflow can attach requests and driver offers directly to an event.
 
-## Manual events
+## Manual Events
 
 Organization owners, administrators, and managers can create and edit manual events in `/admin/events`. Manual events use the same `events` table and therefore behave like imported events for rides, visibility, reminders, and notifications.
 
 Ordinary members never publish events directly. They can suggest events through member event proposals when their organization turns that feature on (see below).
 
-## Member event proposals
+## Member Event Proposals
 
 Member event proposals are an optional organization feature. It is **off by default**.
 
-### Turning it on
+### Turning It On
 
 1. An organization owner or admin opens `/admin/event-proposals` (also linked from `/admin/events`).
 2. They check **Let members propose events** and choose who can propose:
@@ -47,7 +47,7 @@ Member event proposals are an optional organization feature. It is **off by defa
 
 Managers can review proposals but cannot change these settings. Settings live in `organization_event_proposal_settings`.
 
-### Who can propose
+### Who Can Propose
 
 - Only people with an active membership in the organization.
 - Only adults. Minors can never propose, whatever the setting. A parent or guardian can propose on a student's behalf from their own account.
@@ -56,7 +56,7 @@ Managers can review proposals but cannot change these settings. Settings live in
 
 The rules live in `src/lib/event-proposal-policy.ts` (pure, tested in `tests/event-proposals.test.ts`).
 
-### What a proposal contains
+### What A Proposal Contains
 
 Event name (120 characters), description (2,000), start and optional end time, location name (160) and address (300), about how many riders (0 to 500), and notes for organizers (1,000, only organizers see them). HTML is stripped from every text field. The start must be in the future and within 400 days, and an event can last up to 72 hours.
 
@@ -64,7 +64,7 @@ Location privacy: an approved event's address is visible to everyone who can see
 
 Members submit and track proposals at `/app/event-proposals`.
 
-### Review workflow
+### Review Workflow
 
 Organization owners, admins, and managers see a review queue at `/admin/event-proposals`. For each proposal they can:
 
@@ -102,6 +102,6 @@ Every step writes to `audit_events` with `target_type='event_proposal'`: `event_
 
 Tables: `organization_event_proposal_settings` and `event_proposals` (migration `060_event_proposals.sql`). Every proposal belongs to one organization, and every moderator query filters by organization id. If a member's account is deleted, `proposer_person_id` is cleared and the proposal text remains for the organization's records.
 
-## Multi-tenant safety
+## Multi-tenant Safety
 
 Every normalized event requires an `organization_id`. Provider identifiers are unique only within an organization/source/calendar tuple, which prevents cross-tenant collisions.
