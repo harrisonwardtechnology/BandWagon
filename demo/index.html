@@ -6,23 +6,35 @@
   <meta name="theme-color" content="#071a33" />
   <meta name="description" content="Explore BandWagon's privacy-first community ride coordination experience using fake demonstration data." />
   <title>BandWagon Interactive Demo</title>
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="canonical" href="https://demo.bandwagon.club/" />
+  <link rel="icon" href="icon.svg?v=2" type="image/svg+xml" />
+  <link rel="icon" href="icons/icon-192.png?v=2" sizes="192x192" type="image/png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=2" />
+  <link rel="manifest" href="manifest.webmanifest?v=2" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="BandWagon Interactive Demo" />
+  <meta property="og:description" content="Try BandWagon's privacy-first community carpools with fake demo data. No sign-up needed." />
+  <meta property="og:url" content="https://demo.bandwagon.club/" />
+  <meta property="og:image" content="https://bandwagon.club/opengraph-image" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preload" href="bandwagon-logo.svg?v=2" as="image" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css?v=2" />
 </head>
 <body>
   <a class="skip-link" href="#screen">Skip to demo</a>
   <header class="topbar">
     <div class="brand-wrap">
-      <img class="brand-logo" src="bandwagon-logo.svg" alt="BandWagon" />
+      <img class="brand-logo" src="bandwagon-logo.svg?v=2" width="210" height="51" alt="BandWagon" />
       <div>
         <div class="demo-label">Interactive Demo</div>
-        <div class="subbrand">Community-powered rides · Fake data only</div>
+        <div class="subbrand">Community-Powered Rides · Fake Data Only</div>
       </div>
     </div>
     <div class="top-actions">
       <button id="privacyBtn" class="btn ghost">What People Can See</button>
       <button id="installHelpBtn" class="btn ghost">Install App</button>
       <button id="resetBtn" class="btn ghost">Reset Demo</button>
+      <a class="btn primary" href="https://bandwagon.club/start">Start A Free Community</a>
     </div>
   </header>
 
@@ -69,14 +81,14 @@
   </dialog>
 
   <dialog id="installModal">
-    <div class="modal-head"><div><h2>Install FloMoGo</h2><p>Use it like an app without an App Store download.</p></div><button class="icon-btn" id="closeInstall" aria-label="Close">×</button></div>
+    <div class="modal-head"><div><h2>Install BandWagon</h2><p>Use it like an app without an App Store download.</p></div><button class="icon-btn" id="closeInstall" aria-label="Close">×</button></div>
     <div class="privacy-grid">
-      <div class="privacy-card"><h3>iPhone / iPad</h3><p>Open FloMoGo in Safari → Share → Add to Home Screen → turn on Open as Web App if shown → Add.</p></div>
-      <div class="privacy-card"><h3>Android</h3><p>Open FloMoGo in Chrome → menu → Install app / Install and create shortcut → Install.</p></div>
+      <div class="privacy-card"><h3>iPhone / iPad</h3><p>Open BandWagon in Safari → Share → Add to Home Screen → turn on Open as Web App if shown → Add.</p></div>
+      <div class="privacy-card"><h3>Android</h3><p>Open BandWagon in Chrome → menu → Install app / Install and create shortcut → Install.</p></div>
     </div>
-    <div class="notice">Installing FloMoGo does not enable GPS tracking. The same service remains available in a normal browser.</div>
+    <div class="notice">Installing BandWagon does not enable GPS tracking. The same service remains available in a normal browser.</div>
   </dialog>
-  <footer class="site-footer"><img src="bandwagon-logo.svg" alt="BandWagon" /><div><strong>A Harrison Ward Technology product.</strong><br>Community-powered rides. Privacy first.</div><div class="footer-note">This independent coordination service does not provide, supervise, track, verify, or guarantee transportation.</div></footer>
-  <script src="app.js"></script>
+  <footer class="site-footer"><img src="bandwagon-logo.svg?v=2" alt="BandWagon" width="165" height="40" loading="lazy" /><div><strong>A Harrison Ward Technology Product.</strong><br>Community-Powered Rides. Privacy First.</div><div class="footer-note">This independent coordination service does not provide, supervise, track, verify, or guarantee transportation.</div></footer>
+  <script src="app.js?v=2" defer></script>
 </body>
 </html>
