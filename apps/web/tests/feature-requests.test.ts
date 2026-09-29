@@ -161,3 +161,10 @@ test("routes rate limit, verify Turnstile for signed-out users, and gate admin a
   assert.match(lib, /PLATFORM_OWNER_EMAIL \|\| process\.env\.SUPPORT_EMAIL/);
   for (const source of [form, adminPage]) assert.ok(!source.includes("dangerouslySetInnerHTML"), "submitted text must render as plain text");
 });
+
+test("Rate limits still apply without Redis by counting the last hour in Postgres", async () => {
+  const src = await readFile(new URL("../src/lib/feature-requests.ts", import.meta.url), "utf8");
+  assert.match(src, /if \(!getRedis\(\)\) return submitAllowedFromDb\(ip, who\)/);
+  assert.match(src, /if \(!getRedis\(\)\) return voteAllowedFromDb\(personId\)/);
+  assert.match(src, /interval '1 hour'/);
+});

@@ -54,8 +54,38 @@ async function withinLimits(items: Array<{ key: string; limit: number }>) {
   return true;
 }
 
-/** Hourly submit limits per IP, and per person or per email. */
+// Without Redis, count the last hour of rows in Postgres so the limits still hold.
+async function submitAllowedFromDb(ip: string, who: { personId: string | null; email: string | null }) {
+  const db = getDb();
+  if (!db) return false;
+  const result = await db.query(
+    `select
+       count(*) filter (where source_ip_hash = $1)::int as by_ip,
+       count(*) filter (where $2::uuid is not null and person_id = $2::uuid)::int as by_person,
+       count(*) filter (where $3::text is not null and email_lookup_hash = $3::text)::int as by_email
+     from feature_requests
+     where created_at > now() - interval '1 hour'`,
+    [privateKey(ip), who.personId, who.email ? lookupHash(who.email) : null]
+  );
+  const row = result.rows[0] || { by_ip: 0, by_person: 0, by_email: 0 };
+  return row.by_ip < FEATURE_REQUEST_RATE_LIMITS.submitPerIp
+    && row.by_person < FEATURE_REQUEST_RATE_LIMITS.submitPerPerson
+    && row.by_email < FEATURE_REQUEST_RATE_LIMITS.submitPerEmail;
+}
+
+async function voteAllowedFromDb(personId: string) {
+  const db = getDb();
+  if (!db) return false;
+  const result = await db.query(
+    `select count(*)::int as n from feature_request_votes where person_id = $1 and created_at > now() - interval '1 hour'`,
+    [personId]
+  );
+  return (result.rows[0]?.n ?? 0) < FEATURE_REQUEST_RATE_LIMITS.votePerPerson;
+}
+
+/** Hourly submit limits per IP, and per person or per email. Falls back to Postgres counts when Redis isn't configured. */
 export async function submitAllowed(ip: string, who: { personId: string | null; email: string | null }) {
+  if (!getRedis()) return submitAllowedFromDb(ip, who);
   const items: Array<{ key: string; limit: number }> = [{ key: `feature-request:ip:${privateKey(ip)}`, limit: FEATURE_REQUEST_RATE_LIMITS.submitPerIp }];
   if (who.personId) items.push({ key: `feature-request:person:${privateKey(who.personId)}`, limit: FEATURE_REQUEST_RATE_LIMITS.submitPerPerson });
   if (who.email) items.push({ key: `feature-request:email:${privateKey(who.email)}`, limit: FEATURE_REQUEST_RATE_LIMITS.submitPerEmail });
@@ -63,6 +93,7 @@ export async function submitAllowed(ip: string, who: { personId: string | null; 
 }
 
 export async function voteAllowed(personId: string) {
+  if (!getRedis()) return voteAllowedFromDb(personId);
   return withinLimits([{ key: `feature-request:vote:${privateKey(personId)}`, limit: FEATURE_REQUEST_RATE_LIMITS.votePerPerson }]);
 }
 

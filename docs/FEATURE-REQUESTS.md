@@ -31,12 +31,12 @@ Everything is stored and shown as plain text. HTML tags and control characters a
 
 - **Turnstile** for signed-out submissions, checked server side with the action `feature_request`.
 - **Honeypot**: a hidden `companyWebsite` field. If a bot fills it, the API returns a quiet success and saves nothing.
-- **Hourly rate limits** (Redis, keys are HMAC hashed):
+- **Hourly rate limits** (Redis when configured, keys are HMAC hashed; otherwise counted from the last hour of rows in Postgres):
   - 10 submissions per IP
   - 5 submissions per signed-in person
   - 3 submissions per email address (signed out)
   - 60 votes per person
-- If Redis is not configured, the rate limits are skipped. If the Redis check errors, submissions are refused and votes are allowed.
+- Without Redis, the same limits are enforced by counting the last hour of `feature_requests` and `feature_request_votes` rows. If a Redis check errors, submissions are refused and votes are allowed.
 
 ## Where Requests Are Stored
 
