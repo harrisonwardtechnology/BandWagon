@@ -89,3 +89,16 @@ test("Every SMS opt-in shows Terms and Privacy links and sends one welcome text"
   const route = await readFile(new URL("../src/app/api/sms-consent/route.ts", import.meta.url), "utf8");
   assert.match(route, /if \(consent\.newlyOptedIn\) void sendSmsWelcome/);
 });
+
+test("Sign-in code request has its own carrier disclosure, an email alternative, and a separate ride-text box", async () => {
+  const { SMS_OTP_DISCLOSURE_TEXT, OTP_SEND_BUTTON_LABEL, SMS_CONSENT_TEXT: consent } = await import("../src/lib/sms-consent-policy.ts");
+  assert.equal(SMS_OTP_DISCLOSURE_TEXT, "By clicking Send Sign-In Code, you agree to receive a one-time verification passcode via text message from BandWagon. Message and data rates may apply.");
+  assert.equal(OTP_SEND_BUTTON_LABEL, "Send Sign-In Code");
+  assert.match(consent, /Sign-in codes are separate/);
+  assert.doesNotMatch(consent, /account activity/);
+  const login = await readFile(new URL("../src/app/login/page.tsx", import.meta.url), "utf8");
+  assert.match(login, /contactMethod==="phone" && <p className="otp-disclosure"[^>]*>\{SMS_OTP_DISCLOSURE_TEXT\}/);
+  assert.match(login, /Get Your Code By Email Instead/);
+  assert.match(login, /Optional: Ride Update Texts/);
+  assert.match(login, /useState\(false\)[\s\S]*SMS_CONSENT_TEXT/);
+});
