@@ -83,7 +83,7 @@ SMS/RCS supports standard STOP/HELP controls.
 
 ## Blocking and Safety
 
-You can block another user/household where the feature is available. Blocking suppresses matching/contact without notifying the blocked party.
+*(Coming soon)* Blocking another user or household. When it ships, blocking will stop matching and contact without telling the blocked party.
 
 For an emergency, call 911 or the appropriate emergency service. BandWagon does not make emergency decisions or dispatch emergency services.
 
