@@ -3,8 +3,14 @@
 // The exact wording shown next to every SMS opt-in checkbox. It is stored
 // with each consent record, so change CONSENT_TEXT_VERSION when it changes.
 export const SMS_CONSENT_TEXT =
-  "I agree to receive transactional SMS messages from BandWagon, a Harrison Ward Technology product, about ride requests, ride offers, confirmations, schedule changes, reminders, account activity, pickup/drop-off status, cancellations, and ride coordination. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help.";
-export const SMS_CONSENT_TEXT_VERSION = "2026-09-26";
+  "I agree to receive transactional SMS messages from BandWagon, a Harrison Ward Technology product, about ride requests, ride offers, confirmations, schedule changes, reminders, driver alerts, pickup/drop-off status, cancellations, and ride coordination. Sign-in codes are separate and do not need this box. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help.";
+export const SMS_CONSENT_TEXT_VERSION = "2026-09-30";
+
+// Carrier rule: a one-time sign-in code request is its own consent, separate from ride texts.
+// Shown directly under the Send Sign-In Code button when the person picks Mobile Phone.
+export const OTP_SEND_BUTTON_LABEL = "Send Sign-In Code";
+export const SMS_OTP_DISCLOSURE_TEXT =
+  "By clicking Send Sign-In Code, you agree to receive a one-time verification passcode via text message from BandWagon. Message and data rates may apply.";
 
 // Sent once, right after someone opts in (checkbox or settings). Carriers
 // require brand, frequency, rates, HELP/STOP and a support contact.

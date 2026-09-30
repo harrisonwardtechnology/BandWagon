@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { browserSupportsWebAuthn, browserSupportsWebAuthnAutofill, startAuthentication } from "@simplewebauthn/browser";
 import TurnstileWidget from "@/components/turnstile-widget";
 import PhoneNumberInput from "@/components/phone-number-input";
-import { SMS_CONSENT_TEXT } from "@/lib/sms-consent-policy";
+import { OTP_SEND_BUTTON_LABEL, SMS_CONSENT_TEXT, SMS_OTP_DISCLOSURE_TEXT } from "@/lib/sms-consent-policy";
 import { PASSKEY_EXPLAINER, safeNextPath } from "@/lib/passkey-policy";
 
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -140,9 +140,15 @@ export default function LoginPage() {
         </> : <>
           <label htmlFor="login-phone" style={{display:"block",fontWeight:700,marginBottom:7}}>Mobile Number</label>
           <PhoneNumberInput id="login-phone" value={phone} onChange={setPhone} required />
-          <label style={{display:"flex",gap:10,alignItems:"flex-start",margin:"12px 0 16px",fontSize:13,lineHeight:1.5,color:"#334155"}}>
+          <div className="otp-alternate" style={{margin:"12px 0 0",padding:"10px 12px",borderRadius:10,background:"#f1f5f9",fontSize:13,lineHeight:1.5,color:"#334155"}}>
+            <strong>Don&apos;t Want A Text?</strong> Texting is not required to sign in.{" "}
+            <button type="button" onClick={()=>{setContactMethod("email");setMessage("");}} style={{border:0,background:"transparent",padding:0,color:"#1d4ed8",textDecoration:"underline",cursor:"pointer",font:"inherit",fontWeight:700}}>Get Your Code By Email Instead</button>
+            {passkeyReady && <> or use <strong>Sign In With A Passkey</strong> above.</>}
+          </div>
+          <div style={{margin:"16px 0 6px",fontWeight:700,fontSize:14}}>Optional: Ride Update Texts</div>
+          <label style={{display:"flex",gap:10,alignItems:"flex-start",margin:"0 0 16px",fontSize:13,lineHeight:1.5,color:"#334155"}}>
             <input type="checkbox" checked={smsConsent} onChange={e=>setSmsConsent(e.target.checked)} style={{marginTop:3,flex:"0 0 auto"}} />
-            <span>{SMS_CONSENT_TEXT} <span style={{color:"#64748b"}}>Optional. Your sign-in code is sent either way. See our <a href="/terms">Terms of Use</a>, <a href="/privacy">Privacy Policy</a> and <a href="/sms-opt-in">Messaging and SMS Consent</a>.</span></span>
+            <span>{SMS_CONSENT_TEXT} <span style={{color:"#64748b"}}>Not required to sign in. See our <a href="/terms">Terms of Use</a>, <a href="/privacy">Privacy Policy</a> and <a href="/sms-opt-in">Messaging and SMS Consent</a>.</span></span>
           </label>
         </>}
         {mode==="create_account" && <div style={{padding:16,background:"#f8fafc",borderRadius:14,marginBottom:16}}>
@@ -161,7 +167,8 @@ export default function LoginPage() {
           <input value={householdName} onChange={e=>setHouseholdName(e.target.value)} placeholder="Ward Family" style={{...input,marginTop:7}} />
         </div>}
         <TurnstileWidget action="otp_request" onToken={setTurnstileToken} resetKey={turnstileReset}/>
-        <button disabled={working || !turnstileToken || !(contactMethod==="email"?email.trim():phone) || (mode==="create_account" && (!displayName || !birthMonth || birthYear.length!==4))} onClick={requestCode} style={{...button,opacity:working ? .65 : 1}}>{working ? "Sending…" : "Send Verification Code"}</button>
+        <button disabled={working || !turnstileToken || !(contactMethod==="email"?email.trim():phone) || (mode==="create_account" && (!displayName || !birthMonth || birthYear.length!==4))} onClick={requestCode} style={{...button,opacity:working ? .65 : 1}}>{working ? "Sending…" : OTP_SEND_BUTTON_LABEL}</button>
+        {contactMethod==="phone" && <p className="otp-disclosure" style={{fontSize:12,color:"#475569",lineHeight:1.5,margin:"10px 0 0"}}>{SMS_OTP_DISCLOSURE_TEXT} See our <a href="/terms">Terms of Use</a> and <a href="/privacy">Privacy Policy</a>.</p>}
       </> : <>
         <label style={{fontWeight:700}}>6-Digit Verification Code</label>
         <input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,""))} placeholder="123456" style={{...input,margin:"7px 0 16px",fontSize:24,letterSpacing:6,textAlign:"center"}} />

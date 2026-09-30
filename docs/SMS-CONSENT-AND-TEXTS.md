@@ -12,6 +12,19 @@ How BandWagon collects consent for ride texts, sends them over RCS or SMS, and h
 
 The exact wording shown next to every opt-in checkbox is `SMS_CONSENT_TEXT` in `apps/web/src/lib/sms-consent-policy.ts`. It is stored with each opt-in record along with `SMS_CONSENT_TEXT_VERSION` (currently `2026-09-26`). Change the version whenever the text changes.
 
+## Sign-In Codes Are A Separate Consent
+
+Carrier rule (Twilio ticket 29651215, 2026-09-30): asking for a sign-in code by text is its own consent, unbundled from ride texts.
+
+- The button reads **Send Sign-In Code** (`OTP_SEND_BUTTON_LABEL`).
+- When Mobile Phone is picked, this sits right under the button (`SMS_OTP_DISCLOSURE_TEXT`):
+
+  > By clicking Send Sign-In Code, you agree to receive a one-time verification passcode via text message from BandWagon. Message and data rates may apply.
+
+- The same screen shows **Don't Want A Text? Get Your Code By Email Instead** (and passkey sign-in when available), so texting is never required.
+- The unchecked box is labeled **Optional: Ride Update Texts** and covers ride texts only. Its text says sign-in codes don't need it (`SMS_CONSENT_TEXT_VERSION` 2026-09-30).
+- `/sms-opt-in` shows the same layout for carrier review.
+
 ## Welcome Text
 
 `SMS_WELCOME_TEXT`, sent once, only when a web opt-in (checkbox or settings) turns a number from not opted in to opted in:
