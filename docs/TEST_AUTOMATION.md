@@ -15,6 +15,8 @@ Failed Playwright runs retain traces, screenshots, and an HTML report for 14 day
 
 Set the GitHub repository variable `PRODUCTION_URL` to the public application origin. `Production Synthetic` then checks live, ready, and deep health hourly without signing in, changing data, or sending messages.
 
+Until `PRODUCTION_URL` is set, the hourly run finishes green with a "Synthetic check skipped" notice instead of failing. Once it is set, a failed health check fails the run as before.
+
 For an object-storage read/write/delete canary, add this Coolify scheduled task to the existing web container:
 
 ```sh

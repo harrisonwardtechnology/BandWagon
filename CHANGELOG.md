@@ -26,6 +26,11 @@ Households and events:
 - **No inviting your own phone number.** The self-invite check now covers phone invites as well as email.
 - **Stale event proposals.** Approving a proposal whose start time has passed gives a clear message. Turning proposals off puts queued ones on hold (kept, declinable, not approvable until the feature is back on) and tells the admin how many are waiting. Nothing is deleted. `docs/EVENT-PROPOSALS.md`.
 
+Config and docs:
+
+- **Synthetic check skips cleanly.** `production-synthetic.yml` no longer fails every hour when `PRODUCTION_URL` is unset. It finishes green with a notice. The schedule is unchanged.
+- **Reserved example domain.** `docs/operations/CHANGING-TENANT-DOMAIN.md` now uses `example.org` instead of `bandwagonrides.com`.
+
 ### September 2026 Wave (PRs #35 to #50)
 
 - **New logo: Route To The Show** (#46). Site icons, PWA icons, header wordmark, Stripe logo, share card, BIMI, README image, Google sign-in logo (`/brand/google-oauth-logo-120.png`) and RCS images (`/brand/rcs-*.png`, #49). File list in `docs/BRANDING.md`.
