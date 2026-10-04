@@ -13,6 +13,11 @@ Messaging:
 - **Trusted adult notifications have router policies.** `household_delegate_activity` (important, push then email) and `household_delegate_invitation` (email only). Neither is ever texted. A new test keeps the table in `docs/NOTIFICATION-ROUTING.md` in step with the code.
 - **Waitlist texting docs corrected.** `docs/WAITLISTS.md` now says what really happens: standby offers are push or email for most people, and a cancelled carpool texts every waitlisted rider who agreed to texts. No behavior change.
 
+Security:
+
+- **No hard-coded fallback hash key.** Rate-limit and IP hashes no longer fall back to a fixed string when `AUTH_SECRET` and `DATA_ENCRYPTION_KEY` are both unset. The code now throws (`apps/web/src/lib/private-hash.ts`) and the affected public forms answer 503. Fixed in `feature-requests.ts`, `organization-requests.ts`, `routing-provider.ts`, and five API routes with the same pattern. Hash values are unchanged for a configured deployment. `docs/SECURITY-DEPLOYMENT.md`.
+- **Demo security headers.** `demo/nginx.conf` now repeats `Referrer-Policy`, `X-Frame-Options` and `Permissions-Policy` in every location that sets its own headers, so they are no longer dropped on the page, service worker, manifest, and static files.
+
 ### September 2026 Wave (PRs #35 to #50)
 
 - **New logo: Route To The Show** (#46). Site icons, PWA icons, header wordmark, Stripe logo, share card, BIMI, README image, Google sign-in logo (`/brand/google-oauth-logo-120.png`) and RCS images (`/brand/rcs-*.png`, #49). File list in `docs/BRANDING.md`.

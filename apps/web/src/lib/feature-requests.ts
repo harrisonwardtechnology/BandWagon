@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import { privateHmac } from "@/lib/private-hash";
 import type { SessionIdentity } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { getRedis } from "@/lib/redis";
@@ -33,9 +33,9 @@ function dbRequired() {
   return db;
 }
 
+// Throws when neither AUTH_SECRET nor DATA_ENCRYPTION_KEY is set. There is no built-in key.
 function privateKey(value: string) {
-  const secret = process.env.AUTH_SECRET || process.env.DATA_ENCRYPTION_KEY || "bandwagon-feature-request-rate-limit";
-  return crypto.createHmac("sha256", secret).update(value).digest("hex").slice(0, 32);
+  return privateHmac(value).slice(0, 32);
 }
 
 export function clientIp(request: Request) {
