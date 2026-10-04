@@ -15,8 +15,8 @@ export default function AccountsAdminPage() {
   const [message, setMessage] = useState("");
 
   const headers = { "content-type": "application/json" };
-  const input = { width: "100%", padding: 11, margin: "6px 0 12px", border: "1px solid #cbd5e1", borderRadius: 8 } as const;
-  const card = { border: "1px solid #dbe3ef", borderRadius: 16, padding: 20, marginTop: 18 } as const;
+  const input = { width: "100%", padding: 11, margin: "6px 0 12px", border: "1px solid var(--line-strong)", borderRadius: 8 } as const;
+  const card = { border: "1px solid var(--line-2)", borderRadius: 16, padding: 20, marginTop: 18 } as const;
 
   async function call(payload: any) {
     setMessage("Working...");
@@ -65,7 +65,7 @@ export default function AccountsAdminPage() {
 
   return (
     <main style={{ maxWidth: 980, margin: "40px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif" }}>
-      <section style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
+      <section style={{ background: "var(--panel-solid)", color: "white", padding: 28, borderRadius: 22 }}>
         <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1 }}>PLATFORM ADMIN</div>
         <h1 style={{ margin: "6px 0", fontSize: 38 }}>Accounts & Households</h1>
         <p style={{ margin: 0, opacity: 0.9 }}>Development console for the parent, student, household and guardian model.</p>
@@ -73,7 +73,7 @@ export default function AccountsAdminPage() {
 
       <section style={card}>
         <strong>Platform owner access required.</strong>
-        <p style={{ marginBottom: 0, color: "#475569" }}>This development console uses your signed-in BandWagon session.</p>
+        <p style={{ marginBottom: 0, color: "var(--text-3)" }}>This development console uses your signed-in BandWagon session.</p>
       </section>
 
       <section style={card}>
@@ -103,8 +103,8 @@ export default function AccountsAdminPage() {
         <button disabled={!householdId} onClick={loadHousehold}>Load Household</button>
       </section>
 
-      {message && <p style={{ background: "#f8fafc", padding: 12, borderRadius: 8 }}>{message}</p>}
-      {result && <pre style={{ ...card, whiteSpace: "pre-wrap", overflowWrap: "anywhere", background: "#f8fafc" }}>{JSON.stringify(result, null, 2)}</pre>}
+      {message && <p style={{ background: "var(--surface-2)", padding: 12, borderRadius: 8 }}>{message}</p>}
+      {result && <pre style={{ ...card, whiteSpace: "pre-wrap", overflowWrap: "anywhere", background: "var(--surface-2)" }}>{JSON.stringify(result, null, 2)}</pre>}
     </main>
   );
 }

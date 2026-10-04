@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 240" width="980" height="240" role="img" aria-labelledby="title desc">
+  <title id="title">BandWagon</title>
+  <desc id="desc">BandWagon route-to-the-show mark and wordmark, for dark backgrounds</desc>
+  <g transform="translate(15 15) scale(0.41015625)"><rect width="512" height="512" rx="112" fill="#071a33"/><rect x="5" y="5" width="502" height="502" rx="107" fill="none" stroke="#ffffff" stroke-opacity=".22" stroke-width="10"/><g transform="translate(256 256) scale(1.0) translate(-243.5 -262.5)"><path d="M126 402 C 126 300, 396 334, 388 232 C 382 164, 232 196, 222 204" fill="none" stroke="#ffffff" stroke-width="22" stroke-linecap="round" stroke-dasharray="0 40"/><circle cx="126" cy="402" r="38" fill="#f5a800"/><circle cx="126" cy="402" r="14" fill="#071a33"/><g transform="translate(246 200) scale(1.2)" fill="#f5a800"><rect x="10" y="-96" width="16" height="96" rx="4"/><path d="M26 -96 C62 -84, 84 -66, 76 -30 C70 -50, 50 -60, 26 -64 Z"/><ellipse cx="0" cy="0" rx="30" ry="22" transform="rotate(-20)"/></g></g></g>
+  <text x="260" y="154" font-family="Arial Black, Arial, sans-serif" font-size="102" font-weight="900"><tspan fill="#ffffff">Band</tspan><tspan fill="#f5a800">Wagon</tspan></text>
+</svg>

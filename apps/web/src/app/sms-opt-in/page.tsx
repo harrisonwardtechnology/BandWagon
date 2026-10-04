@@ -30,7 +30,7 @@ export default function SmsOptInPage() {
           <div className="eyebrow">Example shown to users</div>
           <label htmlFor="example-mobile"><strong>Mobile Number</strong></label>
           <input id="example-mobile" type="tel" value="(469) 555-0123" readOnly aria-label="Example mobile number"
-            style={{width:"100%",maxWidth:"360px",margin:"10px 0 18px",padding:"12px",borderRadius:"8px",border:"1px solid #cbd5e1",background:"#fff",color:"#111827"}} />
+            style={{width:"100%",maxWidth:"360px",margin:"10px 0 18px",padding:"12px",borderRadius:"8px",border:"1px solid var(--line-strong)",background:"var(--surface)",color:"var(--text)"}} />
 
           <p className="fine-print" style={{margin:"0 0 14px"}}><strong>Don&apos;t Want A Text?</strong> Texting is not required to sign in. <Link href="/login">Get Your Code By Email Instead</Link>, or sign in with a passkey.</p>
 
@@ -40,12 +40,12 @@ export default function SmsOptInPage() {
             <span>{SMS_CONSENT_TEXT}</span>
           </label>
 
-          <span style={{display:"inline-block",margin:"8px 0 4px",padding:"11px 18px",borderRadius:"8px",background:"#101b33",color:"#fff",fontWeight:800}}>{OTP_SEND_BUTTON_LABEL}</span>
+          <span style={{display:"inline-block",margin:"8px 0 4px",padding:"11px 18px",borderRadius:"8px",background:"var(--btn-solid)",color:"var(--on-btn-solid)",fontWeight:800}}>{OTP_SEND_BUTTON_LABEL}</span>
           <p className="fine-print">{SMS_OTP_DISCLOSURE_TEXT}</p>
 
           <p className="fine-print">SMS consent is optional and is not required to create or use a BandWagon account. The checkbox above is intentionally unchecked by default. By opting in you agree to our <Link href="/terms">Terms of Use</Link> and <Link href="/privacy">Privacy Policy</Link>.</p>
 
-          <Link href="/login" style={{display:"inline-block",marginTop:"8px",padding:"11px 18px",borderRadius:"8px",background:"#101b33",color:"#fff",textDecoration:"none",fontWeight:800}}>Sign Up For Ride Texts</Link>
+          <Link href="/login" style={{display:"inline-block",marginTop:"8px",padding:"11px 18px",borderRadius:"8px",background:"var(--btn-solid)",color:"var(--on-btn-solid)",textDecoration:"none",fontWeight:800}}>Sign Up For Ride Texts</Link>
           <p className="fine-print">Opting in happens on the sign-in page (choose Mobile Phone and tick the box) or later under Notifications. After opting in you receive one welcome text: {SMS_WELCOME_TEXT}</p>
         </div>
 

@@ -37,7 +37,7 @@ function ProposalCard({ proposal, working, onAction }: { proposal: Row; working:
   const [rideCoordinationEnabled, setRideCoordinationEnabled] = useState(true);
   const open = proposal.status === "pending" || proposal.status === "changes_requested";
   const input = { width: "100%", padding: 9, margin: "5px 0 10px", boxSizing: "border-box" as const };
-  const button = { padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: 8, background: "white", fontWeight: 800, cursor: "pointer" } as const;
+  const button = { padding: "8px 12px", border: "1px solid var(--line-strong)", borderRadius: 8, background: "var(--surface)", fontWeight: 800, cursor: "pointer" } as const;
 
   async function send() {
     if (!mode) return;
@@ -51,31 +51,31 @@ function ProposalCard({ proposal, working, onAction }: { proposal: Row; working:
     if (ok) { setMode(""); setNote(""); }
   }
 
-  return <article style={{ padding: "16px 0", borderTop: "1px solid #e2e8f0" }}>
+  return <article style={{ padding: "16px 0", borderTop: "1px solid var(--line)" }}>
     <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
       <div>
         <strong style={{ fontSize: 17 }}>{proposal.title}</strong>
-        <div style={{ fontSize: 13, color: "#64748b", marginTop: 3 }}>
+        <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 3 }}>
           Proposed by {proposal.proposer_name || "a former member"} on {new Date(proposal.submitted_at).toLocaleString()}
         </div>
       </div>
-      <span style={{ fontSize: 13, fontWeight: 800, padding: "4px 10px", borderRadius: 999, background: proposal.status === "pending" ? "#fef3c7" : "#f1f5f9", alignSelf: "flex-start" }}>{STATUS_LABELS[proposal.status] || proposal.status}</span>
+      <span style={{ fontSize: 13, fontWeight: 800, padding: "4px 10px", borderRadius: 999, background: proposal.status === "pending" ? "var(--bg-warn-2)" : "var(--surface-3)", alignSelf: "flex-start" }}>{STATUS_LABELS[proposal.status] || proposal.status}</span>
     </div>
     <dl style={{ display: "grid", gridTemplateColumns: "max-content 1fr", gap: "4px 14px", margin: "12px 0", fontSize: 14 }}>
-      <dt style={{ color: "#64748b" }}>When</dt><dd style={{ margin: 0 }}>{new Date(proposal.starts_at).toLocaleString()}{proposal.ends_at ? ` to ${new Date(proposal.ends_at).toLocaleString()}` : ""}</dd>
-      <dt style={{ color: "#64748b" }}>Where</dt><dd style={{ margin: 0 }}>{[proposal.location_name, proposal.location_address].filter(Boolean).join(", ") || "Not given"}</dd>
-      <dt style={{ color: "#64748b" }}>Expected Riders</dt><dd style={{ margin: 0 }}>{proposal.expected_riders ?? "Not given"}</dd>
-      {proposal.description && <><dt style={{ color: "#64748b" }}>Description</dt><dd style={{ margin: 0, whiteSpace: "pre-wrap" }}>{proposal.description}</dd></>}
-      {proposal.notes && <><dt style={{ color: "#64748b" }}>Notes For Organizers</dt><dd style={{ margin: 0, whiteSpace: "pre-wrap" }}>{proposal.notes}</dd></>}
-      {proposal.moderator_note && <><dt style={{ color: "#64748b" }}>Organizer Note</dt><dd style={{ margin: 0, whiteSpace: "pre-wrap" }}>{proposal.moderator_note}{proposal.decided_by_name ? ` (${proposal.decided_by_name})` : ""}</dd></>}
+      <dt style={{ color: "var(--text-muted)" }}>When</dt><dd style={{ margin: 0 }}>{new Date(proposal.starts_at).toLocaleString()}{proposal.ends_at ? ` to ${new Date(proposal.ends_at).toLocaleString()}` : ""}</dd>
+      <dt style={{ color: "var(--text-muted)" }}>Where</dt><dd style={{ margin: 0 }}>{[proposal.location_name, proposal.location_address].filter(Boolean).join(", ") || "Not given"}</dd>
+      <dt style={{ color: "var(--text-muted)" }}>Expected Riders</dt><dd style={{ margin: 0 }}>{proposal.expected_riders ?? "Not given"}</dd>
+      {proposal.description && <><dt style={{ color: "var(--text-muted)" }}>Description</dt><dd style={{ margin: 0, whiteSpace: "pre-wrap" }}>{proposal.description}</dd></>}
+      {proposal.notes && <><dt style={{ color: "var(--text-muted)" }}>Notes For Organizers</dt><dd style={{ margin: 0, whiteSpace: "pre-wrap" }}>{proposal.notes}</dd></>}
+      {proposal.moderator_note && <><dt style={{ color: "var(--text-muted)" }}>Organizer Note</dt><dd style={{ margin: 0, whiteSpace: "pre-wrap" }}>{proposal.moderator_note}{proposal.decided_by_name ? ` (${proposal.decided_by_name})` : ""}</dd></>}
     </dl>
     {open && <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
       {proposal.status === "pending" && <button style={{ ...button, borderColor: "#16a34a" }} disabled={working} onClick={() => setMode(mode === "approve" ? "" : "approve")}>Review And Approve</button>}
       {proposal.status === "pending" && <button style={button} disabled={working} onClick={() => setMode(mode === "request-changes" ? "" : "request-changes")}>Ask For Changes</button>}
       <button style={{ ...button, borderColor: "#dc2626" }} disabled={working} onClick={() => setMode(mode === "decline" ? "" : "decline")}>Decline</button>
     </div>}
-    {mode === "approve" && <div style={{ marginTop: 12, padding: 14, background: "#f8fafc", borderRadius: 12 }}>
-      <p style={{ marginTop: 0, color: "#475569" }}>Check the details below. You can fix anything before publishing. The event will be created like any other manual event, and the proposer will be credited.</p>
+    {mode === "approve" && <div style={{ marginTop: 12, padding: 14, background: "var(--surface-2)", borderRadius: 12 }}>
+      <p style={{ marginTop: 0, color: "var(--text-3)" }}>Check the details below. You can fix anything before publishing. The event will be created like any other manual event, and the proposer will be credited.</p>
       <label><strong>Event Name</strong><input value={title} onChange={e => setTitle(e.target.value)} style={input} maxLength={120} /></label>
       <label><strong>Description</strong><textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} style={input} maxLength={2000} /></label>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 10 }}>
@@ -84,7 +84,7 @@ function ProposalCard({ proposal, working, onAction }: { proposal: Row; working:
         <label><strong>Location Name</strong><input value={locationName} onChange={e => setLocationName(e.target.value)} style={input} maxLength={160} /></label>
         <label><strong>Address</strong><input value={locationAddress} onChange={e => setLocationAddress(e.target.value)} style={input} maxLength={300} /></label>
       </div>
-      <p style={{ fontSize: 13, color: "#92400e", marginTop: 0 }}>Everyone who can see this event will see its address. Make sure it is a public place and not a family home.</p>
+      <p style={{ fontSize: 13, color: "var(--text-warn)", marginTop: 0 }}>Everyone who can see this event will see its address. Make sure it is a public place and not a family home.</p>
       <div style={{ display: "flex", gap: 18, flexWrap: "wrap", alignItems: "center", marginBottom: 10 }}>
         <label><input type="checkbox" checked={rideCoordinationEnabled} onChange={e => setRideCoordinationEnabled(e.target.checked)} /> Allow Ride Requests For This Event</label>
         <label><strong>Who Can See It </strong><select value={visibility} onChange={e => setVisibility(e.target.value)}><option value="organization">Everyone In The Organization</option><option value="private">Organizers Only</option></select></label>
@@ -92,9 +92,9 @@ function ProposalCard({ proposal, working, onAction }: { proposal: Row; working:
       <label><strong>Note To The Proposer (Optional)</strong><textarea value={note} onChange={e => setNote(e.target.value)} rows={2} style={input} maxLength={1000} /></label>
       <button style={{ ...button, background: "#16a34a", color: "white", borderColor: "#16a34a" }} disabled={working || !title.trim() || !startsAt} onClick={() => void send()}>Approve And Publish</button>
     </div>}
-    {(mode === "request-changes" || mode === "decline") && <div style={{ marginTop: 12, padding: 14, background: "#f8fafc", borderRadius: 12 }}>
+    {(mode === "request-changes" || mode === "decline") && <div style={{ marginTop: 12, padding: 14, background: "var(--surface-2)", borderRadius: 12 }}>
       <label><strong>{mode === "decline" ? "Reason For Declining" : "What should the proposer change?"}</strong><textarea value={note} onChange={e => setNote(e.target.value)} rows={3} style={input} maxLength={1000} placeholder={mode === "decline" ? "For example: We already have an event that day." : "For example: Please add an end time and the field number."} /></label>
-      <p style={{ fontSize: 13, color: "#64748b", marginTop: 0 }}>The proposer will see this note.</p>
+      <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 0 }}>The proposer will see this note.</p>
       <button style={button} disabled={working || !note.trim()} onClick={() => void send()}>{mode === "decline" ? "Decline Proposal" : "Send Change Request"}</button>
     </div>}
   </article>;
@@ -151,31 +151,31 @@ export default function EventProposalsAdminPage() {
     return true;
   }
 
-  const card = { marginTop: 18, padding: 20, border: "1px solid #dbe3ef", borderRadius: 16, background: "white" } as const;
+  const card = { marginTop: 18, padding: 20, border: "1px solid var(--line-2)", borderRadius: 16, background: "var(--surface)" } as const;
   const input = { width: "100%", padding: 10, margin: "6px 0 12px", boxSizing: "border-box" as const };
-  const button = { padding: "9px 12px", border: "1px solid #cbd5e1", borderRadius: 8, background: "white", fontWeight: 800, cursor: "pointer" } as const;
+  const button = { padding: "9px 12px", border: "1px solid var(--line-strong)", borderRadius: 8, background: "var(--surface)", fontWeight: 800, cursor: "pointer" } as const;
   const canChangeSettings = platformAccess || role === "owner" || role === "admin";
 
-  return <main style={{ maxWidth: 1040, margin: "36px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif", background: "#f8fafc" }}>
-    <header style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
+  return <main style={{ maxWidth: 1040, margin: "36px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif", background: "var(--bg)" }}>
+    <header style={{ background: "var(--panel-solid)", color: "white", padding: 28, borderRadius: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1 }}>ORGANIZATION ADMIN</div>
       <h1 style={{ margin: "6px 0" }}>Event Proposals</h1>
       <p style={{ marginBottom: 0, opacity: .9 }}>Members can suggest events. Nothing is published until an organizer approves it.</p>
     </header>
     <section style={card}>
       <label><strong>Organization</strong><select value={organizationId} onChange={e => { setOrganizationId(e.target.value); void load(e.target.value); }} style={input}><option value="">Select Organization</option>{organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
-      <a href="/admin/events" style={{ ...button, textDecoration: "none", color: "#101b33", display: "inline-block" }}>Back To Events</a>
+      <a href="/admin/events" style={{ ...button, textDecoration: "none", color: "var(--text)", display: "inline-block" }}>Back To Events</a>
     </section>
     {settings && <section style={card}>
       <h2 style={{ marginTop: 0 }}>Proposal Settings</h2>
-      <p style={{ color: "#64748b" }}>This feature is off unless you turn it on. Students and other minors can never send proposals.</p>
+      <p style={{ color: "var(--text-muted)" }}>This feature is off unless you turn it on. Students and other minors can never send proposals.</p>
       <label style={{ display: "flex", gap: 10, margin: "10px 0" }}><input type="checkbox" checked={settings.enabled} disabled={!canChangeSettings} onChange={e => setSettings({ ...settings, enabled: e.target.checked })} />Let Members Propose Events</label>
       <label><strong>Who Can Propose</strong><select value={settings.proposerScope} disabled={!canChangeSettings} onChange={e => setSettings({ ...settings, proposerScope: e.target.value })} style={input}><option value="adult_members">Any Adult Member</option><option value="guardians_only">Only Parents And Guardians Of Students In This Organization</option></select></label>
       {canChangeSettings
         ? <button style={button} disabled={working} onClick={() => void post("update-settings", { enabled: settings.enabled, proposerScope: settings.proposerScope })}>Save Settings</button>
-        : <p style={{ fontSize: 13, color: "#64748b" }}>Only organization owners and admins can change these settings. Managers can still review proposals.</p>}
+        : <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Only organization owners and admins can change these settings. Managers can still review proposals.</p>}
     </section>}
-    {message && <p style={{ ...card, background: "#eef2ff", fontWeight: 750 }}>{message}</p>}
+    {message && <p style={{ ...card, background: "var(--bg-info-2)", fontWeight: 750 }}>{message}</p>}
     {organizationId && <section style={card}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
         <h2 style={{ margin: 0 }}>Review Queue</h2>
@@ -187,7 +187,7 @@ export default function EventProposalsAdminPage() {
           <option value="all">All</option>
         </select></label>
       </div>
-      {proposals.length === 0 ? <p style={{ color: "#64748b" }}>No proposals here right now.</p> : proposals.map(proposal => <ProposalCard key={`${proposal.id}:${proposal.updated_at}`} proposal={proposal} working={working} onAction={post} />)}
+      {proposals.length === 0 ? <p style={{ color: "var(--text-muted)" }}>No proposals here right now.</p> : proposals.map(proposal => <ProposalCard key={`${proposal.id}:${proposal.updated_at}`} proposal={proposal} working={working} onAction={post} />)}
     </section>}
   </main>;
 }

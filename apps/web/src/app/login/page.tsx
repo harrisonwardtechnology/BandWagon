@@ -108,24 +108,24 @@ export default function LoginPage() {
     window.location.href = nextPath();
   }
 
-  const input = { width:"100%",padding:"12px 14px",border:"1px solid #cbd5e1",borderRadius:10,fontSize:16,boxSizing:"border-box" as const };
-  const button = { width:"100%",padding:"12px 14px",border:0,borderRadius:10,fontSize:16,fontWeight:800,cursor:"pointer",background:"#101b33",color:"white" } as const;
+  const input = { width:"100%",padding:"12px 14px",border:"1px solid var(--line-strong)",borderRadius:10,fontSize:16,boxSizing:"border-box" as const };
+  const button = { width:"100%",padding:"12px 14px",border:0,borderRadius:10,fontSize:16,fontWeight:800,cursor:"pointer",background:"var(--btn-solid)",color:"var(--on-btn-solid)" } as const;
 
-  return <main style={{minHeight:"100vh",display:"grid",placeItems:"center",padding:24,background:"#f8fafc",fontFamily:"system-ui,sans-serif"}}>
-    <section style={{width:"100%",maxWidth:460,background:"white",padding:28,borderRadius:22,boxShadow:"0 14px 50px rgba(15,23,42,.10)"}}>
-      <div style={{fontSize:13,fontWeight:900,letterSpacing:1,color:"#64748b"}}>BANDWAGON</div>
+  return <main style={{minHeight:"100vh",display:"grid",placeItems:"center",padding:24,background:"var(--bg)",fontFamily:"system-ui,sans-serif"}}>
+    <section style={{width:"100%",maxWidth:460,background:"var(--surface)",padding:28,borderRadius:22,boxShadow:"0 14px 50px rgba(15,23,42,.10)"}}>
+      <div style={{fontSize:13,fontWeight:900,letterSpacing:1,color:"var(--text-muted)"}}>BANDWAGON</div>
       <h1 style={{fontSize:34,margin:"8px 0 6px"}}>{mode==="create_account"?"Create Account":"Sign In"}</h1>
-      <p style={{margin:"0 0 24px",color:"#475569"}}>Use your email address or mobile number. No password to remember.</p>
+      <p style={{margin:"0 0 24px",color:"var(--text-3)"}}>Use your email address or mobile number. No password to remember.</p>
 
       {!challengeId ? <>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:18}}>
-          <button type="button" aria-pressed={mode==="sign_in"} onClick={()=>{setMode("sign_in");setMessage("");}} style={{padding:10,borderRadius:9,border:"1px solid #cbd5e1",background:mode==="sign_in"?"#101b33":"white",color:mode==="sign_in"?"white":"#334155",fontWeight:800,cursor:"pointer"}}>Sign In</button>
-          <button type="button" aria-pressed={mode==="create_account"} onClick={()=>{setMode("create_account");setMessage("");}} style={{padding:10,borderRadius:9,border:"1px solid #cbd5e1",background:mode==="create_account"?"#101b33":"white",color:mode==="create_account"?"white":"#334155",fontWeight:800,cursor:"pointer"}}>Create Account</button>
+          <button type="button" aria-pressed={mode==="sign_in"} onClick={()=>{setMode("sign_in");setMessage("");}} style={{padding:10,borderRadius:9,border:"1px solid var(--line-strong)",background:mode==="sign_in"?"var(--btn-solid)":"var(--surface)",color:mode==="sign_in"?"var(--on-btn-solid)":"var(--text-2)",fontWeight:800,cursor:"pointer"}}>Sign In</button>
+          <button type="button" aria-pressed={mode==="create_account"} onClick={()=>{setMode("create_account");setMessage("");}} style={{padding:10,borderRadius:9,border:"1px solid var(--line-strong)",background:mode==="create_account"?"var(--btn-solid)":"var(--surface)",color:mode==="create_account"?"var(--on-btn-solid)":"var(--text-2)",fontWeight:800,cursor:"pointer"}}>Create Account</button>
         </div>
         {mode==="sign_in" && passkeyReady && <div style={{marginBottom:18}}>
-          <button type="button" disabled={working} onClick={()=>void signInWithPasskey(false)} style={{...button,background:"white",color:"#101b33",border:"2px solid #101b33",opacity:working ? .65 : 1}}>Sign In With A Passkey</button>
-          <p style={{fontSize:13,color:"#64748b",margin:"8px 0 0",textAlign:"center"}}>{PASSKEY_EXPLAINER}</p>
-          <div role="separator" style={{display:"flex",alignItems:"center",gap:10,margin:"16px 0 0",color:"#94a3b8",fontSize:13}}><span style={{flex:1,height:1,background:"#e2e8f0"}}/>Or Get A Code<span style={{flex:1,height:1,background:"#e2e8f0"}}/></div>
+          <button type="button" disabled={working} onClick={()=>void signInWithPasskey(false)} style={{...button,background:"var(--surface)",color:"var(--text)",border:"2px solid var(--line-solid)",opacity:working ? .65 : 1}}>Sign In With A Passkey</button>
+          <p style={{fontSize:13,color:"var(--text-muted)",margin:"8px 0 0",textAlign:"center"}}>{PASSKEY_EXPLAINER}</p>
+          <div role="separator" style={{display:"flex",alignItems:"center",gap:10,margin:"16px 0 0",color:"var(--text-faint)",fontSize:13}}><span style={{flex:1,height:1,background:"var(--surface-4)"}}/>Or Get A Code<span style={{flex:1,height:1,background:"var(--surface-4)"}}/></div>
         </div>}
         <fieldset style={{border:0,padding:0,margin:"0 0 16px"}}>
           <legend style={{fontWeight:700,marginBottom:7}}>How should we send your code?</legend>
@@ -140,18 +140,18 @@ export default function LoginPage() {
         </> : <>
           <label htmlFor="login-phone" style={{display:"block",fontWeight:700,marginBottom:7}}>Mobile Number</label>
           <PhoneNumberInput id="login-phone" value={phone} onChange={setPhone} required />
-          <div className="otp-alternate" style={{margin:"12px 0 0",padding:"10px 12px",borderRadius:10,background:"#f1f5f9",fontSize:13,lineHeight:1.5,color:"#334155"}}>
+          <div className="otp-alternate" style={{margin:"12px 0 0",padding:"10px 12px",borderRadius:10,background:"var(--surface-3)",fontSize:13,lineHeight:1.5,color:"var(--text-2)"}}>
             <strong>Don&apos;t Want A Text?</strong> Texting is not required to sign in.{" "}
-            <button type="button" onClick={()=>{setContactMethod("email");setMessage("");}} style={{border:0,background:"transparent",padding:0,color:"#1d4ed8",textDecoration:"underline",cursor:"pointer",font:"inherit",fontWeight:700}}>Get Your Code By Email Instead</button>
+            <button type="button" onClick={()=>{setContactMethod("email");setMessage("");}} style={{border:0,background:"transparent",padding:0,color:"var(--text-info)",textDecoration:"underline",cursor:"pointer",font:"inherit",fontWeight:700}}>Get Your Code By Email Instead</button>
             {passkeyReady && <> or use <strong>Sign In With A Passkey</strong> above.</>}
           </div>
           <div style={{margin:"16px 0 6px",fontWeight:700,fontSize:14}}>Optional: Ride Update Texts</div>
-          <label style={{display:"flex",gap:10,alignItems:"flex-start",margin:"0 0 16px",fontSize:13,lineHeight:1.5,color:"#334155"}}>
+          <label style={{display:"flex",gap:10,alignItems:"flex-start",margin:"0 0 16px",fontSize:13,lineHeight:1.5,color:"var(--text-2)"}}>
             <input type="checkbox" checked={smsConsent} onChange={e=>setSmsConsent(e.target.checked)} style={{marginTop:3,flex:"0 0 auto"}} />
-            <span>{SMS_CONSENT_TEXT} <span style={{color:"#64748b"}}>Not required to sign in. See our <a href="/terms">Terms of Use</a>, <a href="/privacy">Privacy Policy</a> and <a href="/sms-opt-in">Messaging and SMS Consent</a>.</span></span>
+            <span>{SMS_CONSENT_TEXT} <span style={{color:"var(--text-muted)"}}>Not required to sign in. See our <a href="/terms">Terms of Use</a>, <a href="/privacy">Privacy Policy</a> and <a href="/sms-opt-in">Messaging and SMS Consent</a>.</span></span>
           </label>
         </>}
-        {mode==="create_account" && <div style={{padding:16,background:"#f8fafc",borderRadius:14,marginBottom:16}}>
+        {mode==="create_account" && <div style={{padding:16,background:"var(--surface-2)",borderRadius:14,marginBottom:16}}>
           <div style={{fontWeight:800,marginBottom:10}}>Create Your BandWagon Account</div>
           <label style={{fontWeight:700}}>Your Name</label>
           <input value={displayName} onChange={e=>setDisplayName(e.target.value)} placeholder="Harrison Ward" style={{...input,margin:"7px 0 14px"}} />
@@ -162,13 +162,13 @@ export default function LoginPage() {
             </select>
             <input inputMode="numeric" maxLength={4} value={birthYear} onChange={e=>setBirthYear(e.target.value.replace(/\D/g,""))} placeholder="Year" style={input}/>
           </div>
-          <p style={{fontSize:12,color:"#64748b",margin:"-5px 0 14px",lineHeight:1.5}}>Direct accounts are for ages 13+. We ask only for month and year. Younger students can be added by a parent or guardian as a managed profile.</p>
-          <label style={{fontWeight:700}}>Household Name <span style={{fontWeight:400,color:"#64748b"}}>(Optional)</span></label>
+          <p style={{fontSize:12,color:"var(--text-muted)",margin:"-5px 0 14px",lineHeight:1.5}}>Direct accounts are for ages 13+. We ask only for month and year. Younger students can be added by a parent or guardian as a managed profile.</p>
+          <label style={{fontWeight:700}}>Household Name <span style={{fontWeight:400,color:"var(--text-muted)"}}>(Optional)</span></label>
           <input value={householdName} onChange={e=>setHouseholdName(e.target.value)} placeholder="Ward Family" style={{...input,marginTop:7}} />
         </div>}
         <TurnstileWidget action="otp_request" onToken={setTurnstileToken} resetKey={turnstileReset}/>
         <button disabled={working || !turnstileToken || !(contactMethod==="email"?email.trim():phone) || (mode==="create_account" && (!displayName || !birthMonth || birthYear.length!==4))} onClick={requestCode} style={{...button,opacity:working ? .65 : 1}}>{working ? "Sending…" : OTP_SEND_BUTTON_LABEL}</button>
-        {contactMethod==="phone" && <p className="otp-disclosure" style={{fontSize:12,color:"#475569",lineHeight:1.5,margin:"10px 0 0"}}>{SMS_OTP_DISCLOSURE_TEXT} See our <a href="/terms">Terms of Use</a> and <a href="/privacy">Privacy Policy</a>.</p>}
+        {contactMethod==="phone" && <p className="otp-disclosure" style={{fontSize:12,color:"var(--text-3)",lineHeight:1.5,margin:"10px 0 0"}}>{SMS_OTP_DISCLOSURE_TEXT} See our <a href="/terms">Terms of Use</a> and <a href="/privacy">Privacy Policy</a>.</p>}
       </> : <>
         <label style={{fontWeight:700}}>6-Digit Verification Code</label>
         <input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,""))} placeholder="123456" style={{...input,margin:"7px 0 16px",fontSize:24,letterSpacing:6,textAlign:"center"}} />
@@ -176,8 +176,8 @@ export default function LoginPage() {
         <button onClick={()=>{setChallengeId("");setCode("");setMessage("");}} style={{width:"100%",marginTop:10,padding:10,border:0,background:"transparent",cursor:"pointer"}}>Use A Different Email Or Number</button>
       </>}
 
-      {message && <div style={{marginTop:18,padding:13,borderRadius:10,background:"#eef2ff",color:"#1e293b"}}>{message}</div>}
-      <p style={{fontSize:12,color:"#64748b",marginTop:22,lineHeight:1.5}}>BandWagon uses verification codes only for account access and ride-related communications. It does not sell contact information or use it for marketing.</p>
+      {message && <div style={{marginTop:18,padding:13,borderRadius:10,background:"var(--bg-info-2)",color:"var(--text)"}}>{message}</div>}
+      <p style={{fontSize:12,color:"var(--text-muted)",marginTop:22,lineHeight:1.5}}>BandWagon uses verification codes only for account access and ride-related communications. It does not sell contact information or use it for marketing.</p>
     </section>
   </main>;
 }

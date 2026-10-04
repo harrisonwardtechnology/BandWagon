@@ -138,7 +138,7 @@ export default function SubprocessorsPage() {
             <tbody>
               {vendors.map((vendor) => (
                 <tr key={vendor.name}>
-                  <th scope="row" style={{ background: "#fff" }}>{vendor.name}<div style={{ marginTop: 6, fontSize: 12, fontWeight: 800, color: vendor.always ? "#1d4ed8" : "#15803d" }}>{vendor.always ? "Always used" : "Only if enabled"}</div></th>
+                  <th scope="row" style={{ background: "var(--surface)" }}>{vendor.name}<div style={{ marginTop: 6, fontSize: 12, fontWeight: 800, color: vendor.always ? "var(--text-info)" : "var(--text-success)" }}>{vendor.always ? "Always used" : "Only if enabled"}</div></th>
                   <td>{vendor.purpose}</td>
                   <td>{vendor.data}</td>
                   <td>{vendor.when}</td>

@@ -48,12 +48,12 @@ export default function AdminRidesPage() {
 
   useEffect(() => { if (organizationId) void load(organizationId); }, [organizationId]);
 
-  const card = { border:"1px solid #dbe3ef", borderRadius:16, padding:20, marginTop:20 } as const;
-  const input = { width:"100%", padding:10, border:"1px solid #cbd5e1", borderRadius:8, margin:"6px 0 12px" } as const;
-  const button = { padding:"10px 14px", borderRadius:9, border:"1px solid #cbd5e1", cursor:"pointer", marginRight:8 } as const;
+  const card = { border:"1px solid var(--line-2)", borderRadius:16, padding:20, marginTop:20 } as const;
+  const input = { width:"100%", padding:10, border:"1px solid var(--line-strong)", borderRadius:8, margin:"6px 0 12px" } as const;
+  const button = { padding:"10px 14px", borderRadius:9, border:"1px solid var(--line-strong)", cursor:"pointer", marginRight:8 } as const;
 
   return <main style={{ maxWidth:1100, margin:"40px auto", padding:"0 20px", fontFamily:"system-ui,sans-serif" }}>
-    <section style={{ background:"#101b33", color:"white", padding:28, borderRadius:22 }}>
+    <section style={{ background:"var(--panel-solid)", color:"white", padding:28, borderRadius:22 }}>
       <div style={{ fontSize:13,fontWeight:800,letterSpacing:1 }}>PLATFORM ADMIN</div>
       <h1 style={{ fontSize:40,margin:"6px 0" }}>Ride Workflow</h1>
       <p style={{ margin:0,opacity:.9 }}>Development console for request → offer → match → pickup → completion.</p>
@@ -79,7 +79,7 @@ export default function AdminRidesPage() {
 
       <section style={card}>
         <h2>Open Requests</h2>
-        {requests.length===0 ? <p>No ride requests yet.</p> : requests.map(r=><div key={r.id} style={{padding:"12px 0",borderBottom:"1px solid #e5e7eb"}}>
+        {requests.length===0 ? <p>No ride requests yet.</p> : requests.map(r=><div key={r.id} style={{padding:"12px 0",borderBottom:"1px solid var(--line)"}}>
           <b>{r.passenger_name}</b> · {r.event_title || "Other ride"} · <code>{r.status}</code> · {r.open_offers} offer(s)<br/>
           <small>{r.public_ref}</small>
         </div>)}
@@ -103,7 +103,7 @@ export default function AdminRidesPage() {
 
       <section style={card}>
         <h2>Active Rides</h2>
-        {rides.length===0 ? <p>No matched rides yet.</p> : rides.map(r=><div key={r.id} style={{padding:"12px 0",borderBottom:"1px solid #e5e7eb"}}>
+        {rides.length===0 ? <p>No matched rides yet.</p> : rides.map(r=><div key={r.id} style={{padding:"12px 0",borderBottom:"1px solid var(--line)"}}>
           <b>{r.passenger_name}</b> with {r.driver_name} · {r.event_title || "Ride"} · <code>{r.status}</code><br/><small>{r.public_ref}</small>
         </div>)}
         <hr style={{margin:"20px 0"}}/>
@@ -114,6 +114,6 @@ export default function AdminRidesPage() {
       </section>
     </>}
 
-    {message && <p style={{marginTop:20,padding:14,background:"#f8fafc",borderRadius:10}}>{message}</p>}
+    {message && <p style={{marginTop:20,padding:14,background:"var(--surface-2)",borderRadius:10}}>{message}</p>}
   </main>;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type Row = Record<string, any>;
@@ -87,14 +88,14 @@ export default function OrganizationSetupPage() {
     if (d) await loadInvites(organizationId);
   }
 
-  const card = { marginTop: 18, padding: 22, border: "1px solid #dbe3ef", borderRadius: 16, background: "white" } as const;
-  const button = { padding: "10px 14px", border: 0, borderRadius: 9, background: "#101b33", color: "white", fontWeight: 800, cursor: "pointer" } as const;
-  const input = { padding: 10, border: "1px solid #cbd5e1", borderRadius: 8, font: "inherit" } as const;
+  const card = { marginTop: 18, padding: 22, border: "1px solid var(--line-2)", borderRadius: 16, background: "var(--surface)" } as const;
+  const button = { padding: "10px 14px", border: 0, borderRadius: 9, background: "var(--btn-solid)", color: "var(--on-btn-solid)", fontWeight: 800, cursor: "pointer" } as const;
+  const input = { padding: 10, border: "1px solid var(--line-strong)", borderRadius: 8, font: "inherit" } as const;
   const progress = checklist?.progress;
   const org = checklist?.organization;
 
   return <main style={{ maxWidth: 960, margin: "40px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif" }}>
-    <section style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
+    <section style={{ background: "var(--panel-solid)", color: "white", padding: 28, borderRadius: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1 }}>ORGANIZATION ADMIN</div>
       <h1 style={{ fontSize: 38, margin: "6px 0" }}>Setup Checklist</h1>
       <p style={{ margin: 0, opacity: .9 }}>A few steps to get your community ready before you invite families.</p>
@@ -116,27 +117,27 @@ export default function OrganizationSetupPage() {
     {checklist && progress && <>
       <section style={card}>
         <h2 style={{ margin: 0 }}>{org?.name}</h2>
-        {org?.tenant_hostname && <p style={{ margin: "4px 0 12px", color: "#475569" }}>Your address: <a href={`https://${org.tenant_hostname}`}>{org.tenant_hostname}</a></p>}
+        {org?.tenant_hostname && <p style={{ margin: "4px 0 12px", color: "var(--text-3)" }}>Your address: <a href={`https://${org.tenant_hostname}`}>{org.tenant_hostname}</a></p>}
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div role="progressbar" aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.completed} aria-label="Setup progress" style={{ flex: 1, height: 10, background: "#e2e8f0", borderRadius: 999, overflow: "hidden" }}>
-            <div style={{ width: `${progress.percent}%`, height: "100%", background: "#101b33" }} />
+          <div role="progressbar" aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.completed} aria-label="Setup progress" style={{ flex: 1, height: 10, background: "var(--surface-4)", borderRadius: 999, overflow: "hidden" }}>
+            <div style={{ width: `${progress.percent}%`, height: "100%", background: "var(--btn-solid)" }} />
           </div>
           <strong>{progress.completed} of {progress.total} done</strong>
         </div>
-        {progress.allDone && <p style={{ marginBottom: 0, color: "#15803d" }}><strong>All set.</strong> Share your join code with families when you are ready.</p>}
+        {progress.allDone && <p style={{ marginBottom: 0, color: "var(--text-success)" }}><strong>All set.</strong> Share your join code with families when you are ready.</p>}
       </section>
 
       <section style={card}>
         <ol style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {progress.items.map((item: Row) => <li key={item.key} style={{ display: "flex", gap: 14, padding: "14px 0", borderTop: "1px solid #eef2f7", alignItems: "flex-start" }}>
-            <span aria-hidden="true" style={{ width: 26, height: 26, flex: "0 0 26px", borderRadius: 999, display: "grid", placeItems: "center", background: item.done ? "#15803d" : "white", border: item.done ? "0" : "2px solid #cbd5e1", color: "white", fontWeight: 900 }}>{item.done ? "✓" : ""}</span>
+          {progress.items.map((item: Row) => <li key={item.key} style={{ display: "flex", gap: 14, padding: "14px 0", borderTop: "1px solid var(--line-soft)", alignItems: "flex-start" }}>
+            <span aria-hidden="true" style={{ width: 26, height: 26, flex: "0 0 26px", borderRadius: 999, display: "grid", placeItems: "center", background: item.done ? "#15803d" : "var(--surface)", border: item.done ? "0" : "2px solid var(--line-strong)", color: "white", fontWeight: 900 }}>{item.done ? <Check className="icon" aria-hidden="true" /> : ""}</span>
             <div style={{ flex: 1 }}>
               <strong>{item.label}</strong> <span style={{ position: "absolute", left: -9999 }}>{item.done ? "(done)" : "(not done)"}</span>
-              <div style={{ color: "#475569", fontSize: 14 }}>{item.description}</div>
-              {item.source === "manual" && <div style={{ color: "#64748b", fontSize: 13 }}>Marked done by hand.</div>}
+              <div style={{ color: "var(--text-3)", fontSize: 14 }}>{item.description}</div>
+              {item.source === "manual" && <div style={{ color: "var(--text-muted)", fontSize: 13 }}>Marked done by hand.</div>}
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
-              <a href={item.href.startsWith("/admin/setup") ? item.href.replace("/admin/setup", "") : `${item.href}${item.href.startsWith("/admin/") ? `?organizationId=${organizationId}` : ""}`} style={{ fontWeight: 700, color: "#101b33" }}>{item.done ? "View" : "Open"}</a>
+              <a href={item.href.startsWith("/admin/setup") ? item.href.replace("/admin/setup", "") : `${item.href}${item.href.startsWith("/admin/") ? `?organizationId=${organizationId}` : ""}`} style={{ fontWeight: 700, color: "var(--text)" }}>{item.done ? "View" : "Open"}</a>
               {item.manual && item.source !== "automatic" && <button disabled={working} onClick={() => mark(item.key, !item.done)}>{item.done ? "Undo" : "Mark Done"}</button>}
             </div>
           </li>)}
@@ -145,15 +146,15 @@ export default function OrganizationSetupPage() {
 
       <section id="join-code" style={card}>
         <h2 style={{ marginTop: 0 }}>Join Code</h2>
-        <p style={{ color: "#475569" }}>Families enter this code in BandWagon to join. You have {checklist.activeJoinCodes} active code{checklist.activeJoinCodes === 1 ? "" : "s"}. Codes are only shown once, so copy it now.</p>
+        <p style={{ color: "var(--text-3)" }}>Families enter this code in BandWagon to join. You have {checklist.activeJoinCodes} active code{checklist.activeJoinCodes === 1 ? "" : "s"}. Codes are only shown once, so copy it now.</p>
         {joinCode && <p style={{ fontSize: 28, letterSpacing: 3, fontWeight: 900, margin: "8px 0" }}><code>{joinCode}</code> <button onClick={() => navigator.clipboard?.writeText(joinCode)}>Copy</button></p>}
         {checklist.role !== "manager" && <button disabled={working} onClick={makeJoinCode} style={button}>Create A Join Code</button>}
       </section>
 
       <section id="invite" style={card}>
         <h2 style={{ marginTop: 0 }}>Invite A Co-Admin</h2>
-        {invitableRoles.length === 0 ? <p style={{ color: "#475569" }}>Only owners and admins can invite people.</p> : <>
-          <p style={{ color: "#475569" }}>They get an email with a one-time link that works for 7 days. They must sign in with the same email.</p>
+        {invitableRoles.length === 0 ? <p style={{ color: "var(--text-3)" }}>Only owners and admins can invite people.</p> : <>
+          <p style={{ color: "var(--text-3)" }}>They get an email with a one-time link that works for 7 days. They must sign in with the same email.</p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="name@example.com" aria-label="Email" style={{ ...input, flex: "1 1 240px" }} />
             <select value={inviteRole} onChange={e => setInviteRole(e.target.value)} aria-label="Role" style={input}>
@@ -161,12 +162,12 @@ export default function OrganizationSetupPage() {
             </select>
             <button disabled={working || !inviteEmail.trim()} onClick={invite} style={button}>Send Invite</button>
           </div>
-          <p style={{ color: "#64748b", fontSize: 13 }}>Admins can manage settings and invite managers. Managers help run rides and members.</p>
+          <p style={{ color: "var(--text-muted)", fontSize: 13 }}>Admins can manage settings and invite managers. Managers help run rides and members.</p>
         </>}
-        {inviteLink && <p style={{ wordBreak: "break-all", padding: 10, background: "#f8fafc", borderRadius: 8 }}><code>{inviteLink}</code> <button onClick={() => navigator.clipboard?.writeText(inviteLink)}>Copy</button></p>}
+        {inviteLink && <p style={{ wordBreak: "break-all", padding: 10, background: "var(--surface-2)", borderRadius: 8 }}><code>{inviteLink}</code> <button onClick={() => navigator.clipboard?.writeText(inviteLink)}>Copy</button></p>}
         {invites.length > 0 && <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 12 }}>
           <thead><tr><th style={{ textAlign: "left", padding: 6 }}>Email</th><th style={{ textAlign: "left" }}>Role</th><th style={{ textAlign: "left" }}>Status</th><th /></tr></thead>
-          <tbody>{invites.map(i => <tr key={i.id} style={{ borderTop: "1px solid #eef2f7" }}>
+          <tbody>{invites.map(i => <tr key={i.id} style={{ borderTop: "1px solid var(--line-soft)" }}>
             <td style={{ padding: 6, wordBreak: "break-all" }}>{i.email}</td><td>{i.role}</td><td>{STATE_LABEL[i.state] || i.state}</td>
             <td style={{ textAlign: "right" }}>{i.state === "active" && invitableRoles.includes(i.role) && <button disabled={working} onClick={() => revoke(i.id)}>Cancel</button>}</td>
           </tr>)}</tbody>
@@ -174,6 +175,6 @@ export default function OrganizationSetupPage() {
       </section>
     </>}
 
-    {message && <p role="status" style={{ padding: 14, background: "#f8fafc", border: "1px solid #dbe3ef", borderRadius: 10 }}>{message}</p>}
+    {message && <p role="status" style={{ padding: 14, background: "var(--surface-2)", border: "1px solid var(--line-2)", borderRadius: 10 }}>{message}</p>}
   </main>;
 }

@@ -1,3 +1,4 @@
+import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { CSSProperties } from "react";
@@ -51,13 +52,13 @@ export default async function Home() {
         <div className="hero-copy">
           <div className="hero-kicker"><span aria-hidden="true">●</span> Privacy-First Community Transportation</div>
           <div className="eyebrow">A {platformBrand.vendorName} product</div>
-          {org.logoUrl && <img src={org.logoUrl} alt={`${org.name} logo`} referrerPolicy="no-referrer" style={{ width: 72, height: 72, objectFit: "contain", borderRadius: 16, background: "#fff", padding: 6, marginBottom: 12 }} />}
+          {org.logoUrl && <img src={org.logoUrl} alt={`${org.name} logo`} referrerPolicy="no-referrer" style={{ width: 72, height: 72, objectFit: "contain", borderRadius: 16, background: "var(--surface)", padding: 6, marginBottom: 12 }} />}
           {org.communityName && <div className="eyebrow">{org.communityName}</div>}
           <h1 id="home-heading">{org.name}</h1>
           <p className="hero-lede">{org.tagline}</p>
           {org.welcomeText && <p className="hero-lede" style={{ whiteSpace: "pre-line", fontSize: "1rem" }}>{org.welcomeText}</p>}
           <div className="actions">
-            <Link className="button" href="/login">Get Started <span aria-hidden="true">→</span></Link>
+            <Link className="button" href="/login">Get Started <ArrowRight className="icon" aria-hidden="true" /></Link>
             <Link className="button ghost" href="/help">See How It Works</Link>
           </div>
           <div className="hero-trust" aria-label="Platform commitments">
@@ -71,9 +72,9 @@ export default async function Home() {
           <ol className="ride-steps">
             <li><span className="step-icon">1</span><div><strong>Request Made</strong><small>General Area Shared</small></div><time>8:10 AM</time></li>
             <li><span className="step-icon">2</span><div><strong>Trusted Driver Matched</strong><small>Guardian Approved</small></div><time>8:22 AM</time></li>
-            <li><span className="step-icon verified">✓</span><div><strong>Pickup Verified</strong><small>Exact Details Stay Private</small></div><time>9:00 AM</time></li>
+            <li><span className="step-icon verified"><Check className="icon" aria-hidden="true" /></span><div><strong>Pickup Verified</strong><small>Exact Details Stay Private</small></div><time>9:00 AM</time></li>
           </ol>
-          <div className="privacy-chip"><span aria-hidden="true">◆</span><div><strong>Privacy By Design</strong><small>No Passive Location Tracking</small></div></div>
+          <div className="privacy-chip"><span aria-hidden="true"><ShieldCheck className="icon" aria-hidden="true" /></span><div><strong>Privacy By Design</strong><small>No Passive Location Tracking</small></div></div>
         </div>
       </section>
 

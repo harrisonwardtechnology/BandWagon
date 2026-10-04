@@ -14,6 +14,21 @@
 - **Title Case everywhere** (#42, #43, #44) with a guard test; HSTS header and 7-day cache on `/icons` and `/brand` (#44).
 - **Docs refresh**: docs index, new ops guides (email, Cloudflare, Google verification), new feature guides, notification routing table rebuilt from code, stale setup notes moved to `docs/archive/`.
 
+### October 2026 Style Standards Pass
+
+- **Dark mode.** The whole app follows the device setting: public site, sign-in, family and driver screens, and every admin screen. Colors come from theme tokens in `globals.css`; about 960 fixed colors in 74 page files were replaced. Light mode looks the same apart from slightly darker gray text for contrast. `docs/BRANDING.md` has the token table.
+- **Main buttons are gold in dark mode** (navy in light), matching the logo.
+- **Dark logo.** `bandwagon-logo-dark.svg` is swapped in so "Band" stays readable.
+- **System font.** `Inter` is no longer named first, so every device uses its own font.
+- **Lucide icons** in the app menu and in place of arrow, check and close symbols.
+- **Friendly state screens:** branded 404, "Something Went Wrong" (reports to GlitchTip), and loading screens for the signed-in areas.
+- **Footer:** "Built By Harrison Ward Technology" credit, and footer links are now full-size tap targets.
+- **Touch targets:** buttons, fields and menu links are at least 44 points tall. Sign Out moved up beside the logo.
+- **Pickup check card keeps fixed colors** in both themes so two phones always match.
+- **Install icons** split into `any` (rounded) and `maskable` (full bleed).
+- **Offline page** has a dark version.
+- **Guard test:** `tests/theme-tokens.test.ts` fails on a hard-coded neutral color in a page.
+
 ### Earlier In RC1
 
 - GlitchTip error tracking (Sentry-compatible, self-hosted): server request errors, browser errors (via same-origin `/api/client-errors`), dead worker jobs, failed scheduled tasks, and unhandled process errors are sent as redacted Sentry envelopes when `GLITCHTIP_DSN` is set. No SDK, no third-party browser script, per-process flood guard, 3 s timeout. Platform Health shows GlitchTip status and has a "Send GlitchTip test event" button. Setup: `docs/operations/ERROR-MONITORING.md`.

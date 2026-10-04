@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   countryFlag,
@@ -91,7 +92,7 @@ export default function PhoneNumberInput({
     <div className={`phone-input-shell${touched && !valid ? " phone-input-invalid" : ""}`}>
       <div className="phone-country-picker" title={`${selected?.name || country} ${selected?.callingCode || ""}`}>
         <span aria-hidden="true">{countryFlag(country)}</span>
-        <span className="phone-country-chevron" aria-hidden="true">⌄</span>
+        <span className="phone-country-chevron" aria-hidden="true"><ChevronDown className="icon" aria-hidden="true" /></span>
         <select value={country} onChange={event => changeCountry(event.target.value as CountryCode)} aria-label="Phone country or region" disabled={disabled}>
           {countries.map(item => <option key={item.country} value={item.country}>{countryFlag(item.country)} {item.name} ({item.callingCode})</option>)}
         </select>

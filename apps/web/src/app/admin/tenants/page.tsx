@@ -15,8 +15,8 @@ export default function TenantsAdmin() {
   const [baseDomain,setBaseDomain]=useState("");
 
   const headers={"content-type":"application/json"};
-  const input={display:"block",width:"100%",padding:12,margin:"8px 0 14px",border:"1px solid #cbd5e1",borderRadius:8} as const;
-  const card={marginTop:20,padding:20,border:"1px solid #dbe3ef",borderRadius:16} as const;
+  const input={display:"block",width:"100%",padding:12,margin:"8px 0 14px",border:"1px solid var(--line-strong)",borderRadius:8} as const;
+  const card={marginTop:20,padding:20,border:"1px solid var(--line-2)",borderRadius:16} as const;
 
   async function refresh(){
     setMessage("");
@@ -37,7 +37,7 @@ export default function TenantsAdmin() {
   }
 
   return <main style={{maxWidth:1050,margin:"40px auto",padding:"0 20px",fontFamily:"system-ui,sans-serif"}}>
-    <section style={{background:"#101b33",color:"white",padding:28,borderRadius:22}}>
+    <section style={{background:"var(--panel-solid)",color:"white",padding:28,borderRadius:22}}>
       <div style={{fontSize:13,fontWeight:800,letterSpacing:1}}>PLATFORM ADMIN</div>
       <h1 style={{fontSize:38,margin:"6px 0"}}>SaaS Tenants</h1>
       <p style={{margin:0,opacity:.9}}>Every organization gets <strong>tenant.{baseDomain||"<tenant base domain>"}</strong>, with an optional custom domain.</p>
@@ -60,16 +60,16 @@ export default function TenantsAdmin() {
 
     {organizations.length>0&&<section style={card}>
       <h2>Organizations</h2>
-      {organizations.map(org=><div key={org.id} style={{padding:"14px 0",borderBottom:"1px solid #eef2f7"}}>
+      {organizations.map(org=><div key={org.id} style={{padding:"14px 0",borderBottom:"1px solid var(--line-soft)"}}>
         <strong>{org.display_name||org.name}</strong> · <code>{org.tenant_hostname}</code> · {org.status}
-        <div style={{fontSize:14,color:"#475569",marginTop:6}}>{org.id}</div>
+        <div style={{fontSize:14,color:"var(--text-3)",marginTop:6}}>{org.id}</div>
         <ul>{(org.domains||[]).map((d:any)=><li key={d.id}><code>{d.hostname}</code> — {d.domainType} — {d.status} — DNS {d.dnsStatus||"n/a"} — SSL {d.sslStatus||"n/a"}{d.isPrimary?" — PRIMARY":""}</li>)}</ul>
       </div>)}
     </section>}
 
     <section style={card}>
       <h2>Connect A Custom Domain</h2>
-      <p style={{color:"#475569"}}>Choose the easiest setup for the person who manages the domain. You can switch to manual setup at any time.</p>
+      <p style={{color:"var(--text-3)"}}>Choose the easiest setup for the person who manages the domain. You can switch to manual setup at any time.</p>
       <label>Organization</label>
       <select value={selectedOrg} onChange={e=>setSelectedOrg(e.target.value)} style={input}>
         <option value="">Select Organization</option>
@@ -79,30 +79,30 @@ export default function TenantsAdmin() {
       <input value={customDomain} onChange={e=>setCustomDomain(e.target.value)} style={input}/>
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12,margin:"16px 0"}}>
-        <button type="button" disabled={!domainSetup.automaticAvailable} onClick={()=>setSetupMode("automatic")} style={{textAlign:"left",padding:18,borderRadius:14,border:setupMode==="automatic"?"2px solid #101b33":"1px solid #cbd5e1",background:setupMode==="automatic"?"#f1f5f9":"#fff",opacity:domainSetup.automaticAvailable?1:.55}}>
-          <strong>Automatic Setup — Recommended</strong><div style={{fontSize:14,color:"#475569",marginTop:6}}>{domainSetup.automaticAvailable?"We detect the DNS provider and automate or guide the connection through DoDomain.":"Automatic setup is not configured yet."}</div>
+        <button type="button" disabled={!domainSetup.automaticAvailable} onClick={()=>setSetupMode("automatic")} style={{textAlign:"left",padding:18,borderRadius:14,border:setupMode==="automatic"?"2px solid var(--line-solid)":"1px solid var(--line-strong)",background:setupMode==="automatic"?"var(--surface-3)":"var(--surface)",opacity:domainSetup.automaticAvailable?1:.55}}>
+          <strong>Automatic Setup — Recommended</strong><div style={{fontSize:14,color:"var(--text-3)",marginTop:6}}>{domainSetup.automaticAvailable?"We detect the DNS provider and automate or guide the connection through DoDomain.":"Automatic setup is not configured yet."}</div>
         </button>
-        <button type="button" onClick={()=>setSetupMode("manual")} style={{textAlign:"left",padding:18,borderRadius:14,border:setupMode==="manual"?"2px solid #101b33":"1px solid #cbd5e1",background:setupMode==="manual"?"#f1f5f9":"#fff"}}>
-          <strong>Manual Setup</strong><div style={{fontSize:14,color:"#475569",marginTop:6}}>Show the exact DNS record, copy buttons, provider hints, and let BandWagon check it.</div>
+        <button type="button" onClick={()=>setSetupMode("manual")} style={{textAlign:"left",padding:18,borderRadius:14,border:setupMode==="manual"?"2px solid var(--line-solid)":"1px solid var(--line-strong)",background:setupMode==="manual"?"var(--surface-3)":"var(--surface)"}}>
+          <strong>Manual Setup</strong><div style={{fontSize:14,color:"var(--text-3)",marginTop:6}}>Show the exact DNS record, copy buttons, provider hints, and let BandWagon check it.</div>
         </button>
       </div>
 
       <button disabled={!selectedOrg} onClick={()=>act({action:"request-domain",organizationId:selectedOrg,hostname:customDomain,setupMode})}>{setupMode==="automatic"?"Start Automatic Setup":"Generate Manual DNS Setup"}</button>
 
-      {result?.automatic?.available&&<div style={{marginTop:16,padding:18,background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:12}}>
+      {result?.automatic?.available&&<div style={{marginTop:16,padding:18,background:"var(--bg-success)",border:"1px solid var(--line-success)",borderRadius:12}}>
         <strong>Automatic setup is ready</strong>
         <p>DNS provider: <strong>{result.automatic.inspection?.provider||"Detected during setup"}</strong></p>
-        <a href={result.automatic.connectUrl} target="_blank" rel="noreferrer" style={{display:"inline-block",padding:"10px 14px",background:"#101b33",color:"white",borderRadius:8,textDecoration:"none"}}>Continue Domain Setup</a>
+        <a href={result.automatic.connectUrl} target="_blank" rel="noreferrer" style={{display:"inline-block",padding:"10px 14px",background:"var(--btn-solid)",color:"var(--on-btn-solid)",borderRadius:8,textDecoration:"none"}}>Continue Domain Setup</a>
         <button style={{marginLeft:10}} onClick={()=>setSetupMode("manual")}>Use Manual Setup Instead</button>
       </div>}
 
-      {result?.automatic&&!result.automatic.available&&<div style={{marginTop:16,padding:18,background:"#fff7ed",border:"1px solid #fed7aa",borderRadius:12}}>
+      {result?.automatic&&!result.automatic.available&&<div style={{marginTop:16,padding:18,background:"var(--bg-warn)",border:"1px solid var(--line-warn)",borderRadius:12}}>
         <strong>Manual setup is needed for this domain</strong>
         <p>{result.automatic.reason}</p>
         <button onClick={()=>setSetupMode("manual")}>Switch To Manual Setup</button>
       </div>}
 
-      {result?.cname&&(!result?.automatic?.available||setupMode==="manual")&&<div style={{marginTop:16,padding:14,background:"#f8fafc",borderRadius:10}}>
+      {result?.cname&&(!result?.automatic?.available||setupMode==="manual")&&<div style={{marginTop:16,padding:14,background:"var(--surface-2)",borderRadius:10}}>
         <strong>Customer DNS Record</strong>
         <p>Type: <code>CNAME</code></p>
         <p>Name: <code>{result.cname.name}</code> <button onClick={()=>navigator.clipboard?.writeText(result.cname.name)}>Copy</button></p>
@@ -112,6 +112,6 @@ export default function TenantsAdmin() {
       </div>}
     </section>
 
-    {message&&<p style={{padding:14,background:"#f8fafc",borderRadius:10}}>{message}</p>}
+    {message&&<p style={{padding:14,background:"var(--surface-2)",borderRadius:10}}>{message}</p>}
   </main>;
 }
