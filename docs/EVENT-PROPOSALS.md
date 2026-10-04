@@ -13,7 +13,7 @@ Members can suggest events for their organization. Members never publish events 
 - Organization owners and admins turn it on at `/admin/event-proposals` and choose who can propose:
   - **Any adult member** (`adult_members`, the default)
   - **Only parents and guardians** of students in the organization (`guardians_only`)
-- Managers can review proposals but cannot change these settings.
+- Managers can review proposals but cannot change these settings. The trusted adult setting at `/admin/household-delegates` follows the same owners-and-admins rule.
 - Each settings change writes the audit event `organization.event_proposal_settings_updated`.
 
 ## Who Can Propose
@@ -51,6 +51,25 @@ Organization owners, admins, and managers (org-wide roles) can review. Platform 
 | Withdraw (member) | Waiting for review or changes requested | Withdrawn |
 
 Approved, declined, and withdrawn are final. Each decision locks the proposal row, so two organizers cannot act on the same proposal at once.
+
+## Stale Proposals
+
+**Start time has passed.** A proposal that sat in the queue past its own start time cannot be published as it is. In the review queue its "When" line says so, and Approve answers:
+
+> This proposal's start time has already passed. Change the date and time to approve it, or decline it.
+
+The organizer can pick a new date in the approval form and approve, ask the proposer for changes, or decline.
+
+**Proposals turned off with some still queued.** Turning the feature off never deletes or changes a proposal. Queued proposals (waiting for review or changes requested) are **on hold**:
+
+- They stay in the review queue so nothing looks lost.
+- Approve and Ask For Changes are refused with "Event proposals are turned off for this organization, so this proposal is on hold. Turn proposals back on to approve it or ask for changes, or decline it now." So no member-proposed event is published while the feature is off.
+- Decline still works, so the queue can be cleared.
+- Members cannot send or resend while it is off. They can still withdraw.
+- The admin who turns it off is told how many are waiting ("Event proposals are off. 3 proposals are still in the queue. They're on hold, not deleted: ..."), and the count is stored in the settings audit event (`openProposals`).
+- Turning proposals back on puts everything back to normal with the queue intact.
+
+The rules are `proposalModerationBlock` and `proposalsOffNotice` in the policy file.
 
 ## What Happens On Approval
 

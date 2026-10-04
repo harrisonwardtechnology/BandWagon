@@ -166,3 +166,56 @@ test("migration keeps the module off by default", async () => {
   assert.match(sql, /enabled boolean NOT NULL DEFAULT false/);
   assert.match(sql, /proposer_scope text NOT NULL DEFAULT 'adult_members'/);
 });
+
+test("a proposal whose start time has passed gets a clear message instead of a generic error", async () => {
+  const { PAST_PROPOSAL_APPROVE_MESSAGE, proposalModerationBlock, proposalStartHasPassed } = await import("../src/lib/event-proposal-policy.ts");
+  const now = new Date("2026-10-04T12:00:00Z");
+  assert.equal(proposalStartHasPassed("2026-10-03T12:00:00Z", now), true);
+  assert.equal(proposalStartHasPassed(new Date("2026-10-04T12:00:00Z"), now), true);
+  assert.equal(proposalStartHasPassed("2026-10-05T12:00:00Z", now), false);
+  assert.equal(proposalStartHasPassed("not a date", now), false);
+  assert.equal(proposalStartHasPassed(null, now), false);
+
+  const past = "2026-10-01T18:00:00Z";
+  const future = "2026-10-20T18:00:00Z";
+  assert.equal(proposalModerationBlock({ action: "approve", moduleEnabled: true, startsAt: past, now }), PAST_PROPOSAL_APPROVE_MESSAGE);
+  assert.match(PAST_PROPOSAL_APPROVE_MESSAGE, /start time has already passed/);
+  assert.match(PAST_PROPOSAL_APPROVE_MESSAGE, /Change the date and time to approve it, or decline it/);
+  // Once the moderator picks a new date, approval goes ahead.
+  assert.equal(proposalModerationBlock({ action: "approve", moduleEnabled: true, startsAt: future, now }), null);
+  // A past date never stops declining or asking the proposer to fix it.
+  assert.equal(proposalModerationBlock({ action: "decline", moduleEnabled: true, startsAt: past, now }), null);
+  assert.equal(proposalModerationBlock({ action: "request_changes", moduleEnabled: true, startsAt: past, now }), null);
+});
+
+test("turning proposals off puts queued proposals on hold without deleting them", async () => {
+  const { PROPOSALS_OFF_REVIEW_MESSAGE, proposalModerationBlock, proposalsOffNotice } = await import("../src/lib/event-proposal-policy.ts");
+  const now = new Date("2026-10-04T12:00:00Z");
+  const future = "2026-10-20T18:00:00Z";
+  // Nothing is published and nobody is asked to resend while the feature is off.
+  assert.equal(proposalModerationBlock({ action: "approve", moduleEnabled: false, startsAt: future, now }), PROPOSALS_OFF_REVIEW_MESSAGE);
+  assert.equal(proposalModerationBlock({ action: "request_changes", moduleEnabled: false, startsAt: future, now }), PROPOSALS_OFF_REVIEW_MESSAGE);
+  // The queue can always be cleared by declining.
+  assert.equal(proposalModerationBlock({ action: "decline", moduleEnabled: false, startsAt: future, now }), null);
+  assert.match(PROPOSALS_OFF_REVIEW_MESSAGE, /turned off/);
+  assert.match(PROPOSALS_OFF_REVIEW_MESSAGE, /on hold/);
+
+  assert.equal(proposalsOffNotice(0), null);
+  assert.equal(proposalsOffNotice(1), "Event proposals are off. 1 proposal is still in the queue. It's on hold, not deleted: decline now, or turn proposals back on to approve or ask for changes.");
+  assert.match(proposalsOffNotice(3) || "", /3 proposals are still in the queue\. They're on hold, not deleted/);
+
+  const lib = await readFile(new URL("../src/lib/event-proposals.ts", import.meta.url), "utf8");
+  // The check runs inside the moderation transaction, before any event is created or status changed.
+  const moderate = lib.slice(lib.indexOf("export async function moderateEventProposal"));
+  const block = moderate.indexOf("proposalModerationBlock({");
+  assert.ok(block > 0 && block < moderate.indexOf("createManualEvent("), "the hold is checked before publishing");
+  assert.ok(block < moderate.indexOf("update event_proposals set status=$2"), "the hold is checked before the status changes");
+  assert.match(moderate, /if \(block\) throw new Error\(block\);/);
+  // Turning the feature off counts the queue and tells the admin. It never deletes or closes proposals.
+  const settings = lib.slice(lib.indexOf("export async function updateEventProposalSettings"), lib.indexOf("async function proposerFacts"));
+  assert.match(settings, /proposalsOffNotice\(openProposals\)/);
+  assert.doesNotMatch(settings, /delete from event_proposals|update event_proposals/);
+  assert.match(lib, /\(ep\.status='pending' and ep\.starts_at<=now\(\)\) as start_passed/);
+  const route = await readFile(new URL("../src/app/api/admin/event-proposals/route.ts", import.meta.url), "utf8");
+  assert.match(route, /notice: settings\.notice/);
+});

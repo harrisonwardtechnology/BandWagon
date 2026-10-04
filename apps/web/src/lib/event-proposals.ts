@@ -9,6 +9,8 @@ import {
   canManageProposalSettings,
   canModerateProposals,
   isEventProposalStatus,
+  proposalModerationBlock,
+  proposalsOffNotice,
   proposalSubmitDenial,
   proposerScope,
   validateModeratorNote,
@@ -76,12 +78,20 @@ export async function updateEventProposalSettings(input: {
          updated_by_person_id=excluded.updated_by_person_id,updated_at=now()`,
       [input.organizationId, input.enabled, scope, input.actorPersonId]
     );
+    // Proposals already in the queue are never deleted or changed by this switch.
+    // While it is off they are on hold (see proposalModerationBlock).
+    const open = await client.query(
+      `select count(*)::int as n from event_proposals where organization_id=$1 and status in ('pending','changes_requested')`,
+      [input.organizationId]
+    );
+    const openProposals = Number(open.rows[0]?.n || 0);
     await client.query(
       `insert into audit_events(organization_id,actor_person_id,action,target_type,target_id,metadata)
        values($1::uuid,$2::uuid,'organization.event_proposal_settings_updated','organization',$1::text,$3::jsonb)`,
-      [input.organizationId, input.actorPersonId, JSON.stringify({ enabled: input.enabled, proposerScope: scope })]
+      [input.organizationId, input.actorPersonId, JSON.stringify({ enabled: input.enabled, proposerScope: scope, openProposals })]
     );
-    return getEventProposalSettings(input.organizationId, client);
+    const settings = await getEventProposalSettings(input.organizationId, client);
+    return { ...settings, openProposals, notice: settings.enabled ? null : proposalsOffNotice(openProposals) };
   });
 }
 
@@ -288,7 +298,8 @@ export async function listEventProposalsForModeration(organizationId: string, st
   const filter = status === "open" || !status ? ["pending", "changes_requested"] : isEventProposalStatus(status) ? [status] : ["pending", "changes_requested", "approved", "declined", "withdrawn"];
   const result = await db.query(
     `select ${PROPOSAL_COLUMNS},coalesce(p.preferred_name,p.display_name) as proposer_name,
-            coalesce(d.preferred_name,d.display_name) as decided_by_name
+            coalesce(d.preferred_name,d.display_name) as decided_by_name,
+            (ep.status='pending' and ep.starts_at<=now()) as start_passed
        from event_proposals ep
        left join people p on p.id=ep.proposer_person_id
        left join people d on d.id=ep.decided_by_person_id
@@ -346,9 +357,19 @@ export async function moderateEventProposal(input: {
     const nextStatus = assertProposalTransition(proposal.status, input.action);
     let eventId: string | null = null;
     let title: string = proposal.title;
+    const edits = Object.fromEntries(Object.entries(input.edits || {}).filter(([, value]) => value !== undefined));
+
+    // Say plainly why a stale proposal cannot go ahead: proposals turned off
+    // (queued ones are on hold), or a start time that has already passed.
+    const settings = await getEventProposalSettings(input.organizationId, client);
+    const block = proposalModerationBlock({
+      action: input.action,
+      moduleEnabled: settings.enabled,
+      startsAt: input.action === "approve" && edits.startsAt ? edits.startsAt : proposal.starts_at,
+    });
+    if (block) throw new Error(block);
 
     if (input.action === "approve") {
-      const edits = Object.fromEntries(Object.entries(input.edits || {}).filter(([, value]) => value !== undefined));
       const fields = validateProposalInput({ ...rowToFields(proposal), ...edits });
       const eventInput = approvedEventInput({
         organizationId: input.organizationId,

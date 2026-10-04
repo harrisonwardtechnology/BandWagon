@@ -8,6 +8,21 @@ export function isOrganizationAdminRole(value: unknown): value is OrganizationAd
   return ORGANIZATION_ADMIN_ROLES.includes(value as OrganizationAdminRole);
 }
 
+/**
+ * Who may change settings that switch a feature on or off for the whole
+ * organization (trusted adults, member event proposals): owners and admins.
+ * Managers run day-to-day work (reviewing proposals, events, rides) and can
+ * see these settings, but cannot change them. Platform staff with admin
+ * access (platform owner, or Support View in assist mode acting as an owner
+ * or admin) pass through platformAccess or the role they act as.
+ */
+export const ORGANIZATION_SETTINGS_ROLES = ["owner", "admin"] as const;
+export const ORGANIZATION_SETTINGS_DENIED = "Only organization owners and admins can change this setting";
+
+export function canChangeOrganizationSettings(role: unknown, platformAccess = false) {
+  return platformAccess || ORGANIZATION_SETTINGS_ROLES.includes(role as (typeof ORGANIZATION_SETTINGS_ROLES)[number]);
+}
+
 export function parsePlatformRole(value: unknown): PlatformRole | null {
   if (value == null || value === "" || value === "none") return null;
   if (typeof value === "string" && PLATFORM_ROLES.includes(value as PlatformRole)) {

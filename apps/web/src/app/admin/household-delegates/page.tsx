@@ -55,8 +55,8 @@ export default function HouseholdDelegatesAdmin() {
         {organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
       </select>
       {settings && <label style={{ display: "flex", gap: 10, alignItems: "start" }}>
-        <input type="checkbox" checked={Boolean(settings.householdDelegatesEnabled)} disabled={working} onChange={e => void save(e.target.checked)} />
-        <span><b>Allow Trusted Adults</b><br /><small style={{ color: "#64748b" }}>When this is off, trusted adults cannot ask for, approve, or manage rides in {settings.name}. Parents and guardians are not affected.</small></span>
+        <input type="checkbox" checked={Boolean(settings.householdDelegatesEnabled)} disabled={working || settings.canChangeSettings === false} onChange={e => void save(e.target.checked)} />
+        <span><b>Allow Trusted Adults</b><br /><small style={{ color: "#64748b" }}>When this is off, trusted adults cannot ask for, approve, or manage rides in {settings.name}. Parents and guardians are not affected.{settings.canChangeSettings === false ? " Only organization owners and admins can change this setting." : ""}</small></span>
       </label>}
     </section>
     {message && <p style={{ padding: 14, background: "#eef2ff", borderRadius: 12, fontWeight: 700 }}>{message}</p>}
