@@ -2,6 +2,17 @@
 
 ## v1.0.0-rc1 - Unreleased
 
+### October 2026 Known Issue Fixes
+
+Messaging:
+
+- **Brand name in every text.** Every SMS/RCS body now starts with `BandWagon: ` (waitlist offers, route assist, "Your driver is on the way.", and the rest). Bodies that already start with "BandWagon" are left alone. Push and email are unchanged. `docs/SMS-CONSENT-AND-TEXTS.md`.
+- **Web opt-in after a carrier STOP.** Opting in on the web no longer reports success while Twilio is still blocking the number. Nothing is changed, no welcome text is sent, and the person is told to text START. A carrier STOP is never cleared from the web.
+- **Delivery log shows the real channel.** The Twilio status callback now corrects `notification_deliveries.channel` to `rcs` or `sms`, and keeps the requested channel in `metadata`.
+- **One rule for picking a phone row.** The send path, the settings status, and the router all use `verifiedPhoneOrderBy`.
+- **Trusted adult notifications have router policies.** `household_delegate_activity` (important, push then email) and `household_delegate_invitation` (email only). Neither is ever texted. A new test keeps the table in `docs/NOTIFICATION-ROUTING.md` in step with the code.
+- **Waitlist texting docs corrected.** `docs/WAITLISTS.md` now says what really happens: standby offers are push or email for most people, and a cancelled carpool texts every waitlisted rider who agreed to texts. No behavior change.
+
 ### September 2026 Wave (PRs #35 to #50)
 
 - **New logo: Route To The Show** (#46). Site icons, PWA icons, header wordmark, Stripe logo, share card, BIMI, README image, Google sign-in logo (`/brand/google-oauth-logo-120.png`) and RCS images (`/brand/rcs-*.png`, #49). File list in `docs/BRANDING.md`.

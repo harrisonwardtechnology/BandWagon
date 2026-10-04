@@ -70,7 +70,8 @@ This is checked when inviting, when editing, and again when the invite is accept
 
 - Management actions: `household_delegate.invited`, `.updated`, `.paused`, `.resumed`, `.revoked`, `.accepted`, `.left`.
 - Ride actions by a delegate record the delegate as `actor_person_id` and the child in `audit_events.on_behalf_of_person_id` (for example `household_delegate.ride_requested`, `.ride_approved`, `.waitlist_joined`, `.standby_accepted`).
-- Guardians get a `household_delegate_activity` notification for each ride action a delegate takes.
+- Guardians get a `household_delegate_activity` notification for each ride action a delegate takes. The same type tells a delegate when their permissions change or their access is paused, resumed, or removed, and tells household managers when a delegate accepts or steps away.
+- `household_delegate_activity` has its own router policy: important, push first, email when push is not available, never a text. Invitations (`household_delegate_invitation`) are email only and never texted. See [NOTIFICATION-ROUTING.md](NOTIFICATION-ROUTING.md).
 - The household manager sees this history on the Household page.
 
 ## Code And Tests

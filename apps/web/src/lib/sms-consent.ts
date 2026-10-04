@@ -6,6 +6,9 @@ import {
   SMS_CONSENT_TEXT,
   SMS_CONSENT_TEXT_VERSION,
   SMS_WELCOME_TEXT,
+  isCarrierStop,
+  verifiedPhoneOrderBy,
+  webOptInBlockedByCarrierStop,
   type SmsConsentAction,
   type SmsConsentSource,
 } from "@/lib/sms-consent-policy";
@@ -16,6 +19,10 @@ type Queryable = Pool | PoolClient;
  * Record an opt-in or opt-out for a phone number. Writes the number-level
  * registry, every matching phone row, and an audit event. Throws on failure
  * so callers (like the Twilio webhook) can return an error and be retried.
+ *
+ * A web opt-in never clears a carrier STOP. Twilio keeps blocking the number
+ * until the person texts START, so nothing is written and the result has
+ * `carrierStop: true`. Callers must tell the person to text START first.
  *
  * Pass `db` when already inside a transaction; otherwise one is opened here.
  */
@@ -34,19 +41,33 @@ export async function recordSmsConsent(input: {
   const run = async (q: Queryable) => {
     const state = input.action === "opt_out" ? "opted_out" : "opted_in";
     const before = await q.query(
-      `select p.messaging_consent_status as phone_state, r.state as registry_state
+      `select p.messaging_consent_status as phone_state, r.state as registry_state, r.source as registry_source
          from (select 1) x
          left join phones p on p.lookup_hash=$1 and p.verified_at is not null
          left join sms_opt_outs r on r.lookup_hash=$1
         limit 1`,
       [hash]
     );
+    const registry = { registryState: before.rows[0]?.registry_state ?? null, registrySource: before.rows[0]?.registry_source ?? null };
+    if (webOptInBlockedByCarrierStop({ action: input.action, source: input.source, ...registry })) {
+      return { newlyOptedIn: false, phone: e164, carrierStop: true };
+    }
     const wasOptedIn = before.rows[0]?.phone_state === "opted_in" && before.rows[0]?.registry_state !== "opted_out";
-    await q.query(
+    // The guard is repeated in the write itself, so a STOP that lands between
+    // the read above and this statement is still never cleared by a web opt-in.
+    // A web opt-out on top of a carrier STOP keeps the carrier source, so the
+    // number is still known to need START.
+    const written = await q.query(
       `insert into sms_opt_outs (lookup_hash,state,source,updated_at) values ($1,$2,$3,now())
-       on conflict (lookup_hash) do update set state=excluded.state,source=excluded.source,updated_at=now()`,
-      [hash, state, input.source]
+       on conflict (lookup_hash) do update set state=excluded.state,
+         source=case when sms_opt_outs.state='opted_out' and excluded.state='opted_out' and sms_opt_outs.source<>'settings'
+                     then sms_opt_outs.source else excluded.source end,
+         updated_at=now()
+       where not ($4::boolean and sms_opt_outs.state='opted_out' and sms_opt_outs.source<>'settings')
+       returning state`,
+      [hash, state, input.source, input.action === "opt_in" && affirmative]
     );
+    if (!written.rowCount) return { newlyOptedIn: false, phone: e164, carrierStop: true };
     if (input.action === "opt_out") {
       await q.query(`update phones set messaging_consent_status='opted_out' where lookup_hash=$1`, [hash]);
     } else {
@@ -68,7 +89,7 @@ export async function recordSmsConsent(input: {
         affirmative && input.action === "opt_in" ? SMS_CONSENT_TEXT_VERSION : null,
       ]
     );
-    return { newlyOptedIn: input.action === "opt_in" && !wasOptedIn, phone: e164 };
+    return { newlyOptedIn: input.action === "opt_in" && !wasOptedIn, phone: e164, carrierStop: false };
   };
 
   if (input.db) return run(input.db);
@@ -113,17 +134,19 @@ export async function getSmsConsentStatus(personId: string) {
   const db = getDb();
   if (!db) throw new Error("Database is not configured");
   const result = await db.query(
-    `select p.messaging_consent_status as phone_state, r.state as registry_state
+    `select p.messaging_consent_status as phone_state, r.state as registry_state, r.source as registry_source
        from phones p
        left join sms_opt_outs r on r.lookup_hash=p.lookup_hash
       where p.person_id=$1 and p.verified_at is not null
-      order by p.verified_at desc limit 1`,
+      order by ${verifiedPhoneOrderBy("p")} limit 1`,
     [personId]
   );
   const row = result.rows[0];
-  if (!row) return { hasPhone: false, optedIn: false, optedOut: false };
+  if (!row) return { hasPhone: false, optedIn: false, optedOut: false, carrierStop: false };
   const optedOut = row.registry_state === "opted_out" || row.phone_state === "opted_out";
-  return { hasPhone: true, optedIn: !optedOut && row.phone_state === "opted_in", optedOut };
+  // carrierStop: the person has to text START before a web opt-in can work.
+  const carrierStop = isCarrierStop({ registryState: row.registry_state, registrySource: row.registry_source });
+  return { hasPhone: true, optedIn: !optedOut && row.phone_state === "opted_in", optedOut, carrierStop };
 }
 
 /** The person's newest verified phone number (any consent state), for web consent changes. */
@@ -131,7 +154,7 @@ export async function getAnyVerifiedPhone(personId: string) {
   const db = getDb();
   if (!db) throw new Error("Database is not configured");
   const result = await db.query(
-    `select e164_ciphertext from phones where person_id=$1 and verified_at is not null order by verified_at desc limit 1`,
+    `select e164_ciphertext from phones where person_id=$1 and verified_at is not null order by ${verifiedPhoneOrderBy()} limit 1`,
     [personId]
   );
   const ciphertext = result.rows[0]?.e164_ciphertext as string | undefined;

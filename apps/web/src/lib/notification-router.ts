@@ -9,7 +9,7 @@ import { ORG_TEXTING_LIMIT_ERROR } from "@/lib/org-messaging-cap-policy";
 export type NotificationUrgency="routine"|"important"|"critical";
 export type NotificationType=
   |"new_ride_available"|"driver_offer"|"ride_matched"|"reminder_24h"|"reminder_1h"|"driver_arriving"
-  |"last_minute_cancellation"|"pickup_changed"|"safety_alert"|"credential_expiring"|"organization_removed"|"organization_decommission_confirmation"|"otp"|"platform_test"|"waitlist_offer"|"waitlist_update"|"event_proposal_submitted"|"event_proposal_decision"|string;
+  |"last_minute_cancellation"|"pickup_changed"|"safety_alert"|"credential_expiring"|"organization_removed"|"organization_decommission_confirmation"|"otp"|"platform_test"|"waitlist_offer"|"waitlist_update"|"event_proposal_submitted"|"event_proposal_decision"|"household_delegate_activity"|"household_delegate_invitation"|string;
 
 export type NotificationRequest={notificationType:NotificationType;title:string;body:string;url?:string;personId?:string|null;organizationId?:string|null;phone?:string|null;email?:string|null;correlationId?:string|null;forceUrgency?:NotificationUrgency;};
 type Policy={urgency:NotificationUrgency;push:boolean;emailFallback:boolean;emailAlways?:boolean;smsFallback:boolean;smsImmediate:boolean;smsOnly?:boolean;};
@@ -33,6 +33,12 @@ const POLICIES:Record<string,Policy>={
   platform_test:{urgency:"important",push:true,emailFallback:false,smsFallback:true,smsImmediate:false},
   event_proposal_submitted:{urgency:"routine",push:true,emailFallback:true,smsFallback:false,smsImmediate:false},
   event_proposal_decision:{urgency:"routine",push:true,emailFallback:true,smsFallback:false,smsImmediate:false},
+  // Trusted adult (household delegate) notices. A guardian hears when a trusted adult acts for
+  // their child, and a trusted adult hears when their access changes. Push, then email. Never texted.
+  household_delegate_activity:{urgency:"important",push:true,emailFallback:true,smsFallback:false,smsImmediate:false},
+  // Invitations go to an email address that may not have an account yet. Email only. Never texted,
+  // because BandWagon does not text a number that has not agreed to texts.
+  household_delegate_invitation:{urgency:"important",push:false,emailFallback:true,emailAlways:true,smsFallback:false,smsImmediate:false},
 };
 const DEFAULT_POLICY:Policy={urgency:"routine",push:true,emailFallback:true,smsFallback:false,smsImmediate:false};
 function policyFor(type:string,forced?:NotificationUrgency):Policy{const base=POLICIES[type]||DEFAULT_POLICY;return forced?{...base,urgency:forced}:base;}
@@ -59,6 +65,7 @@ export async function routeNotification(request:NotificationRequest){
   const pushPayload:PushPayload={title:request.title,body:request.body,url:request.url||"/",tag:`bandwagon-${request.notificationType}`,icon:"/icons/icon-192.png",badge:"/icons/icon-192.png",data:{correlationId,notificationType:request.notificationType}};
   if(pushAllowed&&!policy.smsOnly){for(const subscription of context.subscriptions){result.push.attempted++;const outcome=await sendPushToSubscription(subscription,pushPayload,{notificationType:request.notificationType,urgency:policy.urgency,correlationId});if(outcome.ok)result.push.accepted++;else result.push.failed++;}}
   const pushAvailable=result.push.accepted>0;const sendSmsNow=policy.smsImmediate||(policy.smsFallback&&!pushAvailable);
+  // Text bodies get the "BandWagon: " brand prefix inside sendTwilioNotification (enforceMobileMessageIntent). Push and email use request.body as written.
   if(sendSmsNow&&smsAllowed&&context.phone){result.messaging.attempted=true;try{const outcome=await sendTwilioNotification({to:context.phone,body:request.body,mode:"auto",personId:request.personId,organizationId:request.organizationId,notificationType:request.notificationType,urgency:policy.urgency,correlationId});result.messaging.accepted=outcome.ok;result.messaging.sid=outcome.sid;if(outcome.skipped)result.messaging.skipped=outcome.reason;result.messaging.estimatedCostCents=outcome.estimatedCostCents;}catch(error){result.messaging.error=error instanceof Error?error.message:"Messaging failed";}}
   else if(sendSmsNow&&!context.phone)result.messaging.skipped="No verified phone available";else if(sendSmsNow&&!smsAllowed)result.messaging.skipped="SMS/RCS disabled by notification preferences";
   // When the organization's monthly texting limit paused this text, email is

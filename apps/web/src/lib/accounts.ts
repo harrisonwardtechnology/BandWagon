@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { getDb } from "@/lib/db";
 import { decryptSensitive, encryptSensitive, lookupHash, randomPublicRef } from "@/lib/data-security";
 import { requireNormalizedPhone } from "@/lib/phone-format";
+import { verifiedPhoneOrderBy } from "@/lib/sms-consent-policy";
 
 export type HouseholdRole = "manager" | "adult" | "student" | "dependent";
 
@@ -143,7 +144,7 @@ export async function getVerifiedPhone(personId: string) {
     `select p.e164_ciphertext from phones p
       where p.person_id=$1 and p.verified_at is not null and p.messaging_consent_status='opted_in'
         and not exists(select 1 from sms_opt_outs r where r.lookup_hash=p.lookup_hash and r.state='opted_out')
-      order by p.verified_at desc limit 1`,
+      order by ${verifiedPhoneOrderBy("p")} limit 1`,
     [personId]
   );
   if (!result.rowCount) return null;
