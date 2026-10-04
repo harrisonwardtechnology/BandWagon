@@ -95,8 +95,10 @@ export async function triggerSafetyAlert(identity:SessionIdentity,input:{
 export async function listMySafetyContext(identity:SessionIdentity) {
   const db=dbRequired();
   const rides=await db.query(
+    // r.created_at must be in the select list: Postgres rejects SELECT DISTINCT
+    // with an ORDER BY column that is not selected.
     `select distinct r.id,r.public_ref,r.status,r.organization_id,e.title as event_title,
-            d.display_name as driver_name,p.display_name as passenger_name
+            d.display_name as driver_name,p.display_name as passenger_name,r.created_at
      from rides r
      join ride_requests rr on rr.id=r.ride_request_id
      join people d on d.id=r.driver_person_id

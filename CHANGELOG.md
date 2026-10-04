@@ -4,6 +4,10 @@
 
 ### October 2026 Known Issue Fixes
 
+- **Safety page fixed.** `/app/safety` sent every signed-in person back to the sign-in page. Its query used `SELECT DISTINCT` with an `ORDER BY` column that was not selected, Postgres rejected it, and the API reported the failure as "not signed in". The query is fixed, and a real failure now returns a plain message instead of a redirect or database text.
+- **Pickup verification adoption** on Usage And Cost Trends read a table that does not exist and always showed 0. It now reads `ride_pickup_handshakes`.
+- **New check: `npm run db:check-sql`.** Prepares every fixed SQL string in `src/` against the migrated database (nothing is run). CI runs it after migrations. It found the three queries above plus one unused function, which was removed.
+
 Messaging:
 
 - **Brand name in every text.** Every SMS/RCS body now starts with `BandWagon: ` (waitlist offers, route assist, "Your driver is on the way.", and the rest). Bodies that already start with "BandWagon" are left alone. Push and email are unchanged. `docs/SMS-CONSENT-AND-TEXTS.md`.

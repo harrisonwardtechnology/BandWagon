@@ -45,3 +45,12 @@ The test requires the same `DATABASE_URL`, `DATABASE_SSL`, and `AUTH_SECRET` use
 ## Still external
 
 Twilio and calendar-provider approval cannot be simulated by BandWagon. Keep their sandbox/provider checks separate. A restore drill remains available through `npm run ops:verify-backup-restore` and should run monthly against an isolated restore database.
+
+## Static SQL Check
+
+`npm run db:check-sql` prepares every fixed SQL string in `apps/web/src` against a migrated database. Nothing is executed. It fails on a missing table or column, or on SQL that Postgres rejects. Queries built with `${...}` are skipped and counted. CI runs it right after `db:verify`. Run it locally after any change to a query or a migration:
+
+```bash
+DATABASE_URL=postgresql://... DATABASE_SSL=false npm run db:check-sql
+```
+

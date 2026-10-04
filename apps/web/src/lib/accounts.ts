@@ -310,15 +310,6 @@ export async function recordAccountAudit(input: {
   );
 }
 
-export async function issuePublicAccountReference(personId: string) {
-  const db = getDb();
-  if (!db) throw new Error("Database is not configured");
-  const ref = randomPublicRef("person");
-  await db.query(`update people set public_ref=coalesce(public_ref,$1),updated_at=now() where id=$2`, [ref, personId]);
-  const result = await db.query(`select public_ref from people where id=$1`, [personId]);
-  return result.rows[0]?.public_ref || ref;
-}
-
 export function generateOtpCode() {
   return String(crypto.randomInt(0, 1_000_000)).padStart(6, "0");
 }
