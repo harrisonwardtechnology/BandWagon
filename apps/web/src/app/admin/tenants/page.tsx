@@ -6,9 +6,9 @@ export default function TenantsAdmin() {
   const [organizations,setOrganizations]=useState<any[]>([]);
   const [domainSetup,setDomainSetup]=useState<any>({automaticAvailable:false,manualAvailable:true});
   const [name,setName]=useState("FloMoGo");
-  const [slug,setSlug]=useState("flomogo");
+  const [slug,setSlug]=useState("");
   const [selectedOrg,setSelectedOrg]=useState("");
-  const [customDomain,setCustomDomain]=useState("flomogo.app");
+  const [customDomain,setCustomDomain]=useState("");
   const [setupMode,setSetupMode]=useState<"automatic"|"manual">("automatic");
   const [message,setMessage]=useState("");
   const [result,setResult]=useState<any>(null);

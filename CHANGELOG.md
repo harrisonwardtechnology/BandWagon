@@ -62,6 +62,11 @@ Config and docs:
 - **Offline page** has a dark version.
 - **Guard test:** `tests/theme-tokens.test.ts` fails on a hard-coded neutral color in a page.
 
+### October 2026 Address Reuse
+
+- **Removed communities free their web address** once outside cleanup finishes, instead of holding it for the 30-day retention period. A new community can sign up with the same address. Tested end to end on Postgres.
+- FloMoGo's default home is now `flomogo.bandwagon.club`, and the SaaS Tenants form no longer pre-fills FloMoGo.
+
 ### October 2026 Standards Gaps
 
 - **What's New page** at `/whats-new`, linked in the footer and listed in the sitemap. Entries live in `apps/web/src/lib/whats-new.ts` and are written for families, not developers.
