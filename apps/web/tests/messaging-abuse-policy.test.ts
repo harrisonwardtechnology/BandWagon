@@ -99,3 +99,10 @@ test("the status webhook records the delivered channel and keeps the requested o
   assert.match(lib,/'requestedChannel',coalesce\(metadata->>'requestedChannel',channel\)/);
   assert.match(lib,/where provider_message_id=\$1 and channel in \('sms','rcs'\)/);
 });
+
+test("delivered channel is only recorded from a delivery callback", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync("src/lib/twilio-status.ts", "utf8");
+  assert.match(src, /DELIVERED_STATUSES = new Set\(\["delivered", "read"\]\)/);
+  assert.match(src, /if \(!DELIVERED_STATUSES\.has\(status\)\) return/);
+});

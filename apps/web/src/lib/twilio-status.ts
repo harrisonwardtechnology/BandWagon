@@ -8,8 +8,15 @@ import type { TwilioForm } from "@/lib/twilio-form";
  * otherwise stay logged as RCS. Safe to run more than once for the same
  * callback. The first requested channel is kept in metadata.requestedChannel.
  */
+export const DELIVERED_STATUSES = new Set(["delivered", "read"]);
+
 export async function recordDeliveredChannelFromStatus(form: TwilioForm) {
   const sid = form.MessageSid || form.SmsSid;
+  // Only a delivery tells us the channel that really reached the phone. Twilio
+  // does not promise callback order, so a late "sent" or "failed" from the RCS
+  // attempt must not overwrite the SMS fallback that was delivered.
+  const status = String(form.MessageStatus || form.SmsStatus || "").toLowerCase();
+  if (!DELIVERED_STATUSES.has(status)) return { updated: 0, channel: null };
   const channel = deliveredMobileChannel({ from: form.From, channelPrefix: form.ChannelPrefix });
   if (!sid || !channel) return { updated: 0, channel };
   const db = getDb();
