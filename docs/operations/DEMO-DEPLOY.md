@@ -11,7 +11,7 @@ demo.bandwagon.club is a hand-built walkthrough with fake data (`demo/`). It is 
 1. In Coolify, go to **Settings** and turn on the **API**.
 2. Go to **Keys & Tokens**, then **API Tokens**. Create a token named `GitHub Demo Deploy` with only the **deploy** permission.
 3. In GitHub, go to BandWagon → **Settings** → **Secrets and variables** → **Actions**. Add a secret named `COOLIFY_DEPLOY_TOKEN` and paste the token. Don't put it anywhere else.
-4. The variables `COOLIFY_URL` and `COOLIFY_DEMO_APP_UUID` are already set.
+4. On the **Variables** tab, add `COOLIFY_URL` = `https://my.harrisonward.net` and `COOLIFY_DEMO_APP_UUID` = `spd4jmodbr4upnrqlxsmuu6w` (the BandWagon (Demo) app). These aren't secret.
 5. Run **Actions → Deploy Demo → Run workflow** once to test.
 
 Until the secret exists, the workflow skips with a notice instead of failing.
