@@ -45,19 +45,19 @@ export default function FeatureRequestsAdmin() {
     await load();
   }
 
-  const card = { marginTop: 14, padding: 18, border: "1px solid #dbe3ef", borderRadius: 16, background: "white" } as const;
-  const control = { padding: 8, borderRadius: 8, border: "1px solid #cbd5e1", font: "inherit" } as const;
-  const button = { padding: "10px 14px", border: 0, borderRadius: 9, background: "#101b33", color: "white", fontWeight: 800, cursor: "pointer" } as const;
+  const card = { marginTop: 14, padding: 18, border: "1px solid var(--line-2)", borderRadius: 16, background: "var(--surface)" } as const;
+  const control = { padding: 8, borderRadius: 8, border: "1px solid var(--line-strong)", font: "inherit" } as const;
+  const button = { padding: "10px 14px", border: 0, borderRadius: 9, background: "var(--btn-solid)", color: "var(--on-btn-solid)", fontWeight: 800, cursor: "pointer" } as const;
   const originals = requests.filter((r) => r.status !== "duplicate");
 
   return <main style={{ maxWidth: 1050, margin: "40px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif" }}>
-    <section style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
+    <section style={{ background: "var(--panel-solid)", color: "white", padding: 28, borderRadius: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1 }}>PLATFORM ADMIN</div>
       <h1 style={{ fontSize: 38, margin: "6px 0" }}>Feature Requests</h1>
       <p style={{ margin: 0, opacity: .9 }}>Review ideas, set their status, and leave a public note. New ideas stay private to the submitter until you move them to Under review or later.</p>
       <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
-        <a href="/admin/platform" style={{ color: "white", border: "1px solid #64748b", padding: "8px 12px", borderRadius: 9, fontWeight: 800, textDecoration: "none" }}>Platform Overview</a>
-        <a href="/help/ideas" style={{ color: "white", border: "1px solid #64748b", padding: "8px 12px", borderRadius: 9, fontWeight: 800, textDecoration: "none" }}>Public Ideas Page</a>
+        <a href="/admin/platform" style={{ color: "white", border: "1px solid var(--line-contrast)", padding: "8px 12px", borderRadius: 9, fontWeight: 800, textDecoration: "none" }}>Platform Overview</a>
+        <a href="/help/ideas" style={{ color: "white", border: "1px solid var(--line-contrast)", padding: "8px 12px", borderRadius: 9, fontWeight: 800, textDecoration: "none" }}>Public Ideas Page</a>
       </div>
     </section>
 
@@ -65,10 +65,10 @@ export default function FeatureRequestsAdmin() {
       <label>Status <select value={status} onChange={(e) => setStatus(e.target.value)} style={control}><option value="">All</option>{Object.entries(statuses).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
       <label>Category <select value={category} onChange={(e) => setCategory(e.target.value)} style={control}><option value="">All</option>{Object.entries(categories).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
       <label>Sort <select value={sort} onChange={(e) => setSort(e.target.value)} style={control}><option value="votes">Most Votes</option><option value="newest">Newest</option></select></label>
-      <span style={{ color: "#64748b" }}>{requests.length} shown</span>
+      <span style={{ color: "var(--text-muted)" }}>{requests.length} shown</span>
     </section>
 
-    {message && <p role="status" style={{ padding: 14, background: "#f8fafc", border: "1px solid #dbe3ef", borderRadius: 10 }}>{message}</p>}
+    {message && <p role="status" style={{ padding: 14, background: "var(--surface-2)", border: "1px solid var(--line-2)", borderRadius: 10 }}>{message}</p>}
     {requests.length === 0 && <section style={card}><p style={{ margin: 0 }}>No ideas match these filters.</p></section>}
 
     {requests.map((r) => {
@@ -79,15 +79,15 @@ export default function FeatureRequestsAdmin() {
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ minWidth: 0, flex: 1 }}>
             <h2 style={{ margin: 0, fontSize: 20, overflowWrap: "anywhere" }}>{r.title}</h2>
-            <div style={{ color: "#475569", fontSize: 14, marginTop: 4 }}>
+            <div style={{ color: "var(--text-3)", fontSize: 14, marginTop: 4 }}>
               <strong>{statuses[r.status] || r.status}</strong> · {categories[r.category] || r.category} · {r.vote_count} vote{Number(r.vote_count) === 1 ? "" : "s"} · sent {new Date(r.created_at).toLocaleString()}
             </div>
           </div>
           <button onClick={() => setOpenId(open ? "" : r.id)} style={{ alignSelf: "flex-start" }}>{open ? "Hide" : "Review"}</button>
         </div>
         {open && <div style={{ marginTop: 12 }}>
-          <div style={{ padding: 12, background: "#f8fafc", borderRadius: 10, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{r.details}</div>
-          <div style={{ fontSize: 14, color: "#475569", marginTop: 8 }}>
+          <div style={{ padding: 12, background: "var(--surface-2)", borderRadius: 10, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{r.details}</div>
+          <div style={{ fontSize: 14, color: "var(--text-3)", marginTop: 8 }}>
             Submitted by {r.submitter_name || "someone who was not signed in"}{r.submitter_email ? ` (${r.submitter_email})` : ""}{r.organization_name ? ` from ${r.organization_name}` : ""}.
             {r.status_changed_at && <> Last status change {new Date(r.status_changed_at).toLocaleString()}{r.status_changed_by_name ? ` by ${r.status_changed_by_name}` : ""}.</>}
             {r.duplicate_of_title && <> Duplicate of <strong>{r.duplicate_of_title}</strong>.</>}
@@ -99,12 +99,12 @@ export default function FeatureRequestsAdmin() {
                 <option value="">Choose The Original Idea</option>
                 {originals.filter((o) => o.id !== r.id).map((o) => <option key={o.id} value={o.id}>{o.title.slice(0, 90)} ({statuses[o.status] || o.status})</option>)}
               </select>
-              <span style={{ display: "block", fontSize: 13, color: "#64748b", marginTop: 4 }}>Votes move to the original idea. Only ideas in the current list appear here, so clear the filters if you cannot find it.</span>
+              <span style={{ display: "block", fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>Votes move to the original idea. Only ideas in the current list appear here, so clear the filters if you cannot find it.</span>
             </label>}
-            <label><strong>Public Note</strong> <span style={{ color: "#64748b" }}>(shown to everyone who can see this idea)</span>
-              <textarea value={d.note} onChange={(e) => setDraft(r, { note: e.target.value })} rows={3} maxLength={1000} style={{ display: "block", width: "100%", boxSizing: "border-box", padding: 10, marginTop: 6, border: "1px solid #cbd5e1", borderRadius: 8, font: "inherit" }} />
+            <label><strong>Public Note</strong> <span style={{ color: "var(--text-muted)" }}>(shown to everyone who can see this idea)</span>
+              <textarea value={d.note} onChange={(e) => setDraft(r, { note: e.target.value })} rows={3} maxLength={1000} style={{ display: "block", width: "100%", boxSizing: "border-box", padding: 10, marginTop: 6, border: "1px solid var(--line-strong)", borderRadius: 8, font: "inherit" }} />
             </label>
-            <p style={{ margin: 0, fontSize: 13, color: "#64748b" }}>Moving an idea to Planned, Shipped, or Not planned emails the submitter when we have a verified address.</p>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)" }}>Moving an idea to Planned, Shipped, or Not planned emails the submitter when we have a verified address.</p>
             <button disabled={working} onClick={() => save(r)} style={{ ...button, justifySelf: "start", opacity: working ? .6 : 1 }}>Save Changes</button>
           </div>
         </div>}

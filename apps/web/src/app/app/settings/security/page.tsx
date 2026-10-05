@@ -23,11 +23,11 @@ type Status = {
   passkeys: Passkey[];
 };
 
-const tab = { padding: "9px 12px", borderRadius: 9, background: "#f1f5f9", color: "#334155", textDecoration: "none", fontWeight: 800 } as const;
-const activeTab = { ...tab, background: "#101b33", color: "white" } as const;
-const primary = { border: 0, borderRadius: 10, padding: "11px 15px", fontWeight: 850, cursor: "pointer", background: "#101b33", color: "white" } as const;
-const secondary = { border: "1px solid #cbd5e1", borderRadius: 10, padding: "8px 12px", fontWeight: 750, cursor: "pointer", background: "white", color: "#334155" } as const;
-const input = { padding: "10px 12px", border: "1px solid #cbd5e1", borderRadius: 9, fontSize: 15, width: "100%", boxSizing: "border-box" as const };
+const tab = { padding: "9px 12px", borderRadius: 9, background: "var(--surface-3)", color: "var(--text-2)", textDecoration: "none", fontWeight: 800 } as const;
+const activeTab = { ...tab, background: "var(--btn-solid)", color: "var(--on-btn-solid)" } as const;
+const primary = { border: 0, borderRadius: 10, padding: "11px 15px", fontWeight: 850, cursor: "pointer", background: "var(--btn-solid)", color: "var(--on-btn-solid)" } as const;
+const secondary = { border: "1px solid var(--line-strong)", borderRadius: 10, padding: "8px 12px", fontWeight: 750, cursor: "pointer", background: "var(--surface)", color: "var(--text-2)" } as const;
+const input = { padding: "10px 12px", border: "1px solid var(--line-strong)", borderRadius: 9, fontSize: 15, width: "100%", boxSizing: "border-box" as const };
 
 function formatDate(value: string | null) {
   if (!value) return "Never";
@@ -121,36 +121,36 @@ export default function SecuritySettingsPage() {
     </nav>
 
     <section style={{ ...appCardStyle, marginBottom: 18 }}>
-      <div style={{ fontSize: 13, fontWeight: 950, letterSpacing: 1, color: "#64748b" }}>SECURITY</div>
+      <div style={{ fontSize: 13, fontWeight: 950, letterSpacing: 1, color: "var(--text-muted)" }}>SECURITY</div>
       <h1 style={{ margin: "7px 0" }}>Passkeys</h1>
-      <p style={{ color: "#475569", margin: "0 0 6px" }}>{PASSKEY_EXPLAINER} No code needed.</p>
-      <p style={{ color: "#64748b", margin: 0, fontSize: 14 }}>Your fingerprint or face never leaves your device. BandWagon only stores a public key. You can still sign in with a code at any time.</p>
+      <p style={{ color: "var(--text-3)", margin: "0 0 6px" }}>{PASSKEY_EXPLAINER} No code needed.</p>
+      <p style={{ color: "var(--text-muted)", margin: 0, fontSize: 14 }}>Your fingerprint or face never leaves your device. BandWagon only stores a public key. You can still sign in with a code at any time.</p>
     </section>
 
     {status && !status.enabled && <section style={{ ...appCardStyle, marginBottom: 18 }}>
-      <p style={{ margin: 0, color: "#475569" }}>Passkeys are not available on this address right now. You can keep signing in with a code.</p>
+      <p style={{ margin: 0, color: "var(--text-3)" }}>Passkeys are not available on this address right now. You can keep signing in with a code.</p>
     </section>}
 
     {status?.enabled && !readOnly && <section style={{ ...appCardStyle, marginBottom: 18 }}>
       <h2 style={{ marginTop: 0 }}>Add A Passkey</h2>
-      {!supported ? <p style={{ color: "#475569" }}>This browser does not support passkeys. Try the latest Safari, Chrome, Edge, or Firefox.</p>
+      {!supported ? <p style={{ color: "var(--text-3)" }}>This browser does not support passkeys. Try the latest Safari, Chrome, Edge, or Firefox.</p>
         : !status.recentSignIn ? <>
-          <p style={{ color: "#475569" }}>To keep your account safe, sign in again before adding a passkey. It only takes a moment.</p>
+          <p style={{ color: "var(--text-3)" }}>To keep your account safe, sign in again before adding a passkey. It only takes a moment.</p>
           <button onClick={signInAgain} style={primary}>Sign In Again</button>
         </> : <>
-          <label htmlFor="passkey-name" style={{ fontWeight: 750, display: "block", marginBottom: 6 }}>Name This Passkey <span style={{ fontWeight: 400, color: "#64748b" }}>(Optional)</span></label>
+          <label htmlFor="passkey-name" style={{ fontWeight: 750, display: "block", marginBottom: 6 }}>Name This Passkey <span style={{ fontWeight: 400, color: "var(--text-muted)" }}>(Optional)</span></label>
           <input id="passkey-name" value={nickname} maxLength={PASSKEY_NICKNAME_MAX} onChange={(e) => setNickname(e.target.value)} placeholder="For example, My iPhone" style={{ ...input, maxWidth: 360, marginBottom: 12, display: "block" }} />
           <button onClick={addPasskey} disabled={working === "add"} style={{ ...primary, opacity: working === "add" ? .65 : 1 }}>{working === "add" ? "Waiting For Your Device…" : "Add A Passkey"}</button>
-          {status.rpId && <p style={{ fontSize: 13, color: "#64748b", marginBottom: 0 }}>This passkey will work on {status.rpId}{status.rpId === "bandwagon.club" ? " and every community site ending in .bandwagon.club" : ""}.</p>}
+          {status.rpId && <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 0 }}>This passkey will work on {status.rpId}{status.rpId === "bandwagon.club" ? " and every community site ending in .bandwagon.club" : ""}.</p>}
         </>}
     </section>}
 
     <section style={{ ...appCardStyle, marginBottom: 18 }}>
       <h2 style={{ marginTop: 0 }}>Your Passkeys</h2>
-      {!status ? <p style={{ color: "#64748b" }}>Loading…</p>
-        : status.passkeys.length === 0 ? <p style={{ color: "#64748b", margin: 0 }}>You have not added any passkeys yet.</p>
+      {!status ? <p style={{ color: "var(--text-muted)" }}>Loading…</p>
+        : status.passkeys.length === 0 ? <p style={{ color: "var(--text-muted)", margin: 0 }}>You have not added any passkeys yet.</p>
         : <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 12 }}>
-          {status.passkeys.map((passkey) => <li key={passkey.id} style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 14 }}>
+          {status.passkeys.map((passkey) => <li key={passkey.id} style={{ border: "1px solid var(--line)", borderRadius: 12, padding: 14 }}>
             {editing?.id === passkey.id ? <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
               <label htmlFor={`rename-${passkey.id}`} style={{ position: "absolute", left: -9999 }}>New Name</label>
               <input id={`rename-${passkey.id}`} value={editing.value} maxLength={PASSKEY_NICKNAME_MAX} onChange={(e) => setEditing({ id: passkey.id, value: e.target.value })} style={{ ...input, maxWidth: 280 }} />
@@ -159,22 +159,22 @@ export default function SecuritySettingsPage() {
             </div> : <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
               <div>
                 <div style={{ fontWeight: 850 }}>{passkey.nickname}</div>
-                <div style={{ fontSize: 13, color: "#64748b", marginTop: 3 }}>
+                <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 3 }}>
                   Added {formatDate(passkey.createdAt)} · Last used {formatDate(passkey.lastUsedAt)}{passkey.synced ? " · Synced across your devices" : ""}
                 </div>
-                <div style={{ fontSize: 13, color: passkey.worksHere ? "#15803d" : "#64748b", marginTop: 3 }}>
+                <div style={{ fontSize: 13, color: passkey.worksHere ? "var(--text-success)" : "var(--text-muted)", marginTop: 3 }}>
                   {passkey.worksHere ? "Works on this site" : `Works on ${passkey.rpId}`}
                 </div>
               </div>
               {!readOnly && <div style={{ display: "flex", gap: 8 }}>
                 <button onClick={() => setEditing({ id: passkey.id, value: passkey.nickname })} style={secondary}>Rename</button>
-                <button onClick={() => remove(passkey)} disabled={working === `remove:${passkey.id}`} style={{ ...secondary, color: "#b91c1c", borderColor: "#fecaca" }}>Remove</button>
+                <button onClick={() => remove(passkey)} disabled={working === `remove:${passkey.id}`} style={{ ...secondary, color: "var(--text-danger)", borderColor: "var(--line-danger)" }}>Remove</button>
               </div>}
             </div>}
           </li>)}
         </ul>}
     </section>
 
-    {message && <div role="status" style={{ padding: 13, borderRadius: 10, background: "#eef2ff", color: "#1e293b" }}>{message}</div>}
+    {message && <div role="status" style={{ padding: 13, borderRadius: 10, background: "var(--bg-info-2)", color: "var(--text)" }}>{message}</div>}
   </main>;
 }

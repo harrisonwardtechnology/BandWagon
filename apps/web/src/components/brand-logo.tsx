@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+// The full wordmark has a navy "Band", so a light version is swapped in when
+// the device is in dark mode. The compact icon works on both.
 export function BrandLogo({
   compact = false,
   href = "/",
@@ -12,7 +14,7 @@ export function BrandLogo({
   className?: string;
   priority?: boolean;
 }) {
-  const image = (
+  const img = (
     <Image
       src={compact ? "/bandwagon-icon.svg" : "/bandwagon-logo.svg"}
       alt="BandWagon"
@@ -21,6 +23,12 @@ export function BrandLogo({
       className={`brand-logo ${compact ? "brand-logo-mark" : "brand-logo-full"} ${className}`.trim()}
       priority={priority}
     />
+  );
+  const image = compact ? img : (
+    <picture>
+      <source srcSet="/bandwagon-logo-dark.svg" media="(prefers-color-scheme: dark)" />
+      {img}
+    </picture>
   );
 
   return href ? (

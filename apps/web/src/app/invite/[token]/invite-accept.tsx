@@ -35,12 +35,12 @@ export default function InviteAccept({ token }: { token: string }) {
     setAccepted(d);
   }
 
-  const card = { marginTop: 18, padding: 22, border: "1px solid #dbe3ef", borderRadius: 16, background: "white" } as const;
-  const button = { padding: "12px 18px", border: 0, borderRadius: 10, background: "#101b33", color: "white", fontWeight: 800, cursor: "pointer", textDecoration: "none", display: "inline-block" } as const;
+  const card = { marginTop: 18, padding: 22, border: "1px solid var(--line-2)", borderRadius: 16, background: "var(--surface)" } as const;
+  const button = { padding: "12px 18px", border: 0, borderRadius: 10, background: "var(--btn-solid)", color: "var(--on-btn-solid)", fontWeight: 800, cursor: "pointer", textDecoration: "none", display: "inline-block" } as const;
   const roleLabel = invitation?.role === "admin" ? "an admin" : "a manager";
 
   return <main style={{ maxWidth: 680, margin: "40px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif" }}>
-    <section style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
+    <section style={{ background: "var(--panel-solid)", color: "white", padding: 28, borderRadius: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1 }}>BANDWAGON</div>
       <h1 style={{ fontSize: 34, margin: "6px 0" }}>{invitation ? `Join ${invitation.organizationName}` : "Invitation"}</h1>
       {invitation && <p style={{ margin: 0, opacity: .9 }}>You were invited to help run this community as {roleLabel}.</p>}
@@ -62,9 +62,9 @@ export default function InviteAccept({ token }: { token: string }) {
       <p style={{ marginTop: 0 }}>This invitation was sent to <strong>{invitation.emailHint}</strong>. Sign in with that email address to accept it.</p>
       {signedIn
         ? <button disabled={working} onClick={accept} style={{ ...button, opacity: working ? .6 : 1 }}>{working ? "Accepting..." : "Accept Invitation"}</button>
-        : <><a href="/login" style={button}>Sign In</a><p style={{ color: "#475569", fontSize: 14 }}>After you sign in, open this link again from your email.</p></>}
+        : <><a href="/login" style={button}>Sign In</a><p style={{ color: "var(--text-3)", fontSize: 14 }}>After you sign in, open this link again from your email.</p></>}
     </section>}
 
-    {error && <p role="alert" style={{ padding: 14, background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10 }}>{error}</p>}
+    {error && <p role="alert" style={{ padding: 14, background: "var(--bg-danger)", border: "1px solid var(--line-danger)", borderRadius: 10 }}>{error}</p>}
   </main>;
 }

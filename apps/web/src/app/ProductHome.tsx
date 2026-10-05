@@ -1,3 +1,4 @@
+import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { JsonLd } from "@/components/json-ld";
 import { productJsonLd } from "@/lib/json-ld";
@@ -57,7 +58,7 @@ export const faqs = [
   ["What if we stop using BandWagon?", "An organization can close its community. Open requests are cancelled, the web address is turned off, and after a confirmation step and a holding period (30 days by default) the community's data is deleted. Families who also belong to other BandWagon communities keep their accounts."],
 ] as const;
 
-const card = { padding: 24, border: "1px solid #dbe3ef", borderRadius: 20, background: "#fff", boxShadow: "0 12px 36px rgba(7,26,51,.055)" } as const;
+const card = { padding: 24, border: "1px solid var(--line-2)", borderRadius: 20, background: "var(--surface)", boxShadow: "0 12px 36px rgba(7,26,51,.055)" } as const;
 const grid = (min: number) => ({ display: "grid", gridTemplateColumns: `repeat(auto-fit,minmax(${min}px,1fr))`, gap: 16 }) as const;
 
 export default function ProductHome() {
@@ -74,7 +75,7 @@ export default function ProductHome() {
             Free for organizations and families.
           </p>
           <div className="actions">
-            <Link className="button" href="/start">Start A Community <span aria-hidden="true">→</span></Link>
+            <Link className="button" href="/start">Start A Community <ArrowRight className="icon" aria-hidden="true" /></Link>
             <a className="button ghost" href={DEMO_URL} target="_blank" rel="noreferrer">Try The Demo<span className="sr-only"> (opens in a new tab)</span></a>
             <Link className="button ghost" href="/login">Sign In</Link>
           </div>
@@ -89,9 +90,9 @@ export default function ProductHome() {
           <ol className="ride-steps">
             <li><span className="step-icon">1</span><div><strong>Request Made</strong><small>General Area Shared</small></div><time>8:10 AM</time></li>
             <li><span className="step-icon">2</span><div><strong>Eligible Driver Matched</strong><small>Guardian Approved</small></div><time>8:22 AM</time></li>
-            <li><span className="step-icon verified">✓</span><div><strong>Pickup Verified</strong><small>Exact Details Stay Private</small></div><time>9:00 AM</time></li>
+            <li><span className="step-icon verified"><Check className="icon" aria-hidden="true" /></span><div><strong>Pickup Verified</strong><small>Exact Details Stay Private</small></div><time>9:00 AM</time></li>
           </ol>
-          <div className="privacy-chip"><span aria-hidden="true">◆</span><div><strong>Privacy By Design</strong><small>No Passive Location Tracking</small></div></div>
+          <div className="privacy-chip"><span aria-hidden="true"><ShieldCheck className="icon" aria-hidden="true" /></span><div><strong>Privacy By Design</strong><small>No Passive Location Tracking</small></div></div>
         </div>
       </section>
 
@@ -116,7 +117,7 @@ export default function ProductHome() {
           {audiences.map(([title, body]) => (
             <li key={title} style={card}>
               <h3 style={{ margin: "0 0 8px", fontSize: 20 }}>{title}</h3>
-              <p style={{ margin: 0, color: "#5b6a7e", lineHeight: 1.6 }}>{body}</p>
+              <p style={{ margin: 0, color: "var(--text-muted)", lineHeight: 1.6 }}>{body}</p>
             </li>
           ))}
         </ul>
@@ -133,7 +134,7 @@ export default function ProductHome() {
             <li key={title} style={card}>
               <span className="feature-number">STEP {index + 1}</span>
               <h3 style={{ margin: "14px 0 8px", fontSize: 21 }}>{title}</h3>
-              <p style={{ margin: 0, color: "#5b6a7e", lineHeight: 1.6 }}>{body}</p>
+              <p style={{ margin: 0, color: "var(--text-muted)", lineHeight: 1.6 }}>{body}</p>
             </li>
           ))}
         </ol>
@@ -149,7 +150,7 @@ export default function ProductHome() {
           {safety.map(([title, body]) => (
             <article key={title} style={card}>
               <h3 style={{ margin: "0 0 8px", fontSize: 20 }}>{title}</h3>
-              <p style={{ margin: 0, color: "#5b6a7e", lineHeight: 1.6 }}>{body}</p>
+              <p style={{ margin: 0, color: "var(--text-muted)", lineHeight: 1.6 }}>{body}</p>
             </article>
           ))}
         </div>
@@ -165,17 +166,17 @@ export default function ProductHome() {
               <Link href="/legal/subprocessors">list of service providers</Link>.
             </p>
           </div>
-          <ul style={{ ...card, margin: 0, paddingLeft: 44, color: "#243853", lineHeight: 1.9, fontWeight: 650 }}>
+          <ul style={{ ...card, margin: 0, paddingLeft: 44, color: "var(--text)", lineHeight: 1.9, fontWeight: 650 }}>
             {privacy.map((item) => <li key={item}>{item}</li>)}
           </ul>
         </div>
       </section>
 
       <section className="feature-section" aria-labelledby="cost-heading">
-        <div style={{ ...card, background: "#fffaf0", borderColor: "#ebd8b4" }}>
+        <div style={{ ...card, background: "var(--bg-cream)", borderColor: "var(--line-warn)" }}>
           <div className="eyebrow">Cost</div>
-          <h2 id="cost-heading" style={{ margin: "8px 0 10px", fontSize: 30, color: "#101b33" }}>Free for organizations and families.</h2>
-          <p style={{ margin: 0, color: "#5b6a7e", lineHeight: 1.65, maxWidth: 820 }}>
+          <h2 id="cost-heading" style={{ margin: "8px 0 10px", fontSize: 30, color: "var(--text)" }}>Free for organizations and families.</h2>
+          <p style={{ margin: 0, color: "var(--text-muted)", lineHeight: 1.65, maxWidth: 820 }}>
             There is no fee to start a community or to use it. BandWagon is supported by optional donations and by local sponsors.
             Giving is never required, never changes who gets a ride, and never buys access to anyone's data.{" "}
             <Link href="/support">Support BandWagon</Link>.
@@ -191,9 +192,9 @@ export default function ProductHome() {
         </div>
         <div style={{ ...card, padding: "6px 24px" }}>
           {faqs.map(([question, answer], index) => (
-            <details key={question} style={{ borderTop: index ? "1px solid #dbe3ef" : "none", padding: "16px 0" }}>
-              <summary style={{ cursor: "pointer", fontWeight: 850, fontSize: 18, color: "#101b33" }}>{question}</summary>
-              <p style={{ margin: "10px 0 0", color: "#5b6a7e", lineHeight: 1.65 }}>{answer}</p>
+            <details key={question} style={{ borderTop: index ? "1px solid var(--line-2)" : "none", padding: "16px 0" }}>
+              <summary style={{ cursor: "pointer", fontWeight: 850, fontSize: 18, color: "var(--text)" }}>{question}</summary>
+              <p style={{ margin: "10px 0 0", color: "var(--text-muted)", lineHeight: 1.65 }}>{answer}</p>
             </details>
           ))}
         </div>

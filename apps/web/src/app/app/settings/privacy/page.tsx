@@ -142,43 +142,43 @@ export default function PrivacySettingsPage() {
     <main style={appPageStyle}>
       <AppNav active="Settings" />
       <nav aria-label="Settings sections" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
-        <a href="/app/settings/notifications" style={{ padding: "9px 12px", borderRadius: 9, background: "#f1f5f9", color: "#334155", textDecoration: "none", fontWeight: 800 }}>Notifications</a>
-        <a href="/app/settings/privacy" aria-current="page" style={{ padding: "9px 12px", borderRadius: 9, background: "#101b33", color: "white", textDecoration: "none", fontWeight: 800 }}>Privacy &amp; Data</a>
-        <a href="/app/settings/security" style={{padding:"9px 12px",borderRadius:9,background:"#f1f5f9",color:"#334155",textDecoration:"none",fontWeight:800}}>Security</a><a href="/help/ideas" style={{ padding: "9px 12px", borderRadius: 9, background: "#f1f5f9", color: "#334155", textDecoration: "none", fontWeight: 800 }}>Suggest A Feature</a>
-        <a href="/help" style={{ padding: "9px 12px", borderRadius: 9, background: "#f1f5f9", color: "#334155", textDecoration: "none", fontWeight: 800 }}>Help</a>
+        <a href="/app/settings/notifications" style={{ padding: "9px 12px", borderRadius: 9, background: "var(--surface-3)", color: "var(--text-2)", textDecoration: "none", fontWeight: 800 }}>Notifications</a>
+        <a href="/app/settings/privacy" aria-current="page" style={{ padding: "9px 12px", borderRadius: 9, background: "var(--btn-solid)", color: "var(--on-btn-solid)", textDecoration: "none", fontWeight: 800 }}>Privacy &amp; Data</a>
+        <a href="/app/settings/security" style={{padding:"9px 12px",borderRadius:9,background:"var(--surface-3)",color:"var(--text-2)",textDecoration:"none",fontWeight:800}}>Security</a><a href="/help/ideas" style={{ padding: "9px 12px", borderRadius: 9, background: "var(--surface-3)", color: "var(--text-2)", textDecoration: "none", fontWeight: 800 }}>Suggest A Feature</a>
+        <a href="/help" style={{ padding: "9px 12px", borderRadius: 9, background: "var(--surface-3)", color: "var(--text-2)", textDecoration: "none", fontWeight: 800 }}>Help</a>
       </nav>
 
       <section style={{ ...appCardStyle, marginBottom: 18 }}>
-        <div style={{ fontSize: 13, fontWeight: 950, letterSpacing: 1, color: "#64748b" }}>PRIVACY &amp; DATA</div>
+        <div style={{ fontSize: 13, fontWeight: 950, letterSpacing: 1, color: "var(--text-muted)" }}>PRIVACY &amp; DATA</div>
         <h1 style={{ margin: "7px 0" }}>Your information stays under your control.</h1>
-        <p style={{ color: "#475569", marginBottom: 0 }}>
+        <p style={{ color: "var(--text-3)", marginBottom: 0 }}>
           Download a copy of your BandWagon data or schedule deletion of your account. Exact ride addresses are automatically queued for removal after the organization&apos;s retention window.
         </p>
       </section>
 
       <section style={{ ...appCardStyle, marginBottom: 18 }}>
         <h2 style={{ marginTop: 0 }}>Download My Data</h2>
-        <p style={{ color: "#475569" }}>
+        <p style={{ color: "var(--text-3)" }}>
           Get a JSON file containing your profile, contacts, memberships, household relationships, ride history, private locations, credential metadata, notifications, consents, and account activity. Credential file contents are not embedded.
         </p>
-        <button type="button" onClick={exportData} disabled={Boolean(working)} style={{ ...buttonStyle, background: "#101b33", color: "white", opacity: working ? 0.65 : 1 }}>
+        <button type="button" onClick={exportData} disabled={Boolean(working)} style={{ ...buttonStyle, background: "var(--btn-solid)", color: "var(--on-btn-solid)", opacity: working ? 0.65 : 1 }}>
           {working === "export" ? "Preparing Export..." : "Download My Data"}
         </button>
       </section>
 
-      <section style={{ ...appCardStyle, marginBottom: 18, borderColor: "#fecaca" }}>
+      <section style={{ ...appCardStyle, marginBottom: 18, borderColor: "var(--line-danger)" }}>
         <h2 style={{ marginTop: 0 }}>Delete My Account</h2>
         {loading ? (
           <p>Checking account status...</p>
         ) : activeDeletion ? (
           <div>
-            <div style={{ padding: 14, borderRadius: 10, background: activeDeletion.status === "failed" ? "#fff7ed" : "#fef2f2", marginBottom: 14 }}>
+            <div style={{ padding: 14, borderRadius: 10, background: activeDeletion.status === "failed" ? "var(--bg-warn)" : "var(--bg-danger)", marginBottom: 14 }}>
               <strong>Deletion status: {activeDeletion.status.replaceAll("_", " ")}</strong>
-              <div style={{ marginTop: 5, color: "#475569" }}>Scheduled for: {formatDate(activeDeletion.scheduled_for)}</div>
-              {activeDeletion.last_error && <div style={{ marginTop: 5, color: "#9a3412" }}>{activeDeletion.last_error}</div>}
+              <div style={{ marginTop: 5, color: "var(--text-3)" }}>Scheduled for: {formatDate(activeDeletion.scheduled_for)}</div>
+              {activeDeletion.last_error && <div style={{ marginTop: 5, color: "var(--text-warn)" }}>{activeDeletion.last_error}</div>}
             </div>
             {cancellableDeletionStatuses.has(activeDeletion.status) && (
-              <button type="button" onClick={() => cancelDeletion(activeDeletion.id)} disabled={Boolean(working)} style={{ ...buttonStyle, background: "white", color: "#991b1b", border: "1px solid #ef4444" }}>
+              <button type="button" onClick={() => cancelDeletion(activeDeletion.id)} disabled={Boolean(working)} style={{ ...buttonStyle, background: "var(--surface)", color: "var(--text-danger-strong)", border: "1px solid #ef4444" }}>
                 {working === "cancel" ? "Cancelling..." : "Cancel Account Deletion"}
               </button>
             )}
@@ -186,11 +186,11 @@ export default function PrivacySettingsPage() {
           </div>
         ) : (
           <>
-            <p style={{ color: "#475569" }}>
+            <p style={{ color: "var(--text-3)" }}>
               Deletion starts after a configurable grace period, normally seven days. You can cancel before processing starts. Sign-in data and direct personal information are removed; minimum de-identified safety, security, billing, and ride-integrity records may remain.
             </p>
             {blockers.length > 0 && (
-              <div style={{ padding: 14, background: "#fff7ed", borderRadius: 10, marginBottom: 16 }}>
+              <div style={{ padding: 14, background: "var(--bg-warn)", borderRadius: 10, marginBottom: 16 }}>
                 <strong>Account deletion is currently blocked:</strong>
                 <ul style={{ marginBottom: 0 }}>
                   {blockers.map((blocker) => (
@@ -211,7 +211,7 @@ export default function PrivacySettingsPage() {
               onChange={(event) => setConfirmation(event.target.value)}
               autoComplete="off"
               spellCheck={false}
-              style={{ width: "100%", boxSizing: "border-box", padding: 11, border: "1px solid #cbd5e1", borderRadius: 9, marginBottom: 12 }}
+              style={{ width: "100%", boxSizing: "border-box", padding: 11, border: "1px solid var(--line-strong)", borderRadius: 9, marginBottom: 12 }}
             />
             <button
               type="button"
@@ -231,9 +231,9 @@ export default function PrivacySettingsPage() {
           <p>No privacy requests yet.</p>
         ) : (
           requests.map((request) => (
-            <div key={request.id} style={{ padding: "10px 0", borderBottom: "1px solid #e2e8f0" }}>
+            <div key={request.id} style={{ padding: "10px 0", borderBottom: "1px solid var(--line)" }}>
               <strong>{request.request_type === "export" ? "Data Export" : "Account Deletion"}</strong>
-              <div style={{ marginTop: 3, fontSize: 13, color: "#64748b" }}>
+              <div style={{ marginTop: 3, fontSize: 13, color: "var(--text-muted)" }}>
                 {request.status.replaceAll("_", " ")} - requested {formatDate(request.requested_at)}
               </div>
             </div>
@@ -245,7 +245,7 @@ export default function PrivacySettingsPage() {
       </section>
 
       <div aria-live="polite">
-        {message && <div style={{ position: "fixed", right: 20, bottom: 20, maxWidth: 500, padding: 14, borderRadius: 12, background: "#101b33", color: "white" }}>{message}</div>}
+        {message && <div style={{ position: "fixed", right: 20, bottom: 20, maxWidth: 500, padding: 14, borderRadius: 12, background: "var(--panel-solid)", color: "white" }}>{message}</div>}
       </div>
     </main>
   );

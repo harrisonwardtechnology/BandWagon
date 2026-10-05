@@ -7,8 +7,8 @@ import TurnstileWidget from "@/components/turnstile-widget";
 // raw HTML, and links in ideas are never turned into anchors.
 
 type Row = Record<string, any>;
-const inputStyle = { width: "100%", padding: 11, border: "1px solid #cbd5e1", borderRadius: 9, boxSizing: "border-box" as const, marginTop: 5, font: "inherit" };
-const card = { background: "white", border: "1px solid #e2e8f0", borderRadius: 16, padding: 18 } as const;
+const inputStyle = { width: "100%", padding: 11, border: "1px solid var(--line-strong)", borderRadius: 9, boxSizing: "border-box" as const, marginTop: 5, font: "inherit" };
+const card = { background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 18 } as const;
 const STATUS_COLORS: Record<string, string> = { new: "#64748b", under_review: "#1d4ed8", planned: "#7c3aed", in_progress: "#b45309", shipped: "#166534", declined: "#9f1239", duplicate: "#475569" };
 
 export default function FeatureIdeas() {
@@ -68,20 +68,20 @@ export default function FeatureIdeas() {
   const votable = new Set(["under_review", "planned", "in_progress"]);
   const board = requests.filter((r) => ["under_review", "planned", "in_progress", "shipped"].includes(r.status));
   const badge = (status: string) => <span style={{ display: "inline-block", padding: "3px 9px", borderRadius: 999, fontSize: 12, fontWeight: 800, color: "white", background: STATUS_COLORS[status] || "#475569" }}>{statuses[status] || status}</span>;
-  const errorText = (key: string) => fields[key] ? <div style={{ color: "#9a3412", fontSize: 13, marginTop: 4 }}>{fields[key]}</div> : null;
+  const errorText = (key: string) => fields[key] ? <div style={{ color: "var(--text-warn)", fontSize: 13, marginTop: 4 }}>{fields[key]}</div> : null;
 
   const ideaCard = (r: Row, showVote: boolean) => (
-    <article key={r.id} style={{ borderTop: "1px solid #e2e8f0", padding: "14px 0", display: "flex", gap: 14, alignItems: "flex-start" }}>
+    <article key={r.id} style={{ borderTop: "1px solid var(--line)", padding: "14px 0", display: "flex", gap: 14, alignItems: "flex-start" }}>
       {showVote && <button onClick={() => vote(r)} disabled={!votable.has(r.status) && !r.has_voted} aria-pressed={Boolean(r.has_voted)} aria-label={`${r.has_voted ? "Remove your vote for" : "Vote for"} ${r.title}`}
-        style={{ minWidth: 64, padding: "8px 6px", borderRadius: 10, border: "1px solid #cbd5e1", background: r.has_voted ? "#101b33" : "white", color: r.has_voted ? "white" : "#101b33", cursor: "pointer", fontWeight: 900 }}>
+        style={{ minWidth: 64, padding: "8px 6px", borderRadius: 10, border: "1px solid var(--line-strong)", background: r.has_voted ? "var(--btn-solid)" : "var(--surface)", color: r.has_voted ? "var(--on-btn-solid)" : "var(--text)", cursor: "pointer", fontWeight: 900 }}>
         <div style={{ fontSize: 20 }}>{r.vote_count}</div><div style={{ fontSize: 11 }}>{r.has_voted ? "Voted" : "Vote"}</div>
       </button>}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}><strong style={{ fontSize: 17 }}>{r.title}</strong>{badge(r.status)}</div>
-        <div style={{ fontSize: 13, color: "#64748b", marginTop: 3 }}>{categories[r.category] || r.category} · {new Date(r.created_at).toLocaleDateString()}{r.mine ? " · Your idea" : ""}</div>
-        <p style={{ color: "#334155", whiteSpace: "pre-wrap", overflowWrap: "anywhere", margin: "8px 0 0" }}>{r.details}</p>
-        {r.public_note && <p style={{ margin: "8px 0 0", padding: 10, background: "#eff6ff", borderRadius: 9, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}><strong>From the BandWagon team:</strong> {r.public_note}</p>}
-        {r.status === "duplicate" && <p style={{ margin: "8px 0 0", color: "#475569" }}>This idea was merged with {r.duplicate_of_title ? <strong>{r.duplicate_of_title}</strong> : "an earlier idea"}. Your vote moved with it.</p>}
+        <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 3 }}>{categories[r.category] || r.category} · {new Date(r.created_at).toLocaleDateString()}{r.mine ? " · Your idea" : ""}</div>
+        <p style={{ color: "var(--text-2)", whiteSpace: "pre-wrap", overflowWrap: "anywhere", margin: "8px 0 0" }}>{r.details}</p>
+        {r.public_note && <p style={{ margin: "8px 0 0", padding: 10, background: "var(--bg-info)", borderRadius: 9, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}><strong>From the BandWagon team:</strong> {r.public_note}</p>}
+        {r.status === "duplicate" && <p style={{ margin: "8px 0 0", color: "var(--text-3)" }}>This idea was merged with {r.duplicate_of_title ? <strong>{r.duplicate_of_title}</strong> : "an earlier idea"}. Your vote moved with it.</p>}
       </div>
     </article>
   );
@@ -89,7 +89,7 @@ export default function FeatureIdeas() {
   return <>
     <section style={{ ...card, marginBottom: 18 }} aria-labelledby="suggest-title">
       <h2 id="suggest-title" style={{ marginTop: 0 }}>Suggest A Feature</h2>
-      <p style={{ color: "#475569" }}>Tell us what would make BandWagon work better for your family, drivers, or organization. Please do not include names, addresses, phone numbers, or other personal details about anyone.</p>
+      <p style={{ color: "var(--text-3)" }}>Tell us what would make BandWagon work better for your family, drivers, or organization. Please do not include names, addresses, phone numbers, or other personal details about anyone.</p>
       {loaded && !signedIn && !siteKey
         ? <p><strong>The public idea form is temporarily unavailable.</strong> <a href="/login">Sign in</a> to suggest a feature.</p>
         : <form onSubmit={submit} style={{ display: "grid", gap: 13 }}>
@@ -98,15 +98,15 @@ export default function FeatureIdeas() {
           <label><strong>Category</strong><select name="category" required defaultValue="rides" style={inputStyle}>{Object.entries(categories).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>{errorText("category")}</label>
           <label><strong>Details</strong><textarea name="details" required minLength={10} maxLength={limits.detailsMax} rows={6} style={{ ...inputStyle, resize: "vertical" }} placeholder="What are you trying to do, and what gets in the way today?" />{errorText("details")}</label>
           {loaded && !signedIn && <>
-            <label><strong>Your Email</strong><input name="email" type="email" required maxLength={320} autoComplete="email" style={inputStyle} /><span style={{ display: "block", fontSize: 13, color: "#64748b", marginTop: 4 }}>Used only to tell you about this idea. It is stored encrypted and never shown publicly.</span>{errorText("email")}</label>
+            <label><strong>Your Email</strong><input name="email" type="email" required maxLength={320} autoComplete="email" style={inputStyle} /><span style={{ display: "block", fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>Used only to tell you about this idea. It is stored encrypted and never shown publicly.</span>{errorText("email")}</label>
             <TurnstileWidget action="feature_request" onToken={setToken} resetKey={resetKey} />
           </>}
           <button disabled={working || !loaded || (!signedIn && !token)} style={{ justifySelf: "start", padding: "12px 18px", border: 0, borderRadius: 10, background: "#2458d8", color: "white", fontWeight: 900, cursor: "pointer" }}>{working ? "Sending..." : "Send My Idea"}</button>
         </form>}
-      {message && <div role="status" aria-live="polite" style={{ marginTop: 12, padding: 12, borderRadius: 10, background: success ? "#ecfdf5" : "#fff7ed", color: success ? "#166534" : "#9a3412" }}>{message}</div>}
+      {message && <div role="status" aria-live="polite" style={{ marginTop: 12, padding: 12, borderRadius: 10, background: success ? "var(--bg-success)" : "var(--bg-warn)", color: success ? "var(--text-success)" : "var(--text-warn)" }}>{message}</div>}
     </section>
 
-    {loaded && !signedIn && <section style={{ ...card, background: "#eff6ff", borderColor: "#bfdbfe" }}>
+    {loaded && !signedIn && <section style={{ ...card, background: "var(--bg-info)", borderColor: "var(--line-info)" }}>
       <h2 style={{ marginTop: 0 }}>See What Others Have Suggested</h2>
       <p style={{ marginBottom: 0 }}><a href="/login"><strong>Sign in</strong></a> to browse ideas the team is reviewing, vote for the ones you want most, and follow the status of your own ideas.</p>
     </section>}
@@ -124,7 +124,7 @@ export default function FeatureIdeas() {
           <label>Category <select value={category} onChange={(e) => { setCategory(e.target.value); void load(sort, e.target.value); }} style={{ padding: 7, borderRadius: 8 }}><option value="">All</option>{Object.entries(categories).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         </div>
       </div>
-      <p style={{ color: "#64748b", fontSize: 14 }}>Vote for the ideas that matter most to you. One vote per person. New ideas appear here after the team reviews them.</p>
+      <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Vote for the ideas that matter most to you. One vote per person. New ideas appear here after the team reviews them.</p>
       {board.length === 0 && <p>No ideas here yet.</p>}
       {board.map((r) => ideaCard(r, true))}
     </section>}

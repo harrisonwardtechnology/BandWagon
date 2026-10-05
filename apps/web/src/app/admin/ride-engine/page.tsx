@@ -31,9 +31,9 @@ export default function RideEngineAdminPage() {
   const [actorPersonId,setActorPersonId] = useState("");
 
   const headers = {"content-type":"application/json"};
-  const card = { border:"1px solid #dbe3ef",borderRadius:16,padding:20,marginTop:20 } as const;
-  const input = { width:"100%",padding:10,border:"1px solid #cbd5e1",borderRadius:8,margin:"6px 0 12px" } as const;
-  const button = { padding:"10px 14px",borderRadius:9,border:"1px solid #cbd5e1",cursor:"pointer",marginRight:8,marginBottom:8 } as const;
+  const card = { border:"1px solid var(--line-2)",borderRadius:16,padding:20,marginTop:20 } as const;
+  const input = { width:"100%",padding:10,border:"1px solid var(--line-strong)",borderRadius:8,margin:"6px 0 12px" } as const;
+  const button = { padding:"10px 14px",borderRadius:9,border:"1px solid var(--line-strong)",cursor:"pointer",marginRight:8,marginBottom:8 } as const;
 
   async function load(org=organizationId) {
     setMessage("");
@@ -60,7 +60,7 @@ export default function RideEngineAdminPage() {
   useEffect(()=>{ if(organizationId) void load(organizationId); },[organizationId]);
 
   return <main style={{maxWidth:1180,margin:"40px auto",padding:"0 20px",fontFamily:"system-ui,sans-serif"}}>
-    <section style={{background:"#101b33",color:"white",padding:28,borderRadius:22}}>
+    <section style={{background:"var(--panel-solid)",color:"white",padding:28,borderRadius:22}}>
       <div style={{fontSize:13,fontWeight:800,letterSpacing:1}}>BANDWAGON 0.11</div>
       <h1 style={{fontSize:40,margin:"6px 0"}}>Ride Engine</h1>
       <p style={{margin:0,opacity:.9}}>Driver preferences, multi-passenger carpools, seat accounting and smart match suggestions.</p>
@@ -104,7 +104,7 @@ export default function RideEngineAdminPage() {
         </div>
         <button style={button} onClick={()=>act({action:"add_availability",organizationId,driverPersonId,weekday,startTime,endTime,timeZone:"America/Chicago",direction:"any"})}>Add Availability</button>
 
-        <div style={{marginTop:18}}>{drivers.map(d=><div key={d.person_id} style={{padding:"12px 0",borderTop:"1px solid #e5e7eb"}}>
+        <div style={{marginTop:18}}>{drivers.map(d=><div key={d.person_id} style={{padding:"12px 0",borderTop:"1px solid var(--line)"}}>
           <b>{d.display_name}</b> · {d.default_capacity} seats · <code>{d.status}</code> · {d.willing_by_default ? "always willing" : "scheduled"}<br/>
           <small>{(d.zones || []).length} zone(s) · {(d.recurring_availability || []).length} recurring window(s) · {d.vehicle_label || "vehicle not labeled"}</small>
         </div>)}</div>
@@ -118,7 +118,7 @@ export default function RideEngineAdminPage() {
         </select>
         <button style={button} onClick={()=>act({action:"generate_matches",rideRequestId,limit:10})}>Generate Matches</button>
         <button style={button} onClick={()=>act({action:"notify_matches",rideRequestId,limit:3})}>Notify Top 3 Drivers</button>
-        <div style={{marginTop:12}}>{suggestions.filter(s=>!rideRequestId || s.ride_request_id===rideRequestId).map(s=><div key={s.id} style={{padding:"12px 0",borderTop:"1px solid #e5e7eb"}}>
+        <div style={{marginTop:12}}>{suggestions.filter(s=>!rideRequestId || s.ride_request_id===rideRequestId).map(s=><div key={s.id} style={{padding:"12px 0",borderTop:"1px solid var(--line)"}}>
           <b>{s.driver_name}</b> · score <b>{Number(s.score).toFixed(1)}</b> · <code>{s.candidate_type}</code>
           {s.distance_km != null ? ` · ${Number(s.distance_km).toFixed(1)} km` : ''}
           {s.time_gap_minutes != null ? ` · ${s.time_gap_minutes} min gap` : ''}
@@ -143,12 +143,12 @@ export default function RideEngineAdminPage() {
         </select>
         <button style={button} onClick={()=>act({action:"attach_request",rideId,rideRequestId,actorPersonId})}>Add Passenger To Carpool</button>
 
-        <div style={{marginTop:18}}>{rides.map(r=><div key={r.id} style={{padding:"12px 0",borderTop:"1px solid #e5e7eb"}}>
+        <div style={{marginTop:18}}>{rides.map(r=><div key={r.id} style={{padding:"12px 0",borderTop:"1px solid var(--line)"}}>
           <b>{r.driver_name}</b> · {r.event_title || "Other ride"} · {r.seats_reserved}/{r.capacity_snapshot} seats · {r.request_count} request(s)
         </div>)}</div>
       </section>
     </>}
 
-    {message && <p style={{marginTop:20,padding:14,background:"#f8fafc",borderRadius:10}}>{message}</p>}
+    {message && <p style={{marginTop:20,padding:14,background:"var(--surface-2)",borderRadius:10}}>{message}</p>}
   </main>;
 }

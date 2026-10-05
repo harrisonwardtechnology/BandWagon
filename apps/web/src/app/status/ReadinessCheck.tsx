@@ -5,9 +5,9 @@ import { useCallback, useEffect, useState } from "react";
 type State = "checking" | "up" | "down";
 
 const labels: Record<State, { text: string; color: string; background: string }> = {
-  checking: { text: "Checking...", color: "#334155", background: "#f1f5f9" },
-  up: { text: "Up. BandWagon is responding normally.", color: "#14532d", background: "#dcfce7" },
-  down: { text: "Down. BandWagon is not responding right now.", color: "#7f1d1d", background: "#fee2e2" },
+  checking: { text: "Checking...", color: "var(--text-2)", background: "var(--surface-3)" },
+  up: { text: "Up. BandWagon is responding normally.", color: "var(--text-success)", background: "var(--bg-success-2)" },
+  down: { text: "Down. BandWagon is not responding right now.", color: "var(--text-danger-strong)", background: "var(--bg-danger-2)" },
 };
 
 /** Calls the public readiness endpoint from the browser and shows only up or down. */
@@ -42,10 +42,10 @@ export default function ReadinessCheck() {
         {label.text}
       </p>
       <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginTop: 12 }}>
-        <button type="button" onClick={() => void check()} disabled={state === "checking"} style={{ padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: 10, background: "#fff", fontWeight: 800, cursor: "pointer" }}>
+        <button type="button" onClick={() => void check()} disabled={state === "checking"} style={{ padding: "10px 14px", border: "1px solid var(--line-strong)", borderRadius: 10, background: "var(--surface)", fontWeight: 800, cursor: "pointer" }}>
           Check Again
         </button>
-        {checkedAt && <span style={{ color: "#64748b", fontSize: 14 }}>Last Checked {checkedAt}. Rechecks every minute.</span>}
+        {checkedAt && <span style={{ color: "var(--text-muted)", fontSize: 14 }}>Last Checked {checkedAt}. Rechecks every minute.</span>}
       </div>
     </div>
   );

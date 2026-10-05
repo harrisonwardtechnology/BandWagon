@@ -1,5 +1,6 @@
 "use client";
 
+import { X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -96,7 +97,7 @@ export default function PrivacyConsentManager() {
       <section className="privacy-modal" role="dialog" aria-modal="true" aria-labelledby="privacy-modal-title" aria-describedby="privacy-modal-description">
         <div className="privacy-modal-heading">
           <div><div className="privacy-banner-kicker">PRIVACY PREFERENCES</div><h2 id="privacy-modal-title">Choose What BandWagon May Store</h2></div>
-          {preferences && <button className="privacy-modal-close" type="button" aria-label="Close privacy preferences" onClick={() => setManageOpen(false)}>×</button>}
+          {preferences && <button className="privacy-modal-close" type="button" aria-label="Close privacy preferences" onClick={() => setManageOpen(false)}><X className="icon" aria-hidden="true" /></button>}
         </div>
         <p id="privacy-modal-description">Your choice applies to this browser for 12 months. You can return here from the footer at any time. A material policy or technology change will require a new choice.</p>
 

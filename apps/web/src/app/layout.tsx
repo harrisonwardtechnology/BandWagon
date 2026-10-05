@@ -12,7 +12,12 @@ import { NOINDEX, OG_IMAGE, siteOrigin, TWITTER_IMAGE } from "@/lib/seo";
 import ClientErrorReporter from "@/components/client-error-reporter";
 
 export const viewport: Viewport = {
-  themeColor: "#071a33",
+  // Browser chrome follows the device's light or dark setting.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#071a33" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1422" },
+  ],
+  colorScheme: "light dark",
   width: "device-width",
   initialScale: 1,
 };
@@ -72,7 +77,6 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const linkStyle={color:"#475569",textDecoration:"none",fontWeight:700,fontSize:13} as const;
   return (
     <html lang="en">
       <body>
@@ -85,23 +89,24 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <SupportModeBanner />
         <PublicSiteHeader />
         <div id="main-content" tabIndex={-1}>{children}</div>
-        <footer style={{marginTop:48,borderTop:"1px solid #e2e8f0",background:"#f8fafc",padding:"24px 20px",fontFamily:"system-ui,sans-serif"}}>
-          <div style={{maxWidth:1120,margin:"0 auto",display:"flex",gap:18,justifyContent:"space-between",alignItems:"center",flexWrap:"wrap"}}>
+        <footer className="site-footer">
+          <div className="site-footer-inner">
             <div className="footer-brand"><BrandLogo /><span>Community-Powered Rides</span></div>
-            <nav aria-label="Footer" style={{display:"flex",gap:16,flexWrap:"wrap"}}>
-              <a href="/help" style={linkStyle}>Help Center</a>
-              <a href="/api/review-package" style={linkStyle}>Review Package</a>
-              <a href="/status" style={linkStyle}>Platform Status</a>
-              <a href="https://status.bandwagon.club/" target="_blank" rel="noreferrer" style={linkStyle}>Status Page</a>
-              <a href="/security" style={linkStyle}>Security / Report A Bug</a>
-              <a href="/support" style={linkStyle}>Support BandWagon</a>
-              <a href="/privacy" style={linkStyle}>Privacy</a>
-              <a href="/cookies" style={linkStyle}>Cookies</a>
+            <nav aria-label="Footer">
+              <a href="/help">Help Center</a>
+              <a href="/api/review-package">Review Package</a>
+              <a href="/status">Platform Status</a>
+              <a href="https://status.bandwagon.club/" target="_blank" rel="noreferrer">Status Page</a>
+              <a href="/security">Security / Report A Bug</a>
+              <a href="/support">Support BandWagon</a>
+              <a href="/privacy">Privacy</a>
+              <a href="/cookies">Cookies</a>
               <PrivacyPreferencesButton />
-              <a href="/terms" style={linkStyle}>Terms</a>
-              <a href="/legal" style={linkStyle}>Legal</a>
+              <a href="/terms">Terms</a>
+              <a href="/legal">Legal</a>
             </nav>
           </div>
+          <p className="site-footer-credit">Built By <a href="https://harrisonward.com/" target="_blank" rel="noreferrer">Harrison Ward Technology</a></p>
         </footer>
       </body>
     </html>

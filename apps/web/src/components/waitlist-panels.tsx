@@ -6,9 +6,9 @@ import { countdownLabel } from "@/lib/ride-waitlist-policy";
 type Row = Record<string, any>;
 type Act = (body: Row) => Promise<unknown>;
 
-const button = { padding: "9px 13px", border: 0, borderRadius: 9, background: "#101b33", color: "white", fontWeight: 800, cursor: "pointer" } as const;
-const secondary = { padding: "7px 10px", border: "1px solid #cbd5e1", borderRadius: 8, background: "white", cursor: "pointer", fontWeight: 700 } as const;
-const badge = { display: "inline-block", padding: "3px 9px", borderRadius: 999, fontSize: 12, fontWeight: 900, border: "1px solid #cbd5e1" } as const;
+const button = { padding: "9px 13px", border: 0, borderRadius: 9, background: "var(--btn-solid)", color: "var(--on-btn-solid)", fontWeight: 800, cursor: "pointer" } as const;
+const secondary = { padding: "7px 10px", border: "1px solid var(--line-strong)", borderRadius: 8, background: "var(--surface)", cursor: "pointer", fontWeight: 700 } as const;
+const badge = { display: "inline-block", padding: "3px 9px", borderRadius: 999, fontSize: 12, fontWeight: 900, border: "1px solid var(--line-strong)" } as const;
 const hidden = { position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" } as const;
 
 function directionLabel(direction: string) {
@@ -59,12 +59,12 @@ export function RiderWaitlists({ waitlists, act, working, reload }: { waitlists:
   if (!waitlists?.length) return null;
   return <section aria-labelledby="waitlists-heading" style={{ marginBottom: 18 }}>
     <h2 id="waitlists-heading" style={{ marginTop: 0 }}>Your Waitlists</h2>
-    {waitlists.map((w) => <div key={w.id} style={{ padding: "12px 0", borderBottom: "1px solid #e2e8f0" }}>
+    {waitlists.map((w) => <div key={w.id} style={{ padding: "12px 0", borderBottom: "1px solid var(--line)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div><b>{w.passenger_name}</b> · {w.event_title || "Carpool"} · {directionLabel(w.direction)}
-          <div style={{ fontSize: 13, color: "#475569", marginTop: 3 }}>{when(w.departure_at)} · {statusText(w)}{w.status === "waiting" ? ` of ${w.waitlist_count}` : ""}</div>
+          <div style={{ fontSize: 13, color: "var(--text-3)", marginTop: 3 }}>{when(w.departure_at)} · {statusText(w)}{w.status === "waiting" ? ` of ${w.waitlist_count}` : ""}</div>
         </div>
-        <span style={{ ...badge, background: w.status === "offered" ? "#fef3c7" : "white" }}>{w.status === "offered" ? "Action Needed" : w.status === "waiting" ? "On Waitlist" : "Closed"}</span>
+        <span style={{ ...badge, background: w.status === "offered" ? "var(--bg-warn-2)" : "var(--surface)" }}>{w.status === "offered" ? "Action Needed" : w.status === "waiting" ? "On Waitlist" : "Closed"}</span>
       </div>
       {w.status === "offered" && <div role="group" aria-label="Standby offer" style={{ marginTop: 10, padding: 12, border: "2px solid #f59e0b", borderRadius: 12 }}>
         <p style={{ margin: "0 0 8px" }}>A seat opened. It is held for you for a short time. <OfferCountdown seconds={Number(w.seconds_remaining || 0)} onExpire={reload} /></p>
@@ -84,14 +84,14 @@ export function CarpoolFinder({ carpools, people, waitlists, act, working }: { c
   if (!carpools?.length) return null;
   return <section aria-labelledby="carpools-heading" style={{ marginBottom: 18 }}>
     <h2 id="carpools-heading" style={{ marginTop: 0 }}>Upcoming Carpools</h2>
-    <p style={{ color: "#64748b", marginTop: 0 }}>Full carpools take a waitlist. If a seat opens, the first rider in line gets a short time to accept it. Tip: request a ride with your pickup address first, and the waitlist will use that request.</p>
+    <p style={{ color: "var(--text-muted)", marginTop: 0 }}>Full carpools take a waitlist. If a seat opens, the first rider in line gets a short time to accept it. Tip: request a ride with your pickup address first, and the waitlist will use that request.</p>
     {people?.length > 1 && <label style={{ display: "block", marginBottom: 10 }}>Rider <select value={rider} onChange={(e) => setRider(e.target.value)} style={{ marginLeft: 6, padding: 6, borderRadius: 8 }}>{people.map((p) => <option key={p.id} value={p.id}>{p.preferred_name || p.display_name}</option>)}</select></label>}
     {carpools.map((c) => {
       const full = Number(c.open_seats) <= 0;
       const onList = activeFor.has(c.id);
-      return <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", padding: "10px 0", borderBottom: "1px solid #e2e8f0" }}>
+      return <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", padding: "10px 0", borderBottom: "1px solid var(--line)" }}>
         <div><b>{c.event_title || "Carpool"}</b> · {directionLabel(c.direction)}
-          <div style={{ fontSize: 13, color: "#475569", marginTop: 3 }}>{when(c.departure_at)}{c.pickup_area ? ` · near ${c.pickup_area}` : ""} · {full ? "Full" : `${c.open_seats} open ${Number(c.open_seats) === 1 ? "seat" : "seats"}`}{Number(c.waitlist_count) > 0 ? ` · ${c.waitlist_count} on waitlist` : ""}</div>
+          <div style={{ fontSize: 13, color: "var(--text-3)", marginTop: 3 }}>{when(c.departure_at)}{c.pickup_area ? ` · near ${c.pickup_area}` : ""} · {full ? "Full" : `${c.open_seats} open ${Number(c.open_seats) === 1 ? "seat" : "seats"}`}{Number(c.waitlist_count) > 0 ? ` · ${c.waitlist_count} on waitlist` : ""}</div>
         </div>
         {full && c.waitlists_enabled && (onList
           ? <span style={badge}>On Waitlist</span>
@@ -107,10 +107,10 @@ export function DriverWaitlist({ ride, act, working }: { ride: Row; act: Act; wo
   const [seats, setSeats] = useState(String(ride.capacity_snapshot || 1));
   const list: Row[] = ride.waitlist || [];
   if (ride.status !== "confirmed") return null;
-  return <div style={{ marginTop: 10, padding: 12, background: "#f8fafc", borderRadius: 12 }}>
+  return <div style={{ marginTop: 10, padding: 12, background: "var(--surface-2)", borderRadius: 12 }}>
     <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
       <b>Waitlist: {list.length}</b>
-      <label style={{ marginLeft: "auto" }}>Seats In Car <input type="number" min={1} max={12} value={seats} onChange={(e) => setSeats(e.target.value)} style={{ width: 60, padding: 6, borderRadius: 8, border: "1px solid #cbd5e1" }} /></label>
+      <label style={{ marginLeft: "auto" }}>Seats In Car <input type="number" min={1} max={12} value={seats} onChange={(e) => setSeats(e.target.value)} style={{ width: 60, padding: 6, borderRadius: 8, border: "1px solid var(--line-strong)" }} /></label>
       <button style={secondary} disabled={working || Number(seats) === Number(ride.capacity_snapshot)} onClick={() => act({ action: "update_ride_seats", rideId: ride.id, seats: Number(seats) })}>Save Seats</button>
     </div>
     {list.length > 0 && <ol style={{ margin: "8px 0 0", paddingLeft: 20 }}>

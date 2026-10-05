@@ -3,7 +3,7 @@
 import { useState } from "react";
 import TurnstileWidget from "@/components/turnstile-widget";
 
-const inputStyle={width:"100%",padding:11,border:"1px solid #cbd5e1",borderRadius:9,boxSizing:"border-box" as const,marginTop:5,font:"inherit"};
+const inputStyle={width:"100%",padding:11,border:"1px solid var(--line-strong)",borderRadius:9,boxSizing:"border-box" as const,marginTop:5,font:"inherit"};
 
 export default function HelpContactForm(){
   const siteKey=process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY||"";
@@ -32,7 +32,7 @@ export default function HelpContactForm(){
       <label><strong>Message</strong><textarea name="message" required minLength={10} maxLength={5000} rows={7} style={{...inputStyle,resize:"vertical"}} placeholder="Tell us what happened and what you expected. Do not include passwords, one-time codes, payment-card details, or sensitive documents."/></label>
       <TurnstileWidget action="support_contact" onToken={setToken} resetKey={resetKey}/><input type="hidden" name="turnstileToken" value={token}/>
       <button disabled={working||!token} style={{justifySelf:"start",padding:"12px 18px",border:0,borderRadius:10,background:"#2458d8",color:"white",fontWeight:900,cursor:"pointer"}}>{working?"Sending…":"Send To BandWagon Support"}</button>
-      {message&&<div role="status" aria-live="polite" style={{padding:12,borderRadius:10,background:success?"#ecfdf5":"#fff7ed",color:success?"#166534":"#9a3412"}}>{message}</div>}
+      {message&&<div role="status" aria-live="polite" style={{padding:12,borderRadius:10,background:success?"var(--bg-success)":"var(--bg-warn)",color:success?"var(--text-success)":"var(--text-warn)"}}>{message}</div>}
     </form>
   </>;
 }

@@ -35,11 +35,11 @@ export default function HouseholdInviteAccept({ token }: { token: string }) {
     setAccepted(d);
   }
 
-  const card = { marginTop: 18, padding: 22, border: "1px solid #dbe3ef", borderRadius: 16, background: "white" } as const;
-  const button = { padding: "12px 18px", border: 0, borderRadius: 10, background: "#101b33", color: "white", fontWeight: 800, cursor: "pointer", textDecoration: "none", display: "inline-block" } as const;
+  const card = { marginTop: 18, padding: 22, border: "1px solid var(--line-2)", borderRadius: 16, background: "var(--surface)" } as const;
+  const button = { padding: "12px 18px", border: 0, borderRadius: 10, background: "var(--btn-solid)", color: "var(--on-btn-solid)", fontWeight: 800, cursor: "pointer", textDecoration: "none", display: "inline-block" } as const;
 
   return <main style={{ maxWidth: 680, margin: "40px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif" }}>
-    <section style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
+    <section style={{ background: "var(--panel-solid)", color: "white", padding: 28, borderRadius: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1 }}>BANDWAGON</div>
       <h1 style={{ fontSize: 32, margin: "6px 0" }}>Become A Trusted Adult</h1>
       {invitation && <p style={{ margin: 0, opacity: .9 }}>{invitation.inviterName} asked you to help with their family&apos;s rides.</p>}
@@ -60,17 +60,17 @@ export default function HouseholdInviteAccept({ token }: { token: string }) {
     {!accepted && invitation && invitation.state === "active" && <section style={card}>
       <h2 style={{ marginTop: 0 }}>What You Can Do</h2>
       <ul>{(invitation.permissions || []).map((p: string) => <li key={p}>{p}</li>)}</ul>
-      <p style={{ color: "#475569" }}>
+      <p style={{ color: "var(--text-3)" }}>
         {invitation.childCount ? `This covers ${invitation.childCount} ${invitation.childCount === 1 ? "child" : "children"}.` : "This covers all of the children in the household."}
         {invitation.endsAt ? ` It ends on ${new Date(invitation.endsAt).toLocaleDateString()}.` : ""}
       </p>
-      <p style={{ color: "#475569" }}>You will not be able to change the children&apos;s profiles or safety settings, add or remove guardians, or share access with anyone else. You will not join their school or team as a member.</p>
+      <p style={{ color: "var(--text-3)" }}>You will not be able to change the children&apos;s profiles or safety settings, add or remove guardians, or share access with anyone else. You will not join their school or team as a member.</p>
       <p>This invitation was sent to <strong>{invitation.contactHint}</strong>. You need an adult BandWagon account with that {invitation.contactType === "phone" ? "phone number" : "email address"} verified.</p>
       {signedIn
         ? <button disabled={working} onClick={accept} style={{ ...button, opacity: working ? .6 : 1 }}>{working ? "Accepting..." : "Accept Invitation"}</button>
-        : <><a href="/login" style={button}>Sign In</a><p style={{ color: "#475569", fontSize: 14 }}>After you sign in, open this link again.</p></>}
+        : <><a href="/login" style={button}>Sign In</a><p style={{ color: "var(--text-3)", fontSize: 14 }}>After you sign in, open this link again.</p></>}
     </section>}
 
-    {error && <p role="alert" style={{ padding: 14, background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10 }}>{error}</p>}
+    {error && <p role="alert" style={{ padding: 14, background: "var(--bg-danger)", border: "1px solid var(--line-danger)", borderRadius: 10 }}>{error}</p>}
   </main>;
 }

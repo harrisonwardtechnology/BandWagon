@@ -98,17 +98,17 @@ export default function EventProposalsPage() {
 
   const selected = organizations.find(o => o.id === organizationId);
   const canSend = editingId ? true : Boolean(selected?.canPropose);
-  const input = { width: "100%", padding: 10, margin: "6px 0 12px", boxSizing: "border-box" as const, border: "1px solid #cbd5e1", borderRadius: 8 };
-  const button = { padding: "10px 14px", border: "1px solid #cbd5e1", borderRadius: 9, background: "white", fontWeight: 800, cursor: "pointer" } as const;
+  const input = { width: "100%", padding: 10, margin: "6px 0 12px", boxSizing: "border-box" as const, border: "1px solid var(--line-strong)", borderRadius: 8 };
+  const button = { padding: "10px 14px", border: "1px solid var(--line-strong)", borderRadius: 9, background: "var(--surface)", fontWeight: 800, cursor: "pointer" } as const;
   const set = (key: keyof typeof EMPTY) => (e: { target: { value: string } }) => setForm({ ...form, [key]: e.target.value });
 
   return <main style={appPageStyle}><AppNav active="Propose Event" />
     <section style={{ ...appCardStyle, marginBottom: 18 }}>
       <h1 style={{ marginTop: 0 }}>{editingId ? "Update Your Event Proposal" : "Propose An Event"}</h1>
-      <p style={{ color: "#475569", lineHeight: 1.6 }}>Have an event that needs carpools? Send the details to your organizers. They will review it, and it only goes on the calendar if they approve it.</p>
+      <p style={{ color: "var(--text-3)", lineHeight: 1.6 }}>Have an event that needs carpools? Send the details to your organizers. They will review it, and it only goes on the calendar if they approve it.</p>
       {!loaded ? <p>Loading...</p> : organizations.length === 0 ? <p>Join an organization first. Then you can propose events if it allows it.</p> : <>
         <label><strong>Organization</strong><select value={organizationId} disabled={Boolean(editingId)} onChange={e => setOrganizationId(e.target.value)} style={input}>{organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
-        {!editingId && selected && !selected.canPropose && <p style={{ padding: 12, borderRadius: 10, background: "#f1f5f9" }}>{selected.reason}.</p>}
+        {!editingId && selected && !selected.canPropose && <p style={{ padding: 12, borderRadius: 10, background: "var(--surface-3)" }}>{selected.reason}.</p>}
         {canSend && <>
           <label><strong>Event Name</strong><input value={form.title} onChange={set("title")} maxLength={120} placeholder="Saturday section practice" style={input} /></label>
           <label><strong>Description</strong><textarea value={form.description} onChange={set("description")} maxLength={2000} rows={3} style={input} placeholder="What is it and who is it for?" /></label>
@@ -118,13 +118,13 @@ export default function EventProposalsPage() {
             <label><strong>Location Name</strong><input value={form.locationName} onChange={set("locationName")} maxLength={160} placeholder="Community Center" style={input} /></label>
             <label><strong>Address</strong><input value={form.locationAddress} onChange={set("locationAddress")} maxLength={300} placeholder="Event address" style={input} /></label>
           </div>
-          <p style={{ fontSize: 13, color: "#92400e", marginTop: 0 }}>If approved, everyone who can see the event will see this address. Use a public place such as a school, field, or park. Do not enter a home address. Pickup spots stay private and are set when someone requests a ride.</p>
+          <p style={{ fontSize: 13, color: "var(--text-warn)", marginTop: 0 }}>If approved, everyone who can see the event will see this address. Use a public place such as a school, field, or park. Do not enter a home address. Pickup spots stay private and are set when someone requests a ride.</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12 }}>
             <label><strong>About how many riders?</strong><input type="number" min={0} max={500} value={form.expectedRiders} onChange={set("expectedRiders")} style={input} /></label>
           </div>
           <label><strong>Notes For Organizers (Optional)</strong><textarea value={form.notes} onChange={set("notes")} maxLength={1000} rows={2} style={input} placeholder="Anything organizers should know. Only organizers see this." /></label>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button style={{ ...button, background: "#101b33", color: "white", borderColor: "#101b33" }} disabled={working || !form.title.trim() || !form.startsAt || (!editingId && !organizationId)} onClick={() => void submit()}>{editingId ? "Send Updated Proposal" : "Send Proposal"}</button>
+            <button style={{ ...button, background: "var(--btn-solid)", color: "var(--on-btn-solid)", borderColor: "var(--line-solid)" }} disabled={working || !form.title.trim() || !form.startsAt || (!editingId && !organizationId)} onClick={() => void submit()}>{editingId ? "Send Updated Proposal" : "Send Proposal"}</button>
             {editingId && <button style={button} disabled={working} onClick={() => { setEditingId(null); setForm(EMPTY); }}>Cancel</button>}
           </div>
         </>}
@@ -132,18 +132,18 @@ export default function EventProposalsPage() {
     </section>
     <section style={appCardStyle}>
       <h2 style={{ marginTop: 0 }}>Your Proposals</h2>
-      {proposals.length === 0 ? <p style={{ color: "#64748b" }}>You have not proposed any events yet.</p> : proposals.map(p => <div key={p.id} style={{ padding: "14px 0", borderTop: "1px solid #e2e8f0" }}>
+      {proposals.length === 0 ? <p style={{ color: "var(--text-muted)" }}>You have not proposed any events yet.</p> : proposals.map(p => <div key={p.id} style={{ padding: "14px 0", borderTop: "1px solid var(--line)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-          <div><strong>{p.title}</strong><div style={{ fontSize: 13, color: "#64748b", marginTop: 3 }}>{p.organization_name} · {new Date(p.starts_at).toLocaleString()}</div></div>
-          <span style={{ fontSize: 13, fontWeight: 800, padding: "4px 10px", borderRadius: 999, background: p.status === "approved" ? "#dcfce7" : p.status === "changes_requested" ? "#fef3c7" : "#f1f5f9", alignSelf: "flex-start" }}>{STATUS_LABELS[p.status] || p.status}</span>
+          <div><strong>{p.title}</strong><div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 3 }}>{p.organization_name} · {new Date(p.starts_at).toLocaleString()}</div></div>
+          <span style={{ fontSize: 13, fontWeight: 800, padding: "4px 10px", borderRadius: 999, background: p.status === "approved" ? "var(--bg-success-2)" : p.status === "changes_requested" ? "var(--bg-warn-2)" : "var(--surface-3)", alignSelf: "flex-start" }}>{STATUS_LABELS[p.status] || p.status}</span>
         </div>
-        {p.moderator_note && <p style={{ margin: "8px 0", padding: 10, borderRadius: 8, background: "#f8fafc", whiteSpace: "pre-wrap" }}><strong>Organizer note: </strong>{p.moderator_note}</p>}
+        {p.moderator_note && <p style={{ margin: "8px 0", padding: 10, borderRadius: 8, background: "var(--surface-2)", whiteSpace: "pre-wrap" }}><strong>Organizer note: </strong>{p.moderator_note}</p>}
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
           {p.status === "changes_requested" && <button style={button} disabled={working} onClick={() => startEdit(p)}>Update And Resend</button>}
           {(p.status === "pending" || p.status === "changes_requested") && <button style={button} disabled={working} onClick={() => void withdraw(p)}>Withdraw</button>}
         </div>
       </div>)}
     </section>
-    {message && <div role="status" style={{ position: "fixed", right: 20, bottom: 20, maxWidth: 520, padding: 14, borderRadius: 12, background: "#101b33", color: "white" }}>{message}</div>}
+    {message && <div role="status" style={{ position: "fixed", right: 20, bottom: 20, maxWidth: 520, padding: 14, borderRadius: 12, background: "var(--panel-solid)", color: "white" }}>{message}</div>}
   </main>;
 }
