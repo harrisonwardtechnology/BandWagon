@@ -5,6 +5,14 @@ const stepsByRole = {
  admin:['Organization','Members','Calendars','Ride Health','Privacy & Safety','Statistics']
 };
 const $ = s=>document.querySelector(s);
+// What's New comes from whats-new.json, copied from the real site by `npm run demo:sync`.
+async function openWhatsNew(){
+  const list=$('#whatsNewList'); $('#whatsNewModal').showModal();
+  try{
+    const entries=await fetch('whats-new.json?v=2',{cache:'no-cache'}).then(r=>r.json());
+    list.innerHTML=entries.map((e,i)=>`<section class="whats-new-entry"><div class="small-label">${esc(new Date(e.date+'T12:00:00Z').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric',timeZone:'UTC'}))}${i===0?' · Latest':''}</div><h3>${esc(e.title)}</h3><ul>${e.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section>`).join('');
+  }catch{list.innerHTML='<p>Couldn’t load updates. See <a href="https://bandwagon.club/whats-new">bandwagon.club/whats-new</a>.</p>';}
+}
 const esc = s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 function renderSteps(){ const box=$('#steps'); box.innerHTML=''; stepsByRole[state.role].forEach((s,i)=>{const b=document.createElement('button');b.className='step-btn'+(i===state.step?' active':'');b.innerHTML=`<span class="num">${i+1}</span><span>${esc(s)}</span>`;b.onclick=()=>{state.step=i;render()};box.appendChild(b);}); }
 function next(){ state.step=Math.min(state.step+1,stepsByRole[state.role].length-1);render(); }
@@ -58,3 +66,6 @@ if (closeInstall && installModal) closeInstall.addEventListener('click', () => i
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
 }
+
+document.getElementById('whatsNewBtn')?.addEventListener('click',openWhatsNew);
+document.getElementById('closeWhatsNew')?.addEventListener('click',()=>document.getElementById('whatsNewModal').close());

@@ -1,0 +1,46 @@
+name: Deploy Demo
+
+# Keeps demo.bandwagon.club current: every merge to main that touches the demo
+# (or What's New, which the demo copies) redeploys the demo in Coolify.
+# The demo is fake data only, so deploying it automatically is safe.
+# Setup: docs/operations/DEMO-DEPLOY.md. Skips cleanly until configured.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "demo/**"
+      - "apps/web/src/lib/whats-new.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-demo
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ask Coolify to deploy the demo
+        env:
+          COOLIFY_URL: ${{ vars.COOLIFY_URL }}
+          DEMO_UUID: ${{ vars.COOLIFY_DEMO_APP_UUID }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$COOLIFY_URL" ] || [ -z "$DEMO_UUID" ] || [ -z "$COOLIFY_TOKEN" ]; then
+            echo "::notice title=Demo deploy skipped::Set COOLIFY_URL, COOLIFY_DEMO_APP_UUID and the COOLIFY_DEPLOY_TOKEN secret to turn this on."
+            exit 0
+          fi
+          code=$(curl -sS -o response.json -w "%{http_code}" --max-time 60 \
+            -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            "$COOLIFY_URL/api/v1/deploy?uuid=$DEMO_UUID&force=false")
+          echo "Coolify answered HTTP $code"
+          if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
+            echo "::error title=Demo deploy failed::Coolify returned HTTP $code"
+            exit 1
+          fi
+          echo "Demo deploy queued in Coolify." >> "$GITHUB_STEP_SUMMARY"

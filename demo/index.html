@@ -3,7 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#071a33" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#071a33" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0b1422" media="(prefers-color-scheme: dark)" />
   <meta name="description" content="Explore BandWagon's privacy-first community ride coordination experience using fake demonstration data." />
   <title>BandWagon Interactive Demo</title>
   <link rel="canonical" href="https://demo.bandwagon.club/" />
@@ -24,7 +26,7 @@
   <a class="skip-link" href="#screen">Skip to demo</a>
   <header class="topbar">
     <div class="brand-wrap">
-      <img class="brand-logo" src="bandwagon-logo.svg?v=2" width="210" height="51" alt="BandWagon" />
+      <picture><source srcset="bandwagon-logo-dark.svg?v=2" media="(prefers-color-scheme: dark)" /><img class="brand-logo" src="bandwagon-logo.svg?v=2" width="210" height="51" alt="BandWagon" /></picture>
       <div>
         <div class="demo-label">Interactive Demo</div>
         <div class="subbrand">Community-Powered Rides · Fake Data Only</div>
@@ -32,6 +34,7 @@
     </div>
     <div class="top-actions">
       <button id="privacyBtn" class="btn ghost">What People Can See</button>
+      <button id="whatsNewBtn" class="btn ghost">What’s New</button>
       <button id="installHelpBtn" class="btn ghost">Install App</button>
       <button id="resetBtn" class="btn ghost">Reset Demo</button>
       <a class="btn primary" href="https://bandwagon.club/start">Start A Free Community</a>
@@ -87,6 +90,10 @@
       <div class="privacy-card"><h3>Android</h3><p>Open BandWagon in Chrome → menu → Install app / Install and create shortcut → Install.</p></div>
     </div>
     <div class="notice">Installing BandWagon does not enable GPS tracking. The same service remains available in a normal browser.</div>
+  </dialog>
+  <dialog id="whatsNewModal" aria-labelledby="whatsNewTitle">
+    <div class="modal-head"><div><h2 id="whatsNewTitle">What’s New</h2><p>The same updates listed on <a href="https://bandwagon.club/whats-new">bandwagon.club</a>.</p></div><button class="icon-btn" id="closeWhatsNew" aria-label="Close">×</button></div>
+    <div id="whatsNewList" class="whats-new-list"><p>Loading…</p></div>
   </dialog>
   <footer class="site-footer"><img src="bandwagon-logo.svg?v=2" alt="BandWagon" width="165" height="40" loading="lazy" /><div><strong>A Harrison Ward Technology Product.</strong><br>Community-Powered Rides. Privacy First.</div><div class="footer-note">This independent coordination service does not provide, supervise, track, verify, or guarantee transportation.</div></footer>
   <script src="app.js?v=2" defer></script>
