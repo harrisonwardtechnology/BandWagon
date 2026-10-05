@@ -3,6 +3,10 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   DELEGATE_FORBIDDEN_ACTIONS,
+  DELEGATE_ORGANIZATION_REQUIRED,
+  DELEGATE_OWN_REQUEST_FIELDS,
+  delegateInviteIsSelf,
+  delegateRequestView,
   DELEGATE_INVITES_PER_HOUSEHOLD_PER_DAY,
   DELEGATE_INVITES_PER_INVITER_PER_HOUR,
   DELEGATE_INVITE_TTL_DAYS,
@@ -57,7 +61,8 @@ function delegateCan(g: DelegateGrant, action: ChildAction, options: { childId?:
     delegates: [g],
     childId: options.childId || CHILD,
     action,
-    organizationAllowsDelegates: options.organizationAllowsDelegates,
+    // Inside an organization that allows delegates, unless the test says otherwise.
+    organizationAllowsDelegates: "organizationAllowsDelegates" in options ? options.organizationAllowsDelegates : true,
     now: NOW,
   });
 }
@@ -93,7 +98,7 @@ test("forbidden actions are always denied for delegates, even with every scope",
   for (const action of DELEGATE_FORBIDDEN_ACTIONS) {
     const decision = delegateCan(grant({ scopes: ALL }), action);
     assert.equal(decision.allowed, false, action);
-    assert.equal(delegateGrantAllows(grant(), CHILD, action, { now: NOW }).reason, "Delegates cannot do this");
+    assert.equal(delegateGrantAllows(grant(), CHILD, action, { now: NOW, organizationAllowsDelegates: true }).reason, "Delegates cannot do this");
   }
   assert.deepEqual([...DELEGATE_FORBIDDEN_ACTIONS].sort(), [
     "edit_child_profile",
@@ -143,7 +148,6 @@ test("a delegate who is not an adult or whose account is inactive is denied", ()
 test("an organization that turns delegates off blocks delegates but not guardians", () => {
   assert.equal(delegateCan(grant(), "request_rides", { organizationAllowsDelegates: false }).allowed, false);
   assert.equal(delegateCan(grant(), "request_rides", { organizationAllowsDelegates: true }).allowed, true);
-  assert.equal(delegateCan(grant(), "request_rides", { organizationAllowsDelegates: null }).allowed, true);
   const guardian = evaluateChildAccess({
     actorIsChild: false,
     guardian: { canApproveRides: true, canManageProfile: true },
@@ -169,7 +173,7 @@ test("guardian checks keep their existing meaning", () => {
   assert.equal(check(onlyProfile, "approve_rides"), false);
   assert.equal(check(onlyProfile, "view_other_households"), false);
   // A guardian row that lacks a permission can still be covered by a delegate grant.
-  const viaDelegate = evaluateChildAccess({ actorIsChild: false, guardian: onlyProfile, delegates: [grant()], childId: CHILD, action: "approve_rides", now: NOW });
+  const viaDelegate = evaluateChildAccess({ actorIsChild: false, guardian: onlyProfile, delegates: [grant()], childId: CHILD, action: "approve_rides", organizationAllowsDelegates: true, now: NOW });
   assert.equal(viaDelegate.via, "delegate");
 });
 
@@ -329,4 +333,138 @@ test("pausing, removing, and accepting cancel the person's other open invites", 
     const start = source.indexOf(fn);
     assert.match(source.slice(start, start + 1500), /assertCanGrant\(identity\.personId/, fn);
   }
+});
+
+test("a delegate grant is refused when the organization setting was not checked", () => {
+  const actions: ChildAction[] = ["request_rides", "approve_rides", "manage_ride_request", "view_ride_details", "receive_notifications"];
+  for (const action of actions) {
+    // No organization passed: canActForChild hands the policy null (or nothing at all).
+    for (const unchecked of [null, undefined]) {
+      const decision = delegateCan(grant(), action, { organizationAllowsDelegates: unchecked });
+      assert.equal(decision.allowed, false, `${action} with ${unchecked}`);
+      assert.equal(decision.via, null);
+      assert.equal(decision.reason, DELEGATE_ORGANIZATION_REQUIRED);
+    }
+    assert.equal(evaluateChildAccess({ actorIsChild: false, guardian: null, delegates: [grant()], childId: CHILD, action, now: NOW }).allowed, false, `${action} with the option left out`);
+    assert.equal(delegateGrantAllows(grant(), CHILD, action, { now: NOW }).allowed, false, action);
+    assert.equal(delegateCan(grant(), action, { organizationAllowsDelegates: true }).allowed, true, action);
+  }
+  assert.equal(delegateCan(grant(), "request_rides", { organizationAllowsDelegates: false }).reason, "This organization does not allow household delegates");
+});
+
+test("guardians and the child are not affected by a missing organization", () => {
+  const guardian = evaluateChildAccess({ actorIsChild: false, guardian: { canApproveRides: true, canManageProfile: true }, delegates: [grant()], childId: CHILD, action: "approve_rides", now: NOW });
+  assert.equal(guardian.allowed, true);
+  assert.equal(guardian.via, "guardian");
+  const self = evaluateChildAccess({ actorIsChild: true, guardian: null, delegates: [], childId: CHILD, action: "request_rides", now: NOW });
+  assert.equal(self.via, "self");
+  // A guardian row without the needed right does not fall through to a delegate grant when no organization was checked.
+  const partial = evaluateChildAccess({ actorIsChild: false, guardian: { canApproveRides: false, canManageProfile: true }, delegates: [grant()], childId: CHILD, action: "approve_rides", now: NOW });
+  assert.equal(partial.allowed, false);
+});
+
+test("canActForChild never skips the organization setting", async () => {
+  const access = await readFile(new URL("../src/lib/child-access.ts", import.meta.url), "utf8");
+  // No organization means "not checked" (null), and the policy refuses delegates on anything but true.
+  assert.match(access, /if \(!organizationId\) return null;/);
+  assert.match(access, /organizationAllowsDelegates: orgAllows,/);
+  const policy = await readFile(new URL("../src/lib/household-delegate-policy.ts", import.meta.url), "utf8");
+  assert.match(policy, /if \(options\.organizationAllowsDelegates !== true\) return \{ allowed: false, reason: DELEGATE_ORGANIZATION_REQUIRED \};/);
+  // Every caller outside the grant-rights check passes an organization.
+  const delegates = await readFile(new URL("../src/lib/household-delegates.ts", import.meta.url), "utf8");
+  const calls = [...delegates.matchAll(/canActForChild\(([^\n]*)\)/g)].map((match) => match[1]);
+  const withoutOrganization = calls.filter((call) => !call.includes("organizationId"));
+  assert.equal(withoutOrganization.length, 3, "only guardianGrantRights calls without an organization");
+  for (const call of withoutOrganization) assert.match(call, /^personId, childId, "(request_rides|approve_rides|view_ride_details)"$/);
+  assert.match(delegates, /request\.via === "guardian"/);
+});
+
+const REQUEST_ROW = {
+  id: "request-1",
+  public_ref: "ABCD1234",
+  organization_id: "org-1",
+  organization_name: "Marching Band",
+  requester_person_id: "delegate-1",
+  status: "open",
+  direction: "to_event",
+  guardian_approval_status: "not_required",
+  requested_pickup_at: "2026-10-09T22:00:00Z",
+  pickup_note: "Side door, ring twice",
+  pickup_area: "Near Maple and 3rd",
+  event_title: "Friday Night Game",
+  event_starts_at: "2026-10-09T23:00:00Z",
+  offers: [{ id: "offer-1", driverName: "Pat Driver", seatsOffered: 2, proposedPickupAt: null }],
+};
+
+test("a request-only delegate sees the requests they created, with only the short status view", () => {
+  const view = delegateRequestView({ request: REQUEST_ROW, viewAllowed: false, manageAllowed: true, createdByViewer: true });
+  assert.ok(view, "their own request is listed");
+  assert.equal(view.limitedView, true);
+  assert.equal(view.status, "open");
+  assert.equal(view.event_title, "Friday Night Game");
+  assert.equal(view.canManage, true);
+  // Nothing beyond the short list of fields.
+  assert.deepEqual(Object.keys(view).sort(), [...DELEGATE_OWN_REQUEST_FIELDS, "canManage", "limitedView", "offerCount", "offers"].sort());
+  for (const hidden of ["pickup_note", "pickup_area", "requester_person_id"]) assert.equal(hidden in view, false, hidden);
+  assert.deepEqual(view.offers, []);
+  assert.equal(view.offerCount, 1);
+  assert.doesNotMatch(JSON.stringify(view), /Pat Driver|Side door|Maple/);
+});
+
+test("the short view does not widen access to anyone else's requests", () => {
+  // Someone else created it (a parent, or another trusted adult): still hidden without "See ride details".
+  assert.equal(delegateRequestView({ request: REQUEST_ROW, viewAllowed: false, manageAllowed: true, createdByViewer: false }), null);
+  // Their own request, but they can no longer ask for rides (scope removed, grant paused, or delegates turned off).
+  assert.equal(delegateRequestView({ request: REQUEST_ROW, viewAllowed: false, manageAllowed: false, createdByViewer: true }), null);
+  assert.equal(delegateRequestView({ request: REQUEST_ROW, viewAllowed: false, manageAllowed: false, createdByViewer: false }), null);
+});
+
+test("delegates with See Ride Details keep the full view, and nobody is sent the creator's id", () => {
+  const full = delegateRequestView({ request: REQUEST_ROW, viewAllowed: true, manageAllowed: true, createdByViewer: false });
+  assert.ok(full);
+  assert.equal(full.pickup_note, "Side door, ring twice");
+  assert.equal(full.pickup_area, "Near Maple and 3rd");
+  assert.equal(full.limitedView, undefined);
+  assert.deepEqual(full.offers, REQUEST_ROW.offers);
+  assert.equal("requester_person_id" in full, false);
+  // View without the right to act: details yes, offers no (unchanged rule).
+  const viewOnly = delegateRequestView({ request: REQUEST_ROW, viewAllowed: true, manageAllowed: false, createdByViewer: false });
+  assert.ok(viewOnly);
+  assert.equal(viewOnly.canManage, false);
+  assert.deepEqual(viewOnly.offers, []);
+});
+
+test("the delegate overview uses the request view rule for every request", async () => {
+  const delegates = await readFile(new URL("../src/lib/household-delegates.ts", import.meta.url), "utf8");
+  assert.match(delegates, /select rr\.id,rr\.public_ref,rr\.organization_id,rr\.requester_person_id,/);
+  assert.match(delegates, /createdByViewer: String\(requesterPersonId\) === identity\.personId,/);
+  assert.match(delegates, /const shown = delegateRequestView\(\{/);
+  assert.doesNotMatch(delegates, /if \(view\.allowed\) entry\.requests\.push/);
+  // The ride list (driver, vehicle, pickup area) still needs "See ride details".
+  assert.match(delegates, /if \(!view\.allowed\) continue;/);
+});
+
+test("you cannot invite your own email or your own phone number", () => {
+  const own = { ownEmails: ["parent@example.org"], ownPhoneLookupHashes: ["hash-of-my-phone", "hash-of-my-old-phone"] };
+  assert.equal(delegateInviteIsSelf({ contactType: "phone", phoneLookupHash: "hash-of-my-phone", ...own }), true);
+  assert.equal(delegateInviteIsSelf({ contactType: "phone", phoneLookupHash: "hash-of-my-old-phone", ...own }), true);
+  assert.equal(delegateInviteIsSelf({ contactType: "phone", phoneLookupHash: "hash-of-grandma", ...own }), false);
+  assert.equal(delegateInviteIsSelf({ contactType: "email", normalizedEmail: "parent@example.org", ...own }), true);
+  assert.equal(delegateInviteIsSelf({ contactType: "email", normalizedEmail: " Parent@Example.org ", ...own }), true);
+  assert.equal(delegateInviteIsSelf({ contactType: "email", normalizedEmail: "grandma@example.org", ...own }), false);
+  // A missing value never matches.
+  assert.equal(delegateInviteIsSelf({ contactType: "phone", phoneLookupHash: null, ...own }), false);
+  assert.equal(delegateInviteIsSelf({ contactType: "phone", phoneLookupHash: "hash-of-my-phone", ownEmails: [], ownPhoneLookupHashes: [] }), false);
+  assert.equal(delegateInviteIsSelf({ contactType: "letter", normalizedEmail: "parent@example.org", ...own }), false);
+});
+
+test("creating an invitation checks the inviter's own phone before saving anything", async () => {
+  const delegates = await readFile(new URL("../src/lib/household-delegates.ts", import.meta.url), "utf8");
+  const create = delegates.slice(delegates.indexOf("export async function createDelegateInvitation"), delegates.indexOf("export async function cancelDelegateInvitation"));
+  const phoneBranch = create.slice(create.indexOf('input.contactType === "phone"'));
+  const check = phoneBranch.indexOf('delegateInviteIsSelf({ contactType: "phone", phoneLookupHash: phoneHash,');
+  assert.ok(check > 0, "the phone branch checks for a self-invite");
+  assert.ok(check < phoneBranch.indexOf("insert into household_delegate_invitations"), "the check runs before the invitation is saved");
+  assert.match(phoneBranch.slice(check, check + 300), /throw new Error\("You cannot invite yourself"\)/);
+  assert.match(create, /delegateInviteIsSelf\(\{ contactType: "email", normalizedEmail,/);
 });

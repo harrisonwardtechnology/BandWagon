@@ -102,3 +102,74 @@ test("Sign-in code request has its own carrier disclosure, an email alternative,
   assert.match(login, /Optional: Ride Update Texts/);
   assert.match(login, /useState\(false\)[\s\S]*SMS_CONSENT_TEXT/);
 });
+
+test("A web opt-in never clears a carrier STOP", async () => {
+  const { isCarrierStop, webOptInBlockedByCarrierStop } = await import("../src/lib/sms-consent-policy.ts");
+  for (const registrySource of ["carrier_keyword", "twilio_advanced_opt_out", "migrated_phone_status"]) {
+    assert.equal(isCarrierStop({ registryState: "opted_out", registrySource }), true, registrySource);
+    for (const source of ["settings", "signup_checkbox"] as const) {
+      assert.equal(webOptInBlockedByCarrierStop({ action: "opt_in", source, registryState: "opted_out", registrySource }), true, `${source} after ${registrySource}`);
+    }
+  }
+  // An opt-out made on the settings page is ours to undo.
+  assert.equal(isCarrierStop({ registryState: "opted_out", registrySource: "settings" }), false);
+  assert.equal(webOptInBlockedByCarrierStop({ action: "opt_in", source: "settings", registryState: "opted_out", registrySource: "settings" }), false);
+  // No registry row, or already opted in: nothing to block.
+  assert.equal(webOptInBlockedByCarrierStop({ action: "opt_in", source: "settings", registryState: null, registrySource: null }), false);
+  assert.equal(webOptInBlockedByCarrierStop({ action: "opt_in", source: "signup_checkbox", registryState: "opted_in", registrySource: "carrier_keyword" }), false);
+  // A carrier START is how the STOP gets cleared, and opting out is always allowed.
+  assert.equal(webOptInBlockedByCarrierStop({ action: "opt_in", source: "carrier_keyword", registryState: "opted_out", registrySource: "carrier_keyword" }), false);
+  assert.equal(webOptInBlockedByCarrierStop({ action: "opt_in", source: "twilio_advanced_opt_out", registryState: "opted_out", registrySource: "twilio_advanced_opt_out" }), false);
+  assert.equal(webOptInBlockedByCarrierStop({ action: "opt_out", source: "settings", registryState: "opted_out", registrySource: "carrier_keyword" }), false);
+});
+
+test("The carrier STOP message tells the person to text START", async () => {
+  const { smsCarrierStopMessage } = await import("../src/lib/sms-consent-policy.ts");
+  assert.equal(smsCarrierStopMessage("(469) 555-0100"), "Texts to this number are still blocked because it replied STOP. Text START to (469) 555-0100 to turn them back on. Then refresh this page.");
+  assert.match(smsCarrierStopMessage(null), /Reply START to any BandWagon text/);
+  assert.match(smsCarrierStopMessage(), /replied STOP/);
+});
+
+test("recordSmsConsent checks the opt-out registry before writing or sending a welcome text", async () => {
+  const lib = await readFile(new URL("../src/lib/sms-consent.ts", import.meta.url), "utf8");
+  const check = lib.indexOf("webOptInBlockedByCarrierStop({");
+  const blocked = lib.indexOf("return { newlyOptedIn: false, phone: e164, carrierStop: true }", check);
+  const registryWrite = lib.indexOf("insert into sms_opt_outs");
+  const phoneWrite = lib.indexOf("update phones set messaging_consent_status='opted_in'");
+  const eventWrite = lib.indexOf("insert into sms_consent_events");
+  assert.ok(check > 0 && blocked > check, "the carrier STOP check returns early");
+  assert.ok(blocked < registryWrite && blocked < phoneWrite && blocked < eventWrite, "nothing is written when a carrier STOP is in force");
+  assert.match(lib, /r\.source as registry_source/);
+  // The same guard is in the write itself, so a STOP that lands mid-request is not cleared either.
+  assert.match(lib, /where not \(\$4::boolean and sms_opt_outs\.state='opted_out' and sms_opt_outs\.source<>'settings'\)/);
+  assert.match(lib, /if \(!written\.rowCount\) return \{ newlyOptedIn: false, phone: e164, carrierStop: true \}/);
+  // A settings opt-out on top of a carrier STOP keeps the carrier source.
+  assert.match(lib, /then sms_opt_outs\.source else excluded\.source end/);
+
+  const route = await readFile(new URL("../src/app/api/sms-consent/route.ts", import.meta.url), "utf8");
+  const stop = route.indexOf("if (consent.carrierStop)");
+  assert.ok(stop > 0 && stop < route.indexOf("if (consent.newlyOptedIn) void sendSmsWelcome"), "the START message comes before any welcome text");
+  assert.match(route, /smsCarrierStopMessage\(sender\)/);
+  assert.match(route, /status: 409/);
+
+  const auth = await readFile(new URL("../src/lib/auth-service.ts", import.meta.url), "utf8");
+  assert.match(auth, /smsOptInBlocked = consent\.carrierStop;/);
+});
+
+test("Every phone row lookup uses the one shared ordering rule", async () => {
+  const { verifiedPhoneOrderBy } = await import("../src/lib/sms-consent-policy.ts");
+  assert.equal(verifiedPhoneOrderBy(), "verified_at desc, created_at desc, id desc");
+  assert.equal(verifiedPhoneOrderBy("p"), "p.verified_at desc, p.created_at desc, p.id desc");
+  assert.throws(() => verifiedPhoneOrderBy("p; select 1"), /Invalid SQL alias/);
+
+  const send = await readFile(new URL("../src/lib/twilio-send.ts", import.meta.url), "utf8");
+  assert.match(send, /from phones\s+where lookup_hash=\$1 and verified_at is not null\s+order by \$\{verifiedPhoneOrderBy\(\)\} limit 1/);
+  const consent = await readFile(new URL("../src/lib/sms-consent.ts", import.meta.url), "utf8");
+  assert.equal(consent.match(/order by \$\{verifiedPhoneOrderBy\((?:"p")?\)\} limit 1/g)?.length, 2, "getSmsConsentStatus and getAnyVerifiedPhone");
+  const accounts = await readFile(new URL("../src/lib/accounts.ts", import.meta.url), "utf8");
+  assert.match(accounts, /order by \$\{verifiedPhoneOrderBy\("p"\)\} limit 1/);
+  // No hand-written ordering is left on a phone lookup that picks one row.
+  for (const [name, src] of [["twilio-send", send], ["sms-consent", consent], ["accounts", accounts]] as const) {
+    assert.doesNotMatch(src, /order by (p\.)?(created_at|verified_at) desc limit 1/, name);
+  }
+});

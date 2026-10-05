@@ -1,3 +1,4 @@
+import { privateHashConfigured } from "@/lib/private-hash";
 import { getSessionIdentity } from "@/lib/auth";
 import { turnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
 import {
@@ -37,6 +38,8 @@ export async function POST(request: Request) {
   const identity = await getSessionIdentity().catch(() => null);
   const body = await request.json().catch(() => ({}));
   const ip = clientIp(request);
+  // Rate limits and the stored IP hash need a hash key. Without one, refuse instead of using a built-in key or skipping a limit.
+  if (!privateHashConfigured()) return Response.json({ error: "Feature ideas are temporarily unavailable." }, { status: 503, headers: privateHeaders });
   try {
     if (body.action === "vote") {
       if (!identity) return Response.json({ error: "Sign in to vote" }, { status: 401, headers: privateHeaders });

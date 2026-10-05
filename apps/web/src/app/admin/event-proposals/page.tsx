@@ -62,7 +62,7 @@ function ProposalCard({ proposal, working, onAction }: { proposal: Row; working:
       <span style={{ fontSize: 13, fontWeight: 800, padding: "4px 10px", borderRadius: 999, background: proposal.status === "pending" ? "var(--bg-warn-2)" : "var(--surface-3)", alignSelf: "flex-start" }}>{STATUS_LABELS[proposal.status] || proposal.status}</span>
     </div>
     <dl style={{ display: "grid", gridTemplateColumns: "max-content 1fr", gap: "4px 14px", margin: "12px 0", fontSize: 14 }}>
-      <dt style={{ color: "var(--text-muted)" }}>When</dt><dd style={{ margin: 0 }}>{new Date(proposal.starts_at).toLocaleString()}{proposal.ends_at ? ` to ${new Date(proposal.ends_at).toLocaleString()}` : ""}</dd>
+      <dt style={{ color: "var(--text-muted)" }}>When</dt><dd style={{ margin: 0 }}>{new Date(proposal.starts_at).toLocaleString()}{proposal.ends_at ? ` to ${new Date(proposal.ends_at).toLocaleString()}` : ""}{proposal.start_passed ? " (This time has passed. Change it to approve, or decline.)" : ""}</dd>
       <dt style={{ color: "var(--text-muted)" }}>Where</dt><dd style={{ margin: 0 }}>{[proposal.location_name, proposal.location_address].filter(Boolean).join(", ") || "Not given"}</dd>
       <dt style={{ color: "var(--text-muted)" }}>Expected Riders</dt><dd style={{ margin: 0 }}>{proposal.expected_riders ?? "Not given"}</dd>
       {proposal.description && <><dt style={{ color: "var(--text-muted)" }}>Description</dt><dd style={{ margin: 0, whiteSpace: "pre-wrap" }}>{proposal.description}</dd></>}
@@ -141,7 +141,7 @@ export default function EventProposalsAdminPage() {
     const data = await response.json().catch(() => ({}));
     setWorking(false);
     if (!response.ok) { setMessage(data.error || "That did not work. Please try again."); return false; }
-    setMessage({
+    setMessage(data.notice || {
       "update-settings": "Event proposal settings saved.",
       approve: "Approved. The event is now published.",
       "request-changes": "Change request sent to the proposer.",
@@ -156,7 +156,7 @@ export default function EventProposalsAdminPage() {
   const button = { padding: "9px 12px", border: "1px solid var(--line-strong)", borderRadius: 8, background: "var(--surface)", fontWeight: 800, cursor: "pointer" } as const;
   const canChangeSettings = platformAccess || role === "owner" || role === "admin";
 
-  return <main style={{ maxWidth: 1040, margin: "36px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif", background: "var(--bg)" }}>
+  return <main style={{ maxWidth: 1040, margin: "36px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif", background: "var(--surface-2)" }}>
     <header style={{ background: "var(--panel-solid)", color: "white", padding: 28, borderRadius: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1 }}>ORGANIZATION ADMIN</div>
       <h1 style={{ margin: "6px 0" }}>Event Proposals</h1>

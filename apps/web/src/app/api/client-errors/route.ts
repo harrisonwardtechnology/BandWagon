@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import { privateHashConfigured, privateHmac } from "@/lib/private-hash";
 import { glitchTipConfigured, reportToGlitchTip } from "@/lib/glitchtip";
 import { getRedis } from "@/lib/redis";
 
@@ -18,13 +18,14 @@ function clean(value: unknown, max: number) {
 
 function ipKey(request: Request) {
   const ip = String(request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown").trim();
-  const secret = process.env.AUTH_SECRET || process.env.DATA_ENCRYPTION_KEY || "bandwagon-client-errors";
-  return crypto.createHmac("sha256", secret).update(ip).digest("hex").slice(0, 32);
+  return privateHmac(ip).slice(0, 32);
 }
 
 async function allowed(request: Request) {
   const redis = getRedis();
   if (!redis) return true; // the per-process GlitchTip throttle still applies
+  // No hash key configured: drop the report instead of hashing IPs with a built-in key or skipping the limit.
+  if (!privateHashConfigured()) return false;
   if (redis.status === "wait") await redis.connect();
   const key = `client-errors:${ipKey(request)}`;
   const count = await redis.incr(key);

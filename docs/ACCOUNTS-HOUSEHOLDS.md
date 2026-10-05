@@ -55,6 +55,8 @@ Delegates can never change guardians, add or remove children, change a child's p
 
 A delegate who can ask for rides but not approve them creates requests that still wait for a guardian when the child requires approval. Guardians see those under "Rides waiting for your OK" on the Household page.
 
+A delegate who can ask for rides but not see ride details still sees a short status line for the requests they created themselves (event, requested time, organization, status). Nothing else is shown without "See ride details": no pickup note or area, no driver or offer details, and no requests created by someone else.
+
 ### Invitations
 
 - The invitee must be an adult (`person_type='adult'`, not a 13 to 17 or under 13 age band) with an active account and a verified email or phone. This is the same adult rule used for organization owners and admins.
@@ -62,6 +64,7 @@ A delegate who can ask for rides but not approve them creates requests that stil
 - The accepting account must have the invited email or phone verified. Household members cannot become delegates of their own household.
 - Links are single use (row lock plus `accepted_at` check), expire in 7 days, and a new invite to the same contact cancels the old one.
 - Rate limits: 10 invites per inviter per hour and 20 per household per day.
+- A guardian cannot invite themself: not their own verified email, and not any phone number on their own account.
 - A guardian can only give permissions they hold themselves, as a guardian, for every child the grant covers: "Ask for rides" needs their own `can_manage_profile`, "Approve rides" their own `can_approve_rides`, and any permission needs a guardian relationship with that child. Their own delegate grants elsewhere never count. This is checked when inviting, when editing, and again when the invite is accepted.
 - Pausing or removing a delegate cancels every open invite in that household sent to any email or phone on that person's account. Accepting an invite cancels the person's other open invites for the household.
 - An invite can never turn a paused grant back on, and an invite sent before the grant was paused or removed cannot be used. The guardian must send a new one. The inviter must still manage the household when the invite is accepted (deleting an account also cancels that person's open invites).
@@ -70,11 +73,13 @@ A delegate who can ask for rides but not approve them creates requests that stil
 
 `src/lib/child-access.ts` exports `canActForChild(identity, childId, action, { organizationId })`. It is the only place that decides whether someone may request, approve, or manage rides for a child, and it reads fresh rows on every call, so pausing or removing a delegate takes effect on the very next request. The pure rules live in `src/lib/household-delegate-policy.ts` and are covered by `tests/household-delegate-policy.test.ts`.
 
+Always pass `organizationId`. Without it, `canActForChild` can still allow the child themself and guardians, but it refuses every delegate grant, because the organization's "trusted adults off" setting could not be checked. (The one caller that leaves it out, the "what may this guardian hand out" check, only reads guardian results.)
+
 Callers: `rides.ts` (request membership fallback, auto approval, guardian approval, accepting offers), `ride-waitlists.ts` (joining, leaving, and standby offers: delegates with "Ask for rides" can join and leave, delegates with "Approve rides" can also accept a standby seat; a removed delegate loses access even to entries they joined), `carpool.ts` (pooling), `ride-lifecycle.ts` (cancelling and other rider updates), `location-privacy.ts` (setting ride places), and `product.ts` (the signed-in ride actions). Guardian meanings are unchanged: requesting uses `can_manage_profile`; approving and managing requests use `can_approve_rides`.
 
 ### Organizations
 
-Delegates are never added to `memberships`. When a delegate is not a member of the child's organization, the product layer lets the specific child-scoped action through only when `canActForChild` grants it through a delegate grant and the organization allows delegates. They get no other organization access. Organization admins can turn delegates off at `/admin/household-delegates`; guardians are not affected.
+Delegates are never added to `memberships`. When a delegate is not a member of the child's organization, the product layer lets the specific child-scoped action through only when `canActForChild` grants it through a delegate grant and the organization allows delegates. They get no other organization access. Organization owners and admins can turn delegates off at `/admin/household-delegates`; managers can see the setting but not change it. Guardians are not affected.
 
 ### Notifications and audit
 

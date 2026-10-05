@@ -464,8 +464,12 @@ export async function verifyOtp(input: {
     // Verifying a number is not consent to ride texts. Only the separate,
     // unchecked-by-default SMS checkbox opts the person in.
     let smsWelcome: { phone: string } | null = null;
+    let smsOptInBlocked = false;
     if (input.smsConsent === true && challenge.destination_type === "phone") {
       const consent = await recordSmsConsent({ phone: destination, action: "opt_in", source: "signup_checkbox", personId, db: client });
+      // After a carrier STOP nothing is recorded and no welcome text is sent:
+      // the person has to text START first. Sign-in itself still succeeds.
+      smsOptInBlocked = consent.carrierStop;
       if (consent.newlyOptedIn) smsWelcome = { phone: consent.phone };
     }
     await client.query(`update auth_otp_challenges set consumed_at=now(),attempts=attempts+1 where id=$1`, [challenge.id]);
@@ -479,7 +483,7 @@ export async function verifyOtp(input: {
     });
     await client.query("COMMIT");
     if (smsWelcome) void sendSmsWelcome({ phone: smsWelcome.phone, personId });
-    return { ...session, personId, userAccountId, createdAccount: challenge.purpose === "sign_up" || challenge.purpose === "managed_student_claim" };
+    return { ...session, personId, userAccountId, smsOptInBlocked, createdAccount: challenge.purpose === "sign_up" || challenge.purpose === "managed_student_claim" };
   } catch (error) {
     await client.query("ROLLBACK").catch(() => {});
     throw error;

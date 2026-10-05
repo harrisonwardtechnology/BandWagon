@@ -1,5 +1,5 @@
-import { createHmac } from "node:crypto";
 import { getDb } from "@/lib/db";
+import { privateHmac } from "@/lib/private-hash";
 
 type Point={lat:number;lng:number};
 export type RouteMetrics={distanceMeters:number;durationSeconds:number;provider:'google_routes'|'estimate';cacheHit?:boolean};
@@ -8,7 +8,7 @@ type RouteContext={organizationId?:string|null};
 function db(){return getDb();}
 function haversineKm(a:Point,b:Point){const r=(v:number)=>v*Math.PI/180,dLat=r(b.lat-a.lat),dLng=r(b.lng-a.lng);const x=Math.sin(dLat/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLng/2)**2;return 6371*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
 function estimate(a:Point,b:Point):RouteMetrics{const roadKm=haversineKm(a,b)*1.35;return{distanceMeters:Math.round(roadKm*1000),durationSeconds:Math.max(60,Math.round((roadKm/35)*3600)),provider:'estimate'};}
-function routeHash(a:Point,b:Point,context?:RouteContext){const normalized=[a.lat,a.lng,b.lat,b.lng].map(v=>Number(v).toFixed(4)).join('|');const secret=process.env.AUTH_SECRET||process.env.DATA_ENCRYPTION_KEY||'bandwagon-routing-cache-development';return createHmac('sha256',secret).update(`drive|${context?.organizationId||'global'}|${normalized}`).digest('hex');}
+function routeHash(a:Point,b:Point,context?:RouteContext){const normalized=[a.lat,a.lng,b.lat,b.lng].map(v=>Number(v).toFixed(4)).join('|');return privateHmac(`drive|${context?.organizationId||'global'}|${normalized}`);}
 function cacheMinutes(){return Math.max(1,Math.min(120,Number(process.env.ROUTING_CACHE_MINUTES||15)));}
 function googleCostMicrousd(){return Math.max(0,Math.round(Number(process.env.GOOGLE_ROUTES_ESTIMATED_COST_USD_PER_CALL||0)*1_000_000));}
 

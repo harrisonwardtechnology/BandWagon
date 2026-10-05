@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { getDb } from "@/lib/db";
+import { privateHashConfigured, privateHmac } from "@/lib/private-hash";
 import { getRedis } from "@/lib/redis";
 import { sendEmailNotification } from "@/lib/email-send";
 import { turnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
@@ -18,8 +19,7 @@ function validSecureEvidence(value:string){
   try{const u=new URL(value);return u.protocol==="https:"&&u.hostname.toLowerCase()==="secret.harrisonward.com";}catch{return false;}
 }
 function privateRateKey(value:string){
-  const secret=process.env.AUTH_SECRET||process.env.DATA_ENCRYPTION_KEY||'bandwagon-rate-limit';
-  return crypto.createHmac('sha256',secret).update(value).digest('hex').slice(0,32);
+  return privateHmac(value).slice(0,32);
 }
 async function rateLimit(request:Request,email:string){
   const redis=getRedis();if(!redis)return{allowed:true};if(redis.status==='wait')await redis.connect();
@@ -30,7 +30,8 @@ async function rateLimit(request:Request,email:string){
 }
 
 export async function POST(request:Request){
-  if(!turnstileConfigured())return Response.json({error:"Reporting is temporarily unavailable"},{status:503});
+  // Rate limiting needs a hash key. Without one, refuse instead of using a built-in key or skipping the limit.
+  if(!turnstileConfigured()||!privateHashConfigured())return Response.json({error:"Reporting is temporarily unavailable"},{status:503});
   const db=getDb();if(!db)return Response.json({error:"Reporting is temporarily unavailable"},{status:503});
   const body=await request.json().catch(()=>({}));
   const honeypot=text(body.companyWebsite,200);if(honeypot)return Response.json({ok:true});

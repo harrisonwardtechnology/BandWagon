@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "node scripts/migrate.mjs",
     "db:verify": "node scripts/verify-schema.mjs",
+    "db:check-sql": "node scripts/check-static-sql.mjs",
     "tenants:move-domain": "node scripts/move-tenant-domain.mjs",
     "release:check-env": "node scripts/check-production-readiness.mjs",
     "release:check-env:flomogo": "node scripts/check-production-readiness.mjs --profile=flomogo",
