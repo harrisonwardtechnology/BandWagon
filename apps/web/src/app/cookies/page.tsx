@@ -16,7 +16,7 @@ export default function CookiePolicyPage() {
       <p>Effective August 26, 2026</p>
     </header>
 
-    <section className="notice"><strong>Plain-language summary:</strong> BandWagon uses essential cookies for sign-in, security, and remembering your privacy choice. Optional functional storage is off until you allow it. BandWagon does not currently use advertising cookies, cross-site tracking, session replay, or behavioral analytics.</section>
+    <section className="notice"><strong>Plain-language summary:</strong> BandWagon uses essential cookies for sign-in, security, and remembering your privacy choice. Optional functional storage is off until you allow it. BandWagon counts page visits and feature use anonymously with its own self-hosted analytics. That counting uses no cookies and nothing tied to a person. BandWagon does not use advertising cookies, cross-site tracking, or session replay.</section>
 
     <article className="legal-card">
       <h2>1. Scope</h2>
@@ -46,9 +46,10 @@ export default function CookiePolicyPage() {
       <h2>7. Hosted Payments and Connected Services</h2>
       <p>Support payments redirect to Stripe-hosted Checkout. Stripe controls technology used on its own domain under its privacy and cookie disclosures. Google and Microsoft calendar connections use explicit authorization; OAuth credentials are protected server-side and are not stored as BandWagon browser cookies.</p>
 
-      <h2>8. No Analytics or Advertising Tracking</h2>
-      <p>BandWagon does not currently use Google Analytics, Meta Pixel, behavioral advertising, cross-site profiling, heatmaps, session replay, or similar browser tracking. Server-side operational counts and security logs are used to operate and protect the platform, not to follow users across unrelated services.</p>
-      <p>BandWagon will not add optional analytics or advertising technology under an existing functional-storage choice. A future addition requires an updated disclosure, a new policy version, prior consent where required, and an equally accessible rejection option.</p>
+      <h2>8. Anonymous Analytics, No Advertising Tracking</h2>
+      <p>BandWagon uses Umami, an open-source analytics tool that Harrison Ward Technology runs on its own server. It counts page views, which features are used, browser type, device type, screen size, language, the referring site, and country. It sets no cookies, stores nothing on your device, does not keep a profile of you, and is never tied to an account, a household, or a student. Web addresses are cleaned before they are sent: query strings, page anchors, and invite links’ secret codes are removed. Browsers that send a Do Not Track signal are not counted. Because it stores nothing on your device, it does not use the optional functional storage choice above.</p>
+      <p>BandWagon does not use Google Analytics, Meta Pixel, behavioral advertising, cross-site profiling, heatmaps, session replay, or similar browser tracking. Server-side operational counts and security logs are used to operate and protect the platform, not to follow users across unrelated services.</p>
+      <p>BandWagon will not add optional analytics or advertising technology under an existing functional-storage choice, and will not add cookies or device storage to its analytics without asking first. A future addition requires an updated disclosure, a new policy version, prior consent where required, and an equally accessible rejection option.</p>
 
       <h2>9. Browser Controls and Global Privacy Signals</h2>
       <p>Users may also block or delete cookies and site data through browser settings. Because BandWagon does not sell personal information or use data for targeted advertising, there is no sale or targeted-advertising processing to opt out of. BandWagon treats supported Global Privacy Control signals as an instruction not to enable any future sale, sharing, or targeted-advertising processing for that browser.</p>

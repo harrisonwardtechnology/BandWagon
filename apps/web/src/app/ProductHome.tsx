@@ -36,7 +36,8 @@ const safety = [
 
 const privacy = [
   "We never sell personal information.",
-  "No ads, no ad trackers, and no behavioral analytics.",
+  "No ads, no ad trackers, and nothing that follows you around the web.",
+  "Anonymous visit counts only, from our own server. No cookies and nothing tied to you.",
   "No live GPS tracking of people or cars.",
   "No school roster, student ID, grades, or school records needed.",
   "Profile phone numbers, exact addresses, and driver credentials are encrypted at rest.",

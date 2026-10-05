@@ -10,6 +10,7 @@ import { StagingBanner } from "@/components/staging-banner";
 import { isStagingEnvironment } from "@/lib/public-links";
 import { NOINDEX, OG_IMAGE, siteOrigin, TWITTER_IMAGE } from "@/lib/seo";
 import ClientErrorReporter from "@/components/client-error-reporter";
+import UmamiAnalytics from "@/components/umami-analytics";
 
 export const viewport: Viewport = {
   // Browser chrome follows the device's light or dark setting.
@@ -85,6 +86,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <PrivacyConsentManager />
         <PwaRegister />
         <ClientErrorReporter />
+        <UmamiAnalytics />
         <OfflineStatus />
         <SupportModeBanner />
         <PublicSiteHeader />
@@ -94,6 +96,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <div className="footer-brand"><BrandLogo /><span>Community-Powered Rides</span></div>
             <nav aria-label="Footer">
               <a href="/help">Help Center</a>
+              <a href="/whats-new">What’s New</a>
               <a href="/api/review-package">Review Package</a>
               <a href="/status">Platform Status</a>
               <a href="https://status.bandwagon.club/" target="_blank" rel="noreferrer">Status Page</a>

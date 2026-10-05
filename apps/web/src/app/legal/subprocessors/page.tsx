@@ -26,6 +26,13 @@ const vendors: Vendor[] = [
     always: true,
   },
   {
+    name: "Umami analytics (self-hosted by Harrison Ward Technology)",
+    purpose: "Anonymous counts of page views and feature use, so we can see what helps families and fix what doesn't.",
+    data: "Cleaned page address (no query string, no invite codes), page title, referring site, browser, device type, screen size, language, and country. No cookies, no account or household link.",
+    when: "On every page, unless the browser sends Do Not Track. Runs on our own server, not a third party.",
+    always: true,
+  },
+  {
     name: "Cloudflare",
     purpose: "DNS, network security, and Turnstile bot protection on sign-in and contact forms. Custom hostname certificates when a community uses its own domain.",
     data: "IP address, browser and request details, and bot-check signals. Community hostnames.",
