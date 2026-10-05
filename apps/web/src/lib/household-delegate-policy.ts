@@ -92,6 +92,9 @@ export function delegateGrantState(grant: Pick<DelegateGrant, "status" | "starts
   return "active";
 }
 
+/** Why a delegate is refused when no organization was given to check its trusted adult setting. */
+export const DELEGATE_ORGANIZATION_REQUIRED = "Trusted adult access can only be used inside an organization";
+
 function scopeFor(action: ChildAction): keyof DelegateScopes | null {
   switch (action) {
     case "request_rides": return "requestRides";
@@ -124,7 +127,11 @@ export function delegateGrantAllows(
       return { allowed: false, reason: "This child is not covered by the delegate grant" };
     }
   }
+  // Fail closed: a delegate grant only counts once the organization's setting
+  // has been read and it allows delegates. "Not checked" (null or undefined,
+  // for example when no organization was passed) is a refusal, never a pass.
   if (options.organizationAllowsDelegates === false) return { allowed: false, reason: "This organization does not allow household delegates" };
+  if (options.organizationAllowsDelegates !== true) return { allowed: false, reason: DELEGATE_ORGANIZATION_REQUIRED };
   if (!grant.scopes[scope]) return { allowed: false, reason: "The guardian has not given this permission" };
   return { allowed: true, reason: "Delegate permission" };
 }
@@ -147,6 +154,10 @@ function guardianAllows(guardian: NonNullable<GuardianFacts>, action: ChildActio
  * One decision for "may this person do this for this child". Order:
  * the child themself (only for requesting and viewing their own rides),
  * a guardian relationship, then any live delegate grant.
+ *
+ * organizationAllowsDelegates must be true for a delegate grant to count.
+ * Leave it out (or pass null) and delegates are refused. Guardians and the
+ * child themself never depend on it.
  */
 export function evaluateChildAccess(input: {
   actorIsChild: boolean;
@@ -281,6 +292,28 @@ export function delegateGrantInputError(
   return null;
 }
 
+/**
+ * True when the contact on a new invitation belongs to the inviter. Emails are
+ * compared lowercased. Phones are compared by keyed lookup hash, so the raw
+ * number is never needed here.
+ */
+export function delegateInviteIsSelf(input: {
+  contactType: unknown;
+  normalizedEmail?: string | null;
+  phoneLookupHash?: string | null;
+  ownEmails: string[];
+  ownPhoneLookupHashes: string[];
+}) {
+  if (input.contactType === "email") {
+    const email = normalizeDelegateEmail(input.normalizedEmail);
+    return Boolean(email) && input.ownEmails.map(normalizeDelegateEmail).includes(email);
+  }
+  if (input.contactType === "phone") {
+    return Boolean(input.phoneLookupHash) && input.ownPhoneLookupHashes.includes(String(input.phoneLookupHash));
+  }
+  return false;
+}
+
 export function maskContact(contactType: "email" | "phone", value: string) {
   if (contactType === "email") {
     const [local, domain] = value.split("@");
@@ -339,6 +372,55 @@ export function delegateInviteAcceptBlock(input: {
   const revoked = time(input.lastRevokedAt);
   if ((paused != null && paused >= created) || (revoked != null && revoked >= created)) {
     return "Your access was changed after this invitation was sent. Ask the parent for a new invitation.";
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// What a delegate sees of a ride request on their own overview.
+
+/**
+ * The only fields shown for a request the delegate created themself when they
+ * do not have "See ride details": enough to know it exists and where it
+ * stands. No pickup note, no pickup area, no driver names, no offer details.
+ */
+export const DELEGATE_OWN_REQUEST_FIELDS = [
+  "id",
+  "public_ref",
+  "organization_id",
+  "organization_name",
+  "status",
+  "direction",
+  "guardian_approval_status",
+  "requested_pickup_at",
+  "event_title",
+  "event_starts_at",
+] as const;
+
+/**
+ * Decide what a delegate sees of one ride request for a covered child.
+ * - With "See ride details": the full row, as before. Offers only when they may act on the request.
+ * - Without it, but they created the request and may still ask for rides: a
+ *   short status view (DELEGATE_OWN_REQUEST_FIELDS), marked limitedView.
+ * - Otherwise nothing. Requests other people created stay hidden.
+ */
+export function delegateRequestView(input: {
+  request: Record<string, unknown>;
+  viewAllowed: boolean;
+  manageAllowed: boolean;
+  createdByViewer: boolean;
+}): Record<string, unknown> | null {
+  // Who created the request is used for this decision only and is never sent to the page.
+  const { requester_person_id: _requester, ...request } = input.request;
+  void _requester;
+  const offers = Array.isArray(request.offers) ? request.offers : [];
+  if (input.viewAllowed) {
+    return { ...request, canManage: input.manageAllowed, offers: input.manageAllowed ? offers : [] };
+  }
+  if (input.createdByViewer && input.manageAllowed) {
+    const view: Record<string, unknown> = {};
+    for (const field of DELEGATE_OWN_REQUEST_FIELDS) view[field] = request[field] ?? null;
+    return { ...view, canManage: true, offers: [], offerCount: offers.length, limitedView: true };
   }
   return null;
 }

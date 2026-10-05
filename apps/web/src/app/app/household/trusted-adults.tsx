@@ -216,7 +216,7 @@ export default function TrustedAdults() {
               Ride: {ride.event_title || "Ride"} with {ride.driver_name}{ride.vehicle_label ? ` (${[ride.vehicle_color, ride.vehicle_label].filter(Boolean).join(" ")})` : ""}{ride.scheduled_pickup_at ? `, pickup ${new Date(ride.scheduled_pickup_at).toLocaleString()}` : ""}{ride.pickup_area ? ` near ${ride.pickup_area}` : ""}. Status: {String(ride.status).replace(/_/g, " ")}.
               {ride.canManage && ride.status === "confirmed" && <button disabled={working} style={{ ...light, marginLeft: 8 }} onClick={() => { if (window.confirm("Cancel this ride?")) void act({ action: "cancel_ride", rideId: ride.id }, "Ride cancelled."); }}>Cancel Ride</button>}
             </div>)}
-            {child.requests.filter((r: Row) => r.status !== "matched").map((r: Row) => <div key={r.id} style={{ marginTop: 8, fontSize: 14 }}>
+            {child.requests.filter((r: Row) => r.status !== "matched" || r.limitedView).map((r: Row) => <div key={r.id} style={{ marginTop: 8, fontSize: 14 }}>
               Request: {r.event_title || "Ride"} ({String(r.status).replace(/_/g, " ")})
               {r.canManage && r.offers.map((o: Row) => <button key={o.id} disabled={working} style={{ ...light, marginLeft: 8 }} onClick={() => act({ action: "accept_offer", rideRequestId: r.id, offerId: o.id }, "Ride confirmed.")}>Accept {o.driverName}&apos;s Offer</button>)}
             </div>)}

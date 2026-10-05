@@ -74,6 +74,12 @@ jobs:
           DATABASE_SSL: "false"
         run: npm run db:verify
 
+      - name: Check static SQL against the schema
+        env:
+          DATABASE_URL: postgresql://bandwagon:bandwagon-test-only@localhost:5432/bandwagon_test
+          DATABASE_SSL: "false"
+        run: npm run db:check-sql
+
       - name: Verify migrations are repeatable
         env:
           DATABASE_URL: postgresql://bandwagon:bandwagon-test-only@localhost:5432/bandwagon_test

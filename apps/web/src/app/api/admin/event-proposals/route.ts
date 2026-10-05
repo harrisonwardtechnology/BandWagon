@@ -48,7 +48,8 @@ export async function POST(request: Request) {
         organizationRole: access.organizationRole,
         platformAccess: access.platformAccess,
       });
-      return NextResponse.json({ ok: true, settings }, privateResponse);
+      // notice: set when proposals were turned off with some still queued. They are kept, on hold.
+      return NextResponse.json({ ok: true, settings, notice: settings.notice }, privateResponse);
     }
     if (body.action === "approve" || body.action === "request-changes" || body.action === "decline") {
       const edits = body.edits && typeof body.edits === "object" ? body.edits : {};

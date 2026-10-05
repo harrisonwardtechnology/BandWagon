@@ -26,7 +26,7 @@ A trusted adult is someone outside the household, such as a grandparent, nanny, 
 - Only a sha256 hash of the token is stored. Phone invites store a keyed lookup hash, never the number.
 - A new invite to the same contact cancels the older open one.
 - Rate limits: **10 invites per inviter per hour** and **20 per household per day**.
-- You cannot invite yourself.
+- You cannot invite yourself. This covers your own email addresses and any phone number on your own account (compared by lookup hash).
 
 ## What A Delegate Can Do
 
@@ -36,6 +36,8 @@ A trusted adult is someone outside the household, such as a grandparent, nanny, 
 | Approve rides | Approve or decline requests waiting for a guardian, accept a standby seat |
 | See ride details | See ride details and pickup information |
 | Get notifications | Receive notifications about covered children's rides |
+
+A delegate with only "Ask for rides" (no "See ride details") still sees the requests **they created themselves**, as a short status line: the event, the requested time, the organization, and where the request stands (waiting for approval, open, matched). They do not see pickup notes, the pickup area, driver names, or offer details, and they never see requests someone else created. This follows the live permission: if "Ask for rides" is removed or the grant is paused, the list is empty again. The rule is `delegateRequestView` in the policy file.
 
 At least one permission must be chosen. A delegate can **never** manage guardians, add or remove children, edit a child's profile or safety settings, manage other delegates, or see other households.
 
@@ -65,12 +67,15 @@ This is checked when inviting, when editing, and again when the invite is accept
 
 - Delegates are not organization members and get no other organization access.
 - `organizations.household_delegates_enabled` (default on) lets an organization turn delegates off at `/admin/household-delegates`. The change is audited as `organization.household_delegates_updated`.
+- **Who can change it:** organization owners and admins (and a platform owner). Managers can see the setting but cannot change it. This is the same rule as event proposal settings (`canChangeOrganizationSettings` in `apps/web/src/lib/admin-policy.ts`).
+- **The setting can never be skipped.** A delegate grant only counts when the organization was checked and allows delegates. If code asks "may this person act for this child" without naming an organization, delegates are refused ("Trusted adult access can only be used inside an organization"). Parents, guardians, and the child are not affected.
 
 ## Audit And Notifications
 
 - Management actions: `household_delegate.invited`, `.updated`, `.paused`, `.resumed`, `.revoked`, `.accepted`, `.left`.
 - Ride actions by a delegate record the delegate as `actor_person_id` and the child in `audit_events.on_behalf_of_person_id` (for example `household_delegate.ride_requested`, `.ride_approved`, `.waitlist_joined`, `.standby_accepted`).
-- Guardians get a `household_delegate_activity` notification for each ride action a delegate takes.
+- Guardians get a `household_delegate_activity` notification for each ride action a delegate takes. The same type tells a delegate when their permissions change or their access is paused, resumed, or removed, and tells household managers when a delegate accepts or steps away.
+- `household_delegate_activity` has its own router policy: important, push first, email when push is not available, never a text. Invitations (`household_delegate_invitation`) are email only and never texted. See [NOTIFICATION-ROUTING.md](NOTIFICATION-ROUTING.md).
 - The household manager sees this history on the Household page.
 
 ## Code And Tests

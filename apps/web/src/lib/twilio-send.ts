@@ -1,7 +1,7 @@
 import { getDb } from "@/lib/db";
 import { lookupHash } from "@/lib/data-security";
 import { enforceMobileMessageIntent } from "@/lib/messaging-policy";
-import { mobileSendDecision } from "@/lib/sms-consent-policy";
+import { mobileSendDecision, verifiedPhoneOrderBy } from "@/lib/sms-consent-policy";
 import { decideOrgMobileCap, ORG_TEXTING_LIMIT_ERROR, utcMonthWindow } from "@/lib/org-messaging-cap-policy";
 import { evaluateOrgMessagingAlerts, orgMobileCapCents, recordOrgCapBlocked } from "@/lib/org-messaging-limits";
 import { SANDBOX_SKIPPED_STATUS, sandboxDeliveryDecision } from "@/lib/messaging-sandbox-policy";
@@ -54,7 +54,7 @@ async function reserveMobileDelivery(input: {
       `select
          (select messaging_consent_status from phones
            where lookup_hash=$1 and verified_at is not null
-           order by created_at desc limit 1) as phone_state,
+           order by ${verifiedPhoneOrderBy()} limit 1) as phone_state,
          (select state from sms_opt_outs where lookup_hash=$1) as registry_state`,
       [hash]
     );

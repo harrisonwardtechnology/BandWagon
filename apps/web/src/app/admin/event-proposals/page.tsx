@@ -62,7 +62,7 @@ function ProposalCard({ proposal, working, onAction }: { proposal: Row; working:
       <span style={{ fontSize: 13, fontWeight: 800, padding: "4px 10px", borderRadius: 999, background: proposal.status === "pending" ? "#fef3c7" : "#f1f5f9", alignSelf: "flex-start" }}>{STATUS_LABELS[proposal.status] || proposal.status}</span>
     </div>
     <dl style={{ display: "grid", gridTemplateColumns: "max-content 1fr", gap: "4px 14px", margin: "12px 0", fontSize: 14 }}>
-      <dt style={{ color: "#64748b" }}>When</dt><dd style={{ margin: 0 }}>{new Date(proposal.starts_at).toLocaleString()}{proposal.ends_at ? ` to ${new Date(proposal.ends_at).toLocaleString()}` : ""}</dd>
+      <dt style={{ color: "#64748b" }}>When</dt><dd style={{ margin: 0 }}>{new Date(proposal.starts_at).toLocaleString()}{proposal.ends_at ? ` to ${new Date(proposal.ends_at).toLocaleString()}` : ""}{proposal.start_passed ? " (This time has passed. Change it to approve, or decline.)" : ""}</dd>
       <dt style={{ color: "#64748b" }}>Where</dt><dd style={{ margin: 0 }}>{[proposal.location_name, proposal.location_address].filter(Boolean).join(", ") || "Not given"}</dd>
       <dt style={{ color: "#64748b" }}>Expected Riders</dt><dd style={{ margin: 0 }}>{proposal.expected_riders ?? "Not given"}</dd>
       {proposal.description && <><dt style={{ color: "#64748b" }}>Description</dt><dd style={{ margin: 0, whiteSpace: "pre-wrap" }}>{proposal.description}</dd></>}
@@ -141,7 +141,7 @@ export default function EventProposalsAdminPage() {
     const data = await response.json().catch(() => ({}));
     setWorking(false);
     if (!response.ok) { setMessage(data.error || "That did not work. Please try again."); return false; }
-    setMessage({
+    setMessage(data.notice || {
       "update-settings": "Event proposal settings saved.",
       approve: "Approved. The event is now published.",
       "request-changes": "Change request sent to the proposer.",

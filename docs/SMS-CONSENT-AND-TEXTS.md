@@ -10,7 +10,7 @@ How BandWagon collects consent for ride texts, sends them over RCS or SMS, and h
 
 ## Consent Text
 
-The exact wording shown next to every opt-in checkbox is `SMS_CONSENT_TEXT` in `apps/web/src/lib/sms-consent-policy.ts`. It is stored with each opt-in record along with `SMS_CONSENT_TEXT_VERSION` (currently `2026-09-26`). Change the version whenever the text changes.
+The exact wording shown next to every opt-in checkbox is `SMS_CONSENT_TEXT` in `apps/web/src/lib/sms-consent-policy.ts`. It is stored with each opt-in record along with `SMS_CONSENT_TEXT_VERSION` (currently `2026-09-30`). Change the version whenever the text changes.
 
 ## Sign-In Codes Are A Separate Consent
 
@@ -34,6 +34,22 @@ Carrier rule (Twilio ticket 29651215, 2026-09-30): asking for a sign-in code by 
 - Saving settings again while already opted in does not resend it.
 - A carrier START reply does not send it; Twilio sends the START reply.
 - Sending is best effort and never blocks sign-in or settings.
+- It is not sent when the number has a carrier STOP on it (next section).
+
+## Opting In On The Web After A STOP
+
+After someone replies STOP, Twilio blocks every text to that number until they text START. Ticking the box on the web cannot lift that block, so the app does not pretend it did:
+
+- `recordSmsConsent` checks the opt-out registry (`sms_opt_outs`) first. If the number is opted out and the opt-out came from the carrier side (source `carrier_keyword`, `twilio_advanced_opt_out`, or `migrated_phone_status`), a web opt-in changes nothing: no registry change, no phone row change, no consent event, no welcome text. The carrier STOP is never cleared from the web.
+- The settings page (`/api/sms-consent`) answers with HTTP 409 and this message (`smsCarrierStopMessage`), using `TWILIO_PHONE_NUMBER` when it is set:
+
+  > Texts to this number are still blocked because it replied STOP. Text START to (469) 555-0100 to turn them back on. Then refresh this page.
+
+- Texting START is itself the opt-in. The inbound webhook records it and ride texts are back on. Twilio sends the START reply.
+- An opt-out made on the settings page (source `settings`) is different: Twilio is not blocking, so opting back in on the web works and sends the welcome text.
+- A settings opt-out on top of a carrier STOP keeps the carrier source, so the number is still known to need START.
+- At sign-in the code is still verified and the person is signed in. The API response carries `smsOptInBlocked: true`. (Sign-in codes are also blocked after a STOP, so this is rare.)
+- `GET /api/sms-consent` returns `carrierStop: true` for such a number.
 
 ## HELP Text
 
@@ -67,11 +83,23 @@ Enforced in `apps/web/src/lib/twilio-send.ts` before Twilio is called, under a p
 - Verification codes: 5 per recipient per 15 minutes.
 - All other texts: 20 per recipient per hour.
 - A per-organization monthly texting cap also applies. Critical and OTP messages are always allowed but still counted.
-- Message bodies are limited to 600 characters and to an allowlist of transactional types.
+- Message bodies are limited to 600 characters (before the brand prefix) and to an allowlist of transactional types.
+
+## Brand Name In Every Text
+
+Carriers expect the brand name in every text. Every body sent through `sendTwilioNotification` starts with `BandWagon: ` (`SMS_BRAND_PREFIX` in `apps/web/src/lib/messaging-policy.ts`), the same form as the welcome text. Examples:
+
+> BandWagon: Your driver is on the way.
+
+> BandWagon: A seat opened in a carpool you were waiting for.
+
+A body that already starts with "BandWagon" is left alone ("BandWagon verification code: 123456"), so the brand is never added twice. Push notifications and emails are not changed. Replies the inbound webhook sends as TwiML (organization removal confirmations) use the same helper.
 
 ## RCS With SMS Fallback
 
 Every message is sent with one Twilio Messaging Service (`TWILIO_MESSAGING_SERVICE_SID`). The service uses the RCS sender where the handset supports it and falls back to SMS otherwise. Only a forced SMS send (`mode: "sms"`) also sets `From` to `TWILIO_PHONE_NUMBER`. Staging and test environments only reach allowlisted phones.
+
+The delivery log (`notification_deliveries.channel`) starts with the requested channel (`rcs` for normal sends) and is corrected to the real one (`rcs` or `sms`) when Twilio's status callback arrives. See [NOTIFICATION-ROUTING.md](NOTIFICATION-ROUTING.md#real-channel-for-texts).
 
 ## Twilio Console Setup
 
@@ -99,6 +127,8 @@ Twilio onboarding ticket 29651215 was in review as of 2026-09-29.
 ## Code And Tests
 
 - Rules and texts: `apps/web/src/lib/sms-consent-policy.ts`
+- Brand prefix, type allowlist, and channel detection: `apps/web/src/lib/messaging-policy.ts`
 - Recording and welcome text: `apps/web/src/lib/sms-consent.ts`
 - Sending: `apps/web/src/lib/twilio-send.ts`
-- Tests: `apps/web/tests/sms-consent-policy.test.ts`, `apps/web/tests/twilio-security.test.ts`
+- Status callback channel: `apps/web/src/lib/twilio-status.ts`
+- Tests: `apps/web/tests/sms-consent-policy.test.ts`, `apps/web/tests/messaging-abuse-policy.test.ts`, `apps/web/tests/notification-routing-policy.test.ts`, `apps/web/tests/twilio-security.test.ts`
