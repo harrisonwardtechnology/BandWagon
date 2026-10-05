@@ -6,11 +6,19 @@ export const runtime="nodejs";
 export const dynamic="force-dynamic";
 
 export async function GET(){
+  // Only a missing session is a 401. Anything else is our fault and must not
+  // send a signed-in person back to the sign-in page or show them database text.
+  let identity;
   try{
-    const identity=await requireSessionIdentity();
+    identity=await requireSessionIdentity();
+  }catch{
+    return NextResponse.json({error:"Authentication required"},{status:401});
+  }
+  try{
     return NextResponse.json({ok:true,context:await listMySafetyContext(identity)});
   }catch(error){
-    return NextResponse.json({error:error instanceof Error?error.message:"Authentication required"},{status:401});
+    console.error("Safety context failed",{error:error instanceof Error?error.message:"unknown"});
+    return NextResponse.json({error:"Safety tools are unavailable right now. Please try again."},{status:500});
   }
 }
 

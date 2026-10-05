@@ -2,6 +2,39 @@
 
 ## v1.0.0-rc1 - Unreleased
 
+### October 2026 Known Issue Fixes
+
+- **Safety page fixed.** `/app/safety` sent every signed-in person back to the sign-in page. Its query used `SELECT DISTINCT` with an `ORDER BY` column that was not selected, Postgres rejected it, and the API reported the failure as "not signed in". The query is fixed, and a real failure now returns a plain message instead of a redirect or database text.
+- **Pickup verification adoption** on Usage And Cost Trends read a table that does not exist and always showed 0. It now reads `ride_pickup_handshakes`.
+- **New check: `npm run db:check-sql`.** Prepares every fixed SQL string in `src/` against the migrated database (nothing is run). CI runs it after migrations. It found the three queries above plus one unused function, which was removed.
+
+Messaging:
+
+- **Brand name in every text.** Every SMS/RCS body now starts with `BandWagon: ` (waitlist offers, route assist, "Your driver is on the way.", and the rest). Bodies that already start with "BandWagon" are left alone. Push and email are unchanged. `docs/SMS-CONSENT-AND-TEXTS.md`.
+- **Web opt-in after a carrier STOP.** Opting in on the web no longer reports success while Twilio is still blocking the number. Nothing is changed, no welcome text is sent, and the person is told to text START. A carrier STOP is never cleared from the web.
+- **Delivery log shows the real channel.** The Twilio status callback now corrects `notification_deliveries.channel` to `rcs` or `sms`, and keeps the requested channel in `metadata`.
+- **One rule for picking a phone row.** The send path, the settings status, and the router all use `verifiedPhoneOrderBy`.
+- **Trusted adult notifications have router policies.** `household_delegate_activity` (important, push then email) and `household_delegate_invitation` (email only). Neither is ever texted. A new test keeps the table in `docs/NOTIFICATION-ROUTING.md` in step with the code.
+- **Waitlist texting docs corrected.** `docs/WAITLISTS.md` now says what really happens: standby offers are push or email for most people, and a cancelled carpool texts every waitlisted rider who agreed to texts. No behavior change.
+
+Security:
+
+- **No hard-coded fallback hash key.** Rate-limit and IP hashes no longer fall back to a fixed string when `AUTH_SECRET` and `DATA_ENCRYPTION_KEY` are both unset. The code now throws (`apps/web/src/lib/private-hash.ts`) and the affected public forms answer 503. Fixed in `feature-requests.ts`, `organization-requests.ts`, `routing-provider.ts`, and five API routes with the same pattern. Hash values are unchanged for a configured deployment. `docs/SECURITY-DEPLOYMENT.md`.
+- **Demo security headers.** `demo/nginx.conf` now repeats `Referrer-Policy`, `X-Frame-Options` and `Permissions-Policy` in every location that sets its own headers, so they are no longer dropped on the page, service worker, manifest, and static files.
+
+Households and events:
+
+- **Request-only trusted adults see their own requests.** A delegate with only "Ask For Rides" now sees a short status line for requests they created. No pickup details, drivers, offers, or other people's requests.
+- **The organization's trusted adult setting can no longer be skipped.** `canActForChild` refuses every delegate grant when no organization is passed. Guardians and the child are not affected.
+- **Settings permissions are consistent.** Turning trusted adults off for an organization now needs an owner or admin, the same as event proposal settings. Managers can still see the setting. (Behavior change for managers.)
+- **No inviting your own phone number.** The self-invite check now covers phone invites as well as email.
+- **Stale event proposals.** Approving a proposal whose start time has passed gives a clear message. Turning proposals off puts queued ones on hold (kept, declinable, not approvable until the feature is back on) and tells the admin how many are waiting. Nothing is deleted. `docs/EVENT-PROPOSALS.md`.
+
+Config and docs:
+
+- **Synthetic check skips cleanly.** `production-synthetic.yml` no longer fails every hour when `PRODUCTION_URL` is unset. It finishes green with a notice. The schedule is unchanged.
+- **Reserved example domain.** `docs/operations/CHANGING-TENANT-DOMAIN.md` now uses `example.org` instead of `bandwagonrides.com`.
+
 ### September 2026 Wave (PRs #35 to #50)
 
 - **New logo: Route To The Show** (#46). Site icons, PWA icons, header wordmark, Stripe logo, share card, BIMI, README image, Google sign-in logo (`/brand/google-oauth-logo-120.png`) and RCS images (`/brand/rcs-*.png`, #49). File list in `docs/BRANDING.md`.

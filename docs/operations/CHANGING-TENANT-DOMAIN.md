@@ -15,16 +15,16 @@ Both settings live in `apps/web/src/lib/platform-hosts.ts`. Nothing in the app h
 
 ## Example
 
-Moving from `bandwagon.club` to a new product domain, `bandwagonrides.com`:
+Moving from `bandwagon.club` to a new product domain, `example.org`:
 
-- Product site: `bandwagonrides.com` and `www.bandwagonrides.com`
-- Tenants: `<slug>.bandwagonrides.com` (for example `flomogo.bandwagonrides.com`)
+- Product site: `example.org` and `www.example.org`
+- Tenants: `<slug>.example.org` (for example `flomogo.example.org`)
 
 ## Step 1. DNS and Cloudflare
 
 1. Add the new zone to Cloudflare.
-2. Create records for the product site: `bandwagonrides.com` and `www` pointing at the Coolify server (or the Traefik load balancer).
-3. Create a wildcard record `*.bandwagonrides.com` pointing at the same target, so every tenant hostname resolves.
+2. Create records for the product site: `example.org` and `www` pointing at the Coolify server (or the Traefik load balancer).
+3. Create a wildcard record `*.example.org` pointing at the same target, so every tenant hostname resolves.
 4. If you use Cloudflare for SaaS custom hostnames, set the fallback origin in the new zone and update `CLOUDFLARE_SAAS_ZONE_ID` if the custom hostname zone changes. Existing customer custom domains CNAME to their tenant hostname, so update them only if you retire the old tenant hostnames.
 5. Keep the old zone and its wildcard record active. Old links must keep working.
 
@@ -32,22 +32,22 @@ Moving from `bandwagon.club` to a new product domain, `bandwagonrides.com`:
 
 1. Wildcard certificates need a DNS challenge. In Coolify, configure Traefik with a Cloudflare DNS challenge provider (a Cloudflare API token scoped to DNS edit on the new zone).
 2. Add a router rule for the new hosts. For the HA layout, extend the web label in `docker-compose.coolify.ha.yml`, for example:
-   ``Host(`bandwagonrides.com`) || Host(`www.bandwagonrides.com`) || HostRegexp(`{sub:[a-z0-9-]+}.bandwagonrides.com`)``
-   with `tls.certresolver` set to the DNS challenge resolver and `tls.domains[0].main=bandwagonrides.com`, `tls.domains[0].sans=*.bandwagonrides.com`.
+   ``Host(`example.org`) || Host(`www.example.org`) || HostRegexp(`{sub:[a-z0-9-]+}.example.org`)``
+   with `tls.certresolver` set to the DNS challenge resolver and `tls.domains[0].main=example.org`, `tls.domains[0].sans=*.example.org`.
 3. Keep the old host rules in place until Step 7.
-4. Deploy and confirm `https://anything.bandwagonrides.com/api/health/live` returns 200 with a valid certificate.
+4. Deploy and confirm `https://anything.example.org/api/health/live` returns 200 with a valid certificate.
 
 ## Step 3. Update environment variables
 
 In Coolify, for every role (web, worker, migrate):
 
 ```text
-PLATFORM_HOSTNAMES=bandwagonrides.com,www.bandwagonrides.com,bandwagon.club,www.bandwagon.club
-TENANT_BASE_DOMAIN=bandwagonrides.com
-APP_URL=https://bandwagonrides.com
+PLATFORM_HOSTNAMES=example.org,www.example.org,bandwagon.club,www.bandwagon.club
+TENANT_BASE_DOMAIN=example.org
+APP_URL=https://example.org
 ```
 
-Keep the old platform hosts in `PLATFORM_HOSTNAMES` so they still serve the product site (and can redirect later). Redeploy. New communities now get `<slug>.bandwagonrides.com`.
+Keep the old platform hosts in `PLATFORM_HOSTNAMES` so they still serve the product site (and can redirect later). Redeploy. New communities now get `<slug>.example.org`.
 
 ## Step 4. Add new hostnames for existing communities
 
@@ -56,7 +56,7 @@ For each existing organization, add a new active domain row and make it primary.
 ```sql
 -- Example for one organization. Repeat per org, or script it.
 insert into organization_domains (organization_id, hostname, status, is_primary, domain_type)
-select id, slug || '.bandwagonrides.com', 'active', false, 'platform'
+select id, slug || '.example.org', 'active', false, 'platform'
 from organizations where slug = 'flomogo'
 on conflict do nothing;
 ```
@@ -69,10 +69,10 @@ Because `resolveTenant` matches any active domain row, the old and new hostnames
 
 | Provider | What to change |
 |---|---|
-| Google OAuth (Calendar) | Add `https://bandwagonrides.com/api/integrations/google/callback` to authorized redirect URIs. Update `GOOGLE_REDIRECT_URI`. Keep the old URI until every admin has reconnected or tokens have refreshed. |
-| Microsoft Entra (Calendar) | Add `https://bandwagonrides.com/api/integrations/microsoft/callback` as a Web redirect URI. Update `MICROSOFT_REDIRECT_URI`. |
-| Twilio | Update the Messaging Service inbound webhook to `https://bandwagonrides.com/api/webhooks/twilio/inbound`, the voice webhook to `/api/webhooks/twilio/voice`, and the voice status callback. Status callbacks follow `APP_URL` automatically. Check that your A2P 10DLC campaign and toll-free verification list the new website and opt-in page (`/sms-opt-in`); update them with Twilio if needed. |
-| Stripe | Add a webhook endpoint for `https://bandwagonrides.com/api/webhooks/stripe`, set the new `STRIPE_WEBHOOK_SECRET`, then disable the old endpoint. Checkout return URLs follow `APP_URL`. Update the business website in Stripe settings. |
+| Google OAuth (Calendar) | Add `https://example.org/api/integrations/google/callback` to authorized redirect URIs. Update `GOOGLE_REDIRECT_URI`. Keep the old URI until every admin has reconnected or tokens have refreshed. |
+| Microsoft Entra (Calendar) | Add `https://example.org/api/integrations/microsoft/callback` as a Web redirect URI. Update `MICROSOFT_REDIRECT_URI`. |
+| Twilio | Update the Messaging Service inbound webhook to `https://example.org/api/webhooks/twilio/inbound`, the voice webhook to `/api/webhooks/twilio/voice`, and the voice status callback. Status callbacks follow `APP_URL` automatically. Check that your A2P 10DLC campaign and toll-free verification list the new website and opt-in page (`/sms-opt-in`); update them with Twilio if needed. |
+| Stripe | Add a webhook endpoint for `https://example.org/api/webhooks/stripe`, set the new `STRIPE_WEBHOOK_SECRET`, then disable the old endpoint. Checkout return URLs follow `APP_URL`. Update the business website in Stripe settings. |
 | Cloudflare Turnstile | Add the new hostnames (and the wildcard parent) to the Turnstile widget's allowed domains. |
 | Google Maps browser key | Add the new domains to the key's HTTP referrer restrictions. |
 | Web push (VAPID) | No change. Existing subscriptions are tied to the old origin, so users on the old hostname keep receiving push until they re-enable on the new one. |
@@ -86,7 +86,7 @@ After the new hostnames are working, redirect old hostnames to new ones so bookm
 
 ```text
 regex:       ^https://([a-z0-9-]+)\.harrisonward\.org/(.*)
-replacement: https://${1}.bandwagonrides.com/${2}
+replacement: https://${1}.example.org/${2}
 permanent:   true
 ```
 

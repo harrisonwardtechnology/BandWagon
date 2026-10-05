@@ -21,6 +21,15 @@ Refuse to start when:
 
 Optional integrations may disable themselves only when the corresponding feature flag is false.
 
+### No Built-In Hash Keys
+
+Private hashes (rate-limit buckets for IPs, people and emails, stored source-IP hashes, and the routing cache key) are keyed with `AUTH_SECRET`, or `DATA_ENCRYPTION_KEY` when that is not set. There is no fixed fallback string in the code. When both are unset:
+
+- `privateHashSecret()` in `apps/web/src/lib/private-hash.ts` throws "AUTH_SECRET or DATA_ENCRYPTION_KEY is required". Feature requests, organization requests, and route lookups fail with that error.
+- The public forms that rate limit by hashed IP (feature ideas, community requests, help contact, security reports, support checkout) answer 503 instead of running without a limit. Browser error reports are dropped.
+
+A deployment with both secrets set behaves exactly as before, with the same hash values. Local development needs one of the two set. Tests set them in the test itself (`apps/web/tests/private-hash.test.ts`).
+
 ## Never Log
 
 - OTP values

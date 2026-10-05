@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import { privateHashConfigured, privateHmac } from "@/lib/private-hash";
 import { sendEmailNotification } from "@/lib/email-send";
 import { getRedis } from "@/lib/redis";
 import { turnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
@@ -7,12 +7,13 @@ export const runtime="nodejs";export const dynamic="force-dynamic";
 const topics:Record<string,string>={technical:"Technical problem",account:"Account or sign-in",organization:"Organization setup",ride:"Ride or event question",privacy:"Privacy request",other:"Other"};
 function clean(value:unknown,max:number){return String(value||"").replace(/[\u0000-\u001f\u007f]/g," ").trim().slice(0,max);}
 function validEmail(value:string){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);}
-function privateKey(value:string){const secret=process.env.AUTH_SECRET||process.env.DATA_ENCRYPTION_KEY||"bandwagon-help-rate-limit";return crypto.createHmac("sha256",secret).update(value).digest("hex").slice(0,32);}
+function privateKey(value:string){return privateHmac(value).slice(0,32);}
 function clientIp(request:Request){return clean(request.headers.get("cf-connecting-ip")||request.headers.get("x-forwarded-for")?.split(",")[0]||"unknown",100);}
 async function rateLimit(ip:string,email:string){const redis=getRedis();if(!redis)return true;if(redis.status==="wait")await redis.connect();for(const item of [{key:`help:ip:${privateKey(ip)}`,limit:8},{key:`help:email:${privateKey(email)}`,limit:4}]){const count=await redis.incr(item.key);if(count===1)await redis.expire(item.key,3600);if(count>item.limit)return false;}return true;}
 
 export async function POST(request:Request){
-  if(!turnstileConfigured())return Response.json({error:"The support form is temporarily unavailable."},{status:503});
+  // Rate limiting needs a hash key. Without one, refuse instead of using a built-in key.
+  if(!turnstileConfigured()||!privateHashConfigured())return Response.json({error:"The support form is temporarily unavailable."},{status:503});
   const body=await request.json().catch(()=>({}));if(clean(body.companyWebsite,200))return Response.json({ok:true});
   const name=clean(body.name,100),email=clean(body.email,320).toLowerCase(),topic=clean(body.topic,30),message=clean(body.message,5000),token=clean(body.turnstileToken,3000),ip=clientIp(request);
   if(name.length<2||!validEmail(email)||!topics[topic]||message.length<10)return Response.json({error:"Please complete your name, email, topic, and message."},{status:400});

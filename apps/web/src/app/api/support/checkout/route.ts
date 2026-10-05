@@ -1,14 +1,16 @@
-import crypto from "node:crypto";
+import { privateHashConfigured, privateHmac } from "@/lib/private-hash";
 import { createSupportCheckout } from "@/lib/stripe-support";
 import { getRedis } from "@/lib/redis";
 
 export const runtime = "nodejs";
 
 function clientIp(request:Request){return String(request.headers.get("cf-connecting-ip")||request.headers.get("x-real-ip")||request.headers.get("x-forwarded-for")?.split(",")[0]||"unknown").trim().slice(0,100);}
-function privateKey(value:string){const secret=process.env.AUTH_SECRET||process.env.DATA_ENCRYPTION_KEY||"bandwagon-support-checkout-rate-limit";return crypto.createHmac("sha256",secret).update(value).digest("hex").slice(0,32);}
+function privateKey(value:string){return privateHmac(value).slice(0,32);}
 async function checkoutAllowed(request:Request){const redis=getRedis();if(!redis)return true;if(redis.status==="wait")await redis.connect();const key=`support-checkout:ip:${privateKey(clientIp(request))}`,count=await redis.incr(key);if(count===1)await redis.expire(key,3600);return count<=20;}
 
 export async function POST(request: Request) {
+  // Rate limiting needs a hash key. Without one, refuse instead of using a built-in key.
+  if(!privateHashConfigured())return Response.json({error:"Checkout is temporarily unavailable."},{status:503});
   try {
     const body = await request.json().catch(() => ({}));
     if(!await checkoutAllowed(request).catch(()=>false))return Response.json({error:"Too many checkout attempts were started recently. Please wait before trying again."},{status:429});

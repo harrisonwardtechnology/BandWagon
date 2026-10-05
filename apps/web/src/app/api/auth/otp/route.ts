@@ -42,6 +42,9 @@ export async function POST(request: Request) {
         ok: true,
         personId: result.personId,
         createdAccount: result.createdAccount,
+        // True when the ride-text box was ticked but the number has a carrier STOP on it.
+        // Notifications settings explains how to text START.
+        smsOptInBlocked: result.smsOptInBlocked,
       });
       response.cookies.set(SESSION_COOKIE, result.token, sessionCookieOptions(result.expiresAt));
       response.headers.set("cache-control", "no-store, private");

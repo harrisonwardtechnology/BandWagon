@@ -1,6 +1,7 @@
 import { emptyTwiml, escapeXml, markOnce, mirrorSmsConsentToRedis, parseTwilioForm, twiml, validateTwilioSignature,type TwilioForm } from "@/lib/twilio";
 import { recordSmsConsent } from "@/lib/sms-consent";
 import { classifyInboundConsent } from "@/lib/sms-consent-policy";
+import { withSmsBrandPrefix } from "@/lib/messaging-policy";
 import { confirmOrganizationDecommissionFromMessage } from "@/lib/organization-decommission-sms";
 
 export const runtime = "nodejs";
@@ -36,11 +37,11 @@ export async function POST(request: Request) {
   try {
     const decommission = await confirmOrganizationDecommissionFromMessage({ from: form.From || "", body: form.Body || "" });
     if (decommission.matched) {
-      return twiml(`<Message>${escapeXml("Organization removal confirmed. BandWagon has started the approved decommission process. If this was unexpected, contact BandWagon Support immediately.")}</Message>`);
+      return twiml(`<Message>${escapeXml(withSmsBrandPrefix("Organization removal confirmed. BandWagon has started the approved decommission process. If this was unexpected, contact BandWagon Support immediately."))}</Message>`);
     }
   } catch (error) {
     const message=error instanceof Error?error.message:"Unable to confirm organization removal";
-    if (/^CONFIRM\s+/i.test(form.Body||"")) return twiml(`<Message>${escapeXml(message)}</Message>`);
+    if (/^CONFIRM\s+/i.test(form.Body||"")) return twiml(`<Message>${escapeXml(withSmsBrandPrefix(message))}</Message>`);
   }
 
   console.info("Twilio inbound message", {

@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import { privateHashConfigured, privateHmac } from "@/lib/private-hash";
 import { getSessionIdentity } from "@/lib/auth";
 import { getRedis } from "@/lib/redis";
 import { turnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
@@ -19,8 +19,7 @@ function clientIp(request: Request) {
   return String(request.headers.get("cf-connecting-ip") || request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown").trim().slice(0, 100);
 }
 function privateKey(value: string) {
-  const secret = process.env.AUTH_SECRET || process.env.DATA_ENCRYPTION_KEY || "bandwagon-organization-request-rate-limit";
-  return crypto.createHmac("sha256", secret).update(value).digest("hex").slice(0, 32);
+  return privateHmac(value).slice(0, 32);
 }
 async function requestAllowed(request: Request, personId: string) {
   const redis = getRedis();
@@ -67,6 +66,8 @@ export async function POST(request: Request) {
     if (turnstileConfigured() && !await verifyTurnstileToken(request, body.turnstileToken, "organization_request").catch(() => false)) {
       return Response.json({ error: "The security check was unsuccessful. Please try again." }, { status: 400, headers: privateHeaders });
     }
+    // Rate limiting and the stored IP hash need a hash key. Without one, refuse instead of using a built-in key.
+    if (!privateHashConfigured()) return Response.json({ error: "Community requests are temporarily unavailable." }, { status: 503, headers: privateHeaders });
     if (!await requestAllowed(request, identity.personId).catch(() => true)) {
       return Response.json({ error: "Too many requests were sent recently. Please wait before trying again." }, { status: 429, headers: privateHeaders });
     }

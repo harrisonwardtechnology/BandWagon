@@ -42,7 +42,7 @@ Everything is stored and shown as plain text. HTML tags and control characters a
 
 - `feature_requests`: title, details, category, status, public note, vote count, duplicate link, and the submitter's `person_id` when signed in.
 - A signed-out submitter's email is encrypted at rest (`email_ciphertext`) with a keyed lookup hash. Only platform admins see it decrypted.
-- The source IP is stored only as a keyed hash (`source_ip_hash`).
+- The source IP is stored only as a keyed hash (`source_ip_hash`). The key is `AUTH_SECRET` (or `DATA_ENCRYPTION_KEY`). There is no built-in fallback key: if neither is set, the form answers 503.
 - If the submitter belongs to an organization, the request is tagged with one of their organizations.
 - `feature_request_votes`: one row per person per request. `vote_count` is recomputed from this table after every vote change.
 
