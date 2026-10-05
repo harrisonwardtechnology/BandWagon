@@ -62,6 +62,13 @@ Config and docs:
 - **Offline page** has a dark version.
 - **Guard test:** `tests/theme-tokens.test.ts` fails on a hard-coded neutral color in a page.
 
+### October 2026 Demo Stays Current
+
+- **The demo deploys itself** on every merge that touches `demo/` or What's New (`.github/workflows/deploy-demo.yml`). It needs a deploy-only Coolify token as a GitHub secret. Setup: `docs/operations/DEMO-DEPLOY.md`.
+- **What's New in the demo**, copied from the site by `npm run demo:sync` and checked by a test.
+- **Dark mode and the dark logo in the demo**, matching the site.
+- **Reminder on pull requests** that change screens without touching the demo.
+
 ### October 2026 Address Reuse
 
 - **Removed communities free their web address** once outside cleanup finishes, instead of holding it for the 30-day retention period. A new community can sign up with the same address. Tested end to end on Postgres.

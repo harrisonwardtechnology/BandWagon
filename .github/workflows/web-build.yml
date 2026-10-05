@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "apps/web/**"
+      - "demo/**"
       - ".github/workflows/web-build.yml"
   push:
     branches:
@@ -58,6 +59,17 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      # Screens changed but the demo didn't: not a failure, just a reminder on the PR.
+      - name: Remind to update the demo
+        if: github.event_name == 'pull_request'
+        working-directory: .
+        run: |
+          git fetch -q --depth=1 origin "${{ github.base_ref }}"
+          changed=$(git diff --name-only FETCH_HEAD HEAD)
+          if echo "$changed" | grep -qE '^apps/web/src/(app|components)/.*\.tsx$' && ! echo "$changed" | grep -q '^demo/'; then
+            echo "::warning title=Demo not updated::This PR changes screens but not demo/. If people would see the change, update the demo walkthrough too (docs/operations/DEMO-DEPLOY.md)."
+          fi
 
       - name: Install browser for end-to-end tests
         run: npx playwright install --with-deps chromium
