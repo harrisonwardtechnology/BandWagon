@@ -62,6 +62,14 @@ Config and docs:
 - **Offline page** has a dark version.
 - **Guard test:** `tests/theme-tokens.test.ts` fails on a hard-coded neutral color in a page.
 
+### October 2026 Standards Gaps
+
+- **What's New page** at `/whats-new`, linked in the footer and listed in the sitemap. Entries live in `apps/web/src/lib/whats-new.ts` and are written for families, not developers.
+- **`/.well-known/change-password`** now redirects to `/app/settings/security`, so password managers land on the passkey and sign-in security page.
+- **README screenshots** of the main screens in light and dark (`docs/assets/screenshots/`).
+- **Anonymous analytics (Umami, self-hosted).** On for everyone once `NEXT_PUBLIC_UMAMI_WEBSITE_ID` is set; off until then. No cookies, Do Not Track honored, query strings and invite tokens removed. Cookie, privacy, subprocessor pages, the home page and the privacy banner now say so, and the banner version is bumped so everyone sees it once. Setup: `docs/operations/ANALYTICS.md`.
+- **Native app decision** recorded at the top of `docs/V2-ROADMAP-AND-SPRINT-MAP.md`: web first, measure, optional wrapped app, then full native.
+
 ### Earlier In RC1
 
 - GlitchTip error tracking (Sentry-compatible, self-hosted): server request errors, browser errors (via same-origin `/api/client-errors`), dead worker jobs, failed scheduled tasks, and unhandled process errors are sent as redacted Sentry envelopes when `GLITCHTIP_DSN` is set. No SDK, no third-party browser script, per-process flood guard, 3 s timeout. Platform Health shows GlitchTip status and has a "Send GlitchTip test event" button. Setup: `docs/operations/ERROR-MONITORING.md`.

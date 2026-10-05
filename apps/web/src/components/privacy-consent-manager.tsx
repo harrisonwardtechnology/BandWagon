@@ -110,7 +110,7 @@ export default function PrivacyConsentManager() {
           <input type="checkbox" checked={functional} onChange={event => setFunctional(event.target.checked)} aria-label="Allow optional functional storage" />
         </label>
         <div className="privacy-category privacy-category-disabled">
-          <div><h3>Analytics</h3><p>Not used. BandWagon does not currently deploy behavioral analytics or session replay.</p></div><span>Off</span>
+          <div><h3>Anonymous Analytics</h3><p>Anonymous page and feature counts from BandWagon’s own server (Umami). No cookies, nothing stored on your device, nothing tied to you, and no session replay. Do Not Track is honored.</p></div><span>Always On</span>
         </div>
         <div className="privacy-category privacy-category-disabled">
           <div><h3>Advertising</h3><p>Not used. BandWagon does not deploy advertising pixels or cross-site tracking.</p></div><span>Off</span>

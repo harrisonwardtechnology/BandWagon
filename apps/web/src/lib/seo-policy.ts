@@ -19,6 +19,7 @@ export const PUBLIC_MARKETING_PATHS = [
   "/start",
   "/help",
   "/status",
+  "/whats-new",
   "/security",
   "/terms",
   "/privacy",

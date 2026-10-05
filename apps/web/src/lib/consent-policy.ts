@@ -1,4 +1,5 @@
-export const PRIVACY_CONSENT_VERSION = "2026-08-26";
+// Bumped 2026-10-04: the banner now discloses anonymous analytics, so everyone sees it once more.
+export const PRIVACY_CONSENT_VERSION = "2026-10-04";
 export const PRIVACY_CONSENT_COOKIE = "bw_privacy_preferences";
 export const PRIVACY_CONSENT_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 export const PRIVACY_CONSENT_EVENT = "bandwagon:privacy-consent-changed";

@@ -25,6 +25,22 @@
   <img alt="Privacy first" src="https://img.shields.io/badge/privacy-first-f0a500">
 </p>
 
+## Screenshots
+
+Light or dark follows your GitHub theme, just like the app follows your device.
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/home-desktop-dark.png"><img alt="Home Desktop" src="docs/assets/screenshots/home-desktop-light.png" width="820"></picture></p>
+
+| Family Home | Rides | Admin Setup |
+| --- | --- | --- |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/family-home-desktop-dark.png"><img alt="Family Home Desktop" src="docs/assets/screenshots/family-home-desktop-light.png" width="280"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/rides-desktop-dark.png"><img alt="Rides Desktop" src="docs/assets/screenshots/rides-desktop-light.png" width="280"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/setup-desktop-dark.png"><img alt="Setup Desktop" src="docs/assets/screenshots/setup-desktop-light.png" width="280"></picture> |
+
+| Sign In | What's New | Friendly 404 |
+| --- | --- | --- |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/sign-in-desktop-dark.png"><img alt="Sign In Desktop" src="docs/assets/screenshots/sign-in-desktop-light.png" width="280"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/whats-new-desktop-dark.png"><img alt="Whats New Desktop" src="docs/assets/screenshots/whats-new-desktop-light.png" width="280"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/not-found-desktop-dark.png"><img alt="Not Found Desktop" src="docs/assets/screenshots/not-found-desktop-light.png" width="280"></picture> |
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/family-home-phone-dark.png"><img alt="Family Home Phone" src="docs/assets/screenshots/family-home-phone-light.png" width="200"></picture> <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/rides-phone-dark.png"><img alt="Rides Phone" src="docs/assets/screenshots/rides-phone-light.png" width="200"></picture> <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/sign-in-phone-dark.png"><img alt="Sign In Phone" src="docs/assets/screenshots/sign-in-phone-light.png" width="200"></picture></p>
+
 ## What is BandWagon?
 
 BandWagon is a privacy-first community carpool coordination platform developed and maintained by **Harrison Ward Technology**. It helps trusted groups organize events, coordinate ride requests and offers, match available seats, communicate important updates, and complete safer pickups—without becoming a public rideshare marketplace.

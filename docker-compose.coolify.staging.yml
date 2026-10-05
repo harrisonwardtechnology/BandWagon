@@ -18,6 +18,8 @@ services:
         NEXT_PUBLIC_ENVIRONMENT: staging
         NEXT_PUBLIC_HELP_DESK_URL: ${NEXT_PUBLIC_HELP_DESK_URL:-}
         NEXT_PUBLIC_STATUS_PAGE_URL: ${NEXT_PUBLIC_STATUS_PAGE_URL:-}
+        NEXT_PUBLIC_UMAMI_WEBSITE_ID: ${NEXT_PUBLIC_UMAMI_WEBSITE_ID:-}
+        NEXT_PUBLIC_UMAMI_SRC: ${NEXT_PUBLIC_UMAMI_SRC:-}
     image: bandwagon-app:staging
     restart: unless-stopped
     command: ["sh", "-c", "node scripts/migrate.mjs && node server.js"]
