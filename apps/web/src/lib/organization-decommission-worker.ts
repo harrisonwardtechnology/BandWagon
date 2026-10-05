@@ -12,6 +12,28 @@ async function optionalStatement(tx:{query:(sql:string,params?:unknown[])=>Promi
 
 function dbRequired(){const db=getDb();if(!db)throw new Error('Database is not configured');return db;}
 
+/**
+ * Free a removed community's web address for reuse. Runs only after external
+ * cleanup (DNS, certificates, monitors) succeeded, so nothing outside still
+ * points at it. The slug and hostnames get a "removed" marker that can never
+ * match a real request; the original slug stays on organization_decommissions
+ * for the audit trail. The data itself is still purged on the retention schedule.
+ */
+export async function releaseOrganizationAddress(organizationId:string,decommissionId:string){
+  const db=dbRequired();
+  const marker=`removed-${String(decommissionId).replace(/-/g,'').slice(0,8)}`;
+  const tx=await db.connect();
+  try{
+    await tx.query('begin');
+    await tx.query(`update organizations set slug=slug||'--'||$2,tenant_hostname=null,updated_at=now()
+      where id=$1 and status='decommissioning' and slug not like '%--removed-%'`,[organizationId,marker]);
+    await tx.query(`update organization_domains set hostname=hostname||'#'||$2,is_primary=false,status='suspended'
+      where organization_id=$1 and hostname not like '%#removed-%'`,[organizationId,marker]);
+    await tx.query(`insert into audit_events(organization_id,action,target_type,target_id,metadata) values($1::uuid,'organization.decommission.address_released','organization',$1::text,$2::jsonb)`,[organizationId,JSON.stringify({decommissionId,marker})]);
+    await tx.query('commit');
+  }catch(error){await tx.query('rollback').catch(()=>{});throw error;}finally{tx.release();}
+}
+
 export async function processOrganizationDecommissions(limit=10){
   const db=dbRequired();const results:any[]=[];
   const work=(await db.query(`select * from organization_decommissions where status in ('quiescing','external_cleanup') order by requested_at asc limit $1`,[Math.max(1,Math.min(50,limit))])).rows;
@@ -26,7 +48,10 @@ export async function processOrganizationDecommissions(limit=10){
       const cleanup=await cleanupOrganizationInfrastructure(row.organization_id);
       const allClean=Boolean(cleanup.ok)&&!(cleanup.monitoring as any)?.error;
       await db.query(`update organization_decommissions set external_cleanup=$2::jsonb,status=$3,last_error=$4,updated_at=now() where id=$1`,[row.id,JSON.stringify(cleanup),allClean?'retention':'external_cleanup',allClean?null:'One or more external cleanup steps require retry']);
-      if(allClean){await db.query(`insert into audit_events(organization_id,action,target_type,target_id,metadata) values($1::uuid,'organization.decommission.external_cleanup_complete','organization',$1::text,$2::jsonb)`,[row.organization_id,JSON.stringify({decommissionId:row.id})]).catch(()=>{});}
+      if(allClean){
+        await releaseOrganizationAddress(row.organization_id,row.id);
+        await db.query(`insert into audit_events(organization_id,action,target_type,target_id,metadata) values($1::uuid,'organization.decommission.external_cleanup_complete','organization',$1::text,$2::jsonb)`,[row.organization_id,JSON.stringify({decommissionId:row.id})]).catch(()=>{});
+      }
       results.push({id:row.id,status:allClean?'retention':'external_cleanup',cleanup});
     }catch(error){const message=error instanceof Error?error.message:'Decommission cleanup failed';await db.query(`update organization_decommissions set status='external_cleanup',last_error=$2,updated_at=now() where id=$1`,[row.id,message]).catch(()=>{});results.push({id:row.id,status:'failed_attempt',error:message});}
   }

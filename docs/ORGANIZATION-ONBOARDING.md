@@ -52,3 +52,8 @@ Migration `055_org_onboarding.sql` adds `organization_requests`, `organization_i
 | `TENANT_BASE_DOMAIN` | Base domain for tenant addresses |
 | `APP_URL` | Base URL used in emailed links |
 | `SMTP2GO_API_KEY`, `EMAIL_FROM` | Email delivery |
+
+## Reusing An Address After Removal
+
+When a community is removed, its web address (`slug.bandwagon.club`, and any custom domain) is freed as soon as the outside cleanup finishes (DNS, certificates, monitors). That is usually within one run of the removal job. The old slug gets a `--removed-xxxxxxxx` marker and its hostnames a `#removed-xxxxxxxx` marker, so they can never match a visitor. The original slug stays in `organization_decommissions` for the audit trail, and the data is still purged on the normal retention schedule.
+
