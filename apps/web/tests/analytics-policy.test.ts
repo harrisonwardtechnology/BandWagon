@@ -26,3 +26,23 @@ test("tracker is cookieless, honors Do Not Track and scrubs before sending", () 
   assert.match(cookies, /Umami/);
   assert.match(cookies, /sets no cookies/);
 });
+
+test("root layout renders the analytics snippet and compose files wire the env vars without secrets", () => {
+  const layout = fs.readFileSync("src/app/layout.tsx", "utf8");
+  assert.match(layout, /<UmamiAnalytics \/>/);
+  assert.match(layout, /<ClientErrorReporter \/>/);
+  for (const file of ["docker-compose.coolify.example.yml", "docker-compose.coolify.ha.yml", "docker-compose.coolify.staging.yml"]) {
+    const compose = fs.readFileSync(`../../${file}`, "utf8");
+    assert.match(compose, /NEXT_PUBLIC_UMAMI_WEBSITE_ID/, file);
+    assert.match(compose, /GLITCHTIP_DSN[:=] ?\$\{GLITCHTIP_DSN:-\}/, file);
+    assert.doesNotMatch(compose, /https:\/\/[0-9a-f]{16,}@/i, `${file} must not contain a real DSN`);
+  }
+});
+
+test("analytics snippet is off for a blank or malformed website ID and only takes https script URLs", () => {
+  assert.equal(analyticsConfig({}), null);
+  assert.equal(analyticsConfig({ NEXT_PUBLIC_UMAMI_WEBSITE_ID: "   " }), null);
+  const id = "e1811ece-5f91-42c6-9cfe-0f92d0dc319d";
+  assert.equal(analyticsConfig({ NEXT_PUBLIC_UMAMI_WEBSITE_ID: id, NEXT_PUBLIC_UMAMI_SRC: "http://example.com/script.js" }), null);
+  assert.deepEqual(analyticsConfig({ NEXT_PUBLIC_UMAMI_WEBSITE_ID: id }), { websiteId: id, src: "https://stats.harrisonward.net/script.js" });
+});
