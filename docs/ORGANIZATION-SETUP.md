@@ -4,7 +4,7 @@
 2. Enter organization name/type, city/state, optional website and primary admin contact.
 3. Verify the admin email.
 4. Choose discoverability: Public, Unlisted or Invitation Only.
-5. Create groups such as Marching Band, Guard or Percussion.
+5. Create groups such as Marching Band, Guard or Percussion. *(Coming soon: groups are in the database, but there's no screen to create them yet.)*
 6. Choose membership policy: code immediate, code + approval, or invitation only.
 7. Configure driver rules, including minimum age and whether student drivers are allowed.
 8. Configure household/minor approval defaults.
