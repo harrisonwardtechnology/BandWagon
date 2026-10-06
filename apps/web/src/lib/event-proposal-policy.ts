@@ -77,6 +77,49 @@ export function canManageProposalSettings(role: unknown, platformAccess = false)
   return platformAccess || SETTINGS_ROLES.includes(role as (typeof SETTINGS_ROLES)[number]);
 }
 
+// ---------------------------------------------------------------------------
+// Stale proposals: a start time that has passed, or a queue left behind when
+// the feature is turned off.
+
+export const PAST_PROPOSAL_APPROVE_MESSAGE =
+  "This proposal's start time has already passed. Change the date and time to approve it, or decline it.";
+export const PROPOSALS_OFF_REVIEW_MESSAGE =
+  "Event proposals are turned off for this organization, so this proposal is on hold. Turn proposals back on to approve it or ask for changes, or decline it now.";
+
+/** True when the start time is a real date that is not in the future. */
+export function proposalStartHasPassed(startsAt: unknown, now = new Date()) {
+  if (startsAt == null || startsAt === "") return false;
+  const time = (startsAt instanceof Date ? startsAt : new Date(String(startsAt))).getTime();
+  return Number.isFinite(time) && time <= now.getTime();
+}
+
+/**
+ * Why a review action is refused right now, or null when it may go ahead.
+ * - Declining always works, so a queue can be cleared at any time.
+ * - While proposals are turned off, queued proposals are on hold: nothing is
+ *   published and nobody is asked to resend. Nothing is deleted or changed.
+ * - Approving needs a start time in the future. startsAt is the time that
+ *   would be published (the moderator's edit when there is one).
+ */
+export function proposalModerationBlock(input: {
+  action: "approve" | "request_changes" | "decline";
+  moduleEnabled: boolean;
+  startsAt: unknown;
+  now?: Date;
+}): string | null {
+  if (input.action === "decline") return null;
+  if (!input.moduleEnabled) return PROPOSALS_OFF_REVIEW_MESSAGE;
+  if (input.action === "approve" && proposalStartHasPassed(input.startsAt, input.now)) return PAST_PROPOSAL_APPROVE_MESSAGE;
+  return null;
+}
+
+/** Shown to the admin who turns proposals off while some are still queued. Null when the queue is empty. */
+export function proposalsOffNotice(openCount: number) {
+  if (!Number.isFinite(openCount) || openCount <= 0) return null;
+  const queued = openCount === 1 ? "1 proposal is still in the queue. It's on hold, not deleted" : `${openCount} proposals are still in the queue. They're on hold, not deleted`;
+  return `Event proposals are off. ${queued}: decline now, or turn proposals back on to approve or ask for changes.`;
+}
+
 /**
  * Why this person may not submit a proposal right now, or null when they may.
  * Minors are always refused. Support View sessions never submit.

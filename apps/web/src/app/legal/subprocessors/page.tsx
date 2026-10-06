@@ -26,6 +26,13 @@ const vendors: Vendor[] = [
     always: true,
   },
   {
+    name: "Umami analytics (self-hosted by Harrison Ward Technology)",
+    purpose: "Anonymous counts of page views and feature use, so we can see what helps families and fix what doesn't.",
+    data: "Cleaned page address (no query string, no invite codes), page title, referring site, browser, device type, screen size, language, and country. No cookies, no account or household link.",
+    when: "On every page, unless the browser sends Do Not Track. Runs on our own server, not a third party.",
+    always: true,
+  },
+  {
     name: "Cloudflare",
     purpose: "DNS, network security, and Turnstile bot protection on sign-in and contact forms. Custom hostname certificates when a community uses its own domain.",
     data: "IP address, browser and request details, and bot-check signals. Community hostnames.",
@@ -138,7 +145,7 @@ export default function SubprocessorsPage() {
             <tbody>
               {vendors.map((vendor) => (
                 <tr key={vendor.name}>
-                  <th scope="row" style={{ background: "#fff" }}>{vendor.name}<div style={{ marginTop: 6, fontSize: 12, fontWeight: 800, color: vendor.always ? "#1d4ed8" : "#15803d" }}>{vendor.always ? "Always used" : "Only if enabled"}</div></th>
+                  <th scope="row" style={{ background: "var(--surface)" }}>{vendor.name}<div style={{ marginTop: 6, fontSize: 12, fontWeight: 800, color: vendor.always ? "var(--text-info)" : "var(--text-success)" }}>{vendor.always ? "Always used" : "Only if enabled"}</div></th>
                   <td>{vendor.purpose}</td>
                   <td>{vendor.data}</td>
                   <td>{vendor.when}</td>

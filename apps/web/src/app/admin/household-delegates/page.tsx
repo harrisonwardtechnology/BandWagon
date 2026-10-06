@@ -38,11 +38,11 @@ export default function HouseholdDelegatesAdmin() {
     setSettings(x.settings); setMessage("Saved.");
   }
 
-  const card = { marginTop: 18, padding: 22, border: "1px solid #dbe3ef", borderRadius: 16 } as const;
-  const field = { display: "block", width: "100%", padding: 10, border: "1px solid #cbd5e1", borderRadius: 9, margin: "6px 0 14px", boxSizing: "border-box" as const };
+  const card = { marginTop: 18, padding: 22, border: "1px solid var(--line-2)", borderRadius: 16 } as const;
+  const field = { display: "block", width: "100%", padding: 10, border: "1px solid var(--line-strong)", borderRadius: 9, margin: "6px 0 14px", boxSizing: "border-box" as const };
 
   return <main style={{ maxWidth: 860, margin: "36px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif" }}>
-    <header style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
+    <header style={{ background: "var(--panel-solid)", color: "white", padding: 28, borderRadius: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1 }}>BANDWAGON ADMIN</div>
       <h1 style={{ margin: "6px 0" }}>Trusted Adults</h1>
       <p style={{ marginBottom: 0, opacity: .9, lineHeight: 1.55 }}>Parents can invite a trusted adult, like a grandparent or nanny, to help with their own children&apos;s rides. Trusted adults only act for those children. They do not become members of your organization.</p>
@@ -55,10 +55,10 @@ export default function HouseholdDelegatesAdmin() {
         {organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
       </select>
       {settings && <label style={{ display: "flex", gap: 10, alignItems: "start" }}>
-        <input type="checkbox" checked={Boolean(settings.householdDelegatesEnabled)} disabled={working} onChange={e => void save(e.target.checked)} />
-        <span><b>Allow Trusted Adults</b><br /><small style={{ color: "#64748b" }}>When this is off, trusted adults cannot ask for, approve, or manage rides in {settings.name}. Parents and guardians are not affected.</small></span>
+        <input type="checkbox" checked={Boolean(settings.householdDelegatesEnabled)} disabled={working || settings.canChangeSettings === false} onChange={e => void save(e.target.checked)} />
+        <span><b>Allow Trusted Adults</b><br /><small style={{ color: "var(--text-muted)" }}>When this is off, trusted adults cannot ask for, approve, or manage rides in {settings.name}. Parents and guardians are not affected.{settings.canChangeSettings === false ? " Only organization owners and admins can change this setting." : ""}</small></span>
       </label>}
     </section>
-    {message && <p style={{ padding: 14, background: "#eef2ff", borderRadius: 12, fontWeight: 700 }}>{message}</p>}
+    {message && <p style={{ padding: 14, background: "var(--bg-info-2)", borderRadius: 12, fontWeight: 700 }}>{message}</p>}
   </main>;
 }

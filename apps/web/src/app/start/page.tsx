@@ -88,17 +88,17 @@ export default function StartCommunityPage() {
     setRequests(d.requests || []);
   }
 
-  const input = { display: "block", width: "100%", boxSizing: "border-box", padding: 11, margin: "6px 0 4px", border: "1px solid #cbd5e1", borderRadius: 8, font: "inherit" } as const;
-  const card = { marginTop: 18, padding: 22, border: "1px solid #dbe3ef", borderRadius: 16, background: "white" } as const;
-  const button = { padding: "12px 18px", border: 0, borderRadius: 10, background: "#101b33", color: "white", fontWeight: 800, cursor: "pointer" } as const;
-  const err = (key: string) => fields[key] ? <div role="alert" style={{ color: "#b91c1c", fontSize: 14, marginBottom: 10 }}>{fields[key]}</div> : <div style={{ height: 10 }} />;
+  const input = { display: "block", width: "100%", boxSizing: "border-box", padding: 11, margin: "6px 0 4px", border: "1px solid var(--line-strong)", borderRadius: 8, font: "inherit" } as const;
+  const card = { marginTop: 18, padding: 22, border: "1px solid var(--line-2)", borderRadius: 16, background: "var(--surface)" } as const;
+  const button = { padding: "12px 18px", border: 0, borderRadius: 10, background: "var(--btn-solid)", color: "var(--on-btn-solid)", fontWeight: 800, cursor: "pointer" } as const;
+  const err = (key: string) => fields[key] ? <div role="alert" style={{ color: "var(--text-danger)", fontSize: 14, marginBottom: 10 }}>{fields[key]}</div> : <div style={{ height: 10 }} />;
   const field = (key: string, label: string, props: Row = {}) => <label style={{ display: "block" }}><strong>{label}</strong><input value={form[key]} onChange={e => update(key, e.target.value)} style={input} aria-invalid={Boolean(fields[key])} {...props} />{err(key)}</label>;
   const hasOpen = requests.some(r => r.status === "pending");
   const slugOk = slugCheck && slugCheck.slug === form.slug && slugCheck.available;
   const canSubmit = !working && form.agreementAccepted && (!meta.turnstileRequired || token) && !(slugCheck && slugCheck.slug === form.slug && !slugCheck.available);
 
   return <main style={{ maxWidth: 860, margin: "40px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif" }}>
-    <section style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
+    <section style={{ background: "var(--panel-solid)", color: "white", padding: 28, borderRadius: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1 }}>BANDWAGON</div>
       <h1 style={{ fontSize: 38, margin: "6px 0" }}>Start A Community</h1>
       <p style={{ margin: 0, opacity: .9 }}>Bring private, parent-led carpools to your band, team, or group. BandWagon is free for organizations. We review each request before it goes live.</p>
@@ -110,15 +110,15 @@ export default function StartCommunityPage() {
       <h2 style={{ marginTop: 0 }}>Sign In First</h2>
       <p>You need a BandWagon account to request a community. The person who signs in becomes the first owner if it is approved.</p>
       <a href="/login" style={{ ...button, display: "inline-block", textDecoration: "none" }}>Sign In Or Create An Account</a>
-      <p style={{ color: "#475569", fontSize: 14 }}>After you sign in, come back to this page.</p>
+      <p style={{ color: "var(--text-3)", fontSize: 14 }}>After you sign in, come back to this page.</p>
     </section>}
 
     {signedIn && requests.length > 0 && <section style={card}>
       <h2 style={{ marginTop: 0 }}>Your Requests</h2>
-      {requests.map(r => <div key={r.id} style={{ padding: "12px 0", borderTop: "1px solid #eef2f7" }}>
-        <strong>{r.organization_name}</strong> <span style={{ color: "#475569" }}>({r.requested_slug}.{meta.baseDomain})</span>
-        <div style={{ marginTop: 4 }}>Status: <strong>{STATUS_LABEL[r.status] || r.status}</strong> <span style={{ color: "#64748b", fontSize: 14 }}>sent {new Date(r.created_at).toLocaleDateString()}</span></div>
-        {r.status === "rejected" && r.review_notes && <p style={{ margin: "6px 0", color: "#475569" }}>Note: {r.review_notes}</p>}
+      {requests.map(r => <div key={r.id} style={{ padding: "12px 0", borderTop: "1px solid var(--line-soft)" }}>
+        <strong>{r.organization_name}</strong> <span style={{ color: "var(--text-3)" }}>({r.requested_slug}.{meta.baseDomain})</span>
+        <div style={{ marginTop: 4 }}>Status: <strong>{STATUS_LABEL[r.status] || r.status}</strong> <span style={{ color: "var(--text-muted)", fontSize: 14 }}>sent {new Date(r.created_at).toLocaleDateString()}</span></div>
+        {r.status === "rejected" && r.review_notes && <p style={{ margin: "6px 0", color: "var(--text-3)" }}>Note: {r.review_notes}</p>}
         {r.status === "approved" && <p style={{ margin: "6px 0" }}><a href={`/admin/setup?organizationId=${r.organization_id}`}>Open Your Setup Checklist</a>{r.tenant_hostname && <> or visit <a href={`https://${r.tenant_hostname}`}>{r.tenant_hostname}</a></>}</p>}
         {r.status === "pending" && <button onClick={() => withdraw(r.id)} style={{ marginTop: 6 }}>Withdraw</button>}
       </div>)}
@@ -130,12 +130,12 @@ export default function StartCommunityPage() {
       <label style={{ display: "block" }}><strong>Web Address</strong>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <input value={form.slug} onChange={e => { setSlugTouched(true); update("slug", slugify(e.target.value)); }} style={{ ...input, flex: 1 }} maxLength={50} aria-invalid={Boolean(fields.slug)} />
-          <span style={{ color: "#475569", whiteSpace: "nowrap" }}>.{meta.baseDomain}</span>
+          <span style={{ color: "var(--text-3)", whiteSpace: "nowrap" }}>.{meta.baseDomain}</span>
         </div>
       </label>
       <div style={{ fontSize: 14, margin: "4px 0 10px" }} aria-live="polite">
         {form.slug && <>Your address will be <code>{form.slug}.{meta.baseDomain}</code>. </>}
-        {slugCheck && slugCheck.slug === form.slug && (slugOk ? <span style={{ color: "#15803d" }}>Available.</span> : <span style={{ color: "#b91c1c" }}>{slugCheck.error}</span>)}
+        {slugCheck && slugCheck.slug === form.slug && (slugOk ? <span style={{ color: "var(--text-success)" }}>Available.</span> : <span style={{ color: "var(--text-danger)" }}>{slugCheck.error}</span>)}
       </div>
       {err("slug")}
       <label style={{ display: "block" }}><strong>Type Of Group</strong>
@@ -163,6 +163,6 @@ export default function StartCommunityPage() {
       <button onClick={submit} disabled={!canSubmit} style={{ ...button, marginTop: 12, opacity: canSubmit ? 1 : .6 }}>{working ? "Sending..." : "Send Request"}</button>
     </section>}
 
-    {message && <p role="status" style={{ padding: 14, background: "#f8fafc", border: "1px solid #dbe3ef", borderRadius: 10 }}>{message}</p>}
+    {message && <p role="status" style={{ padding: 14, background: "var(--surface-2)", border: "1px solid var(--line-2)", borderRadius: 10 }}>{message}</p>}
   </main>;
 }

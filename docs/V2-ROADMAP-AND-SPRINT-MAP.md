@@ -6,6 +6,17 @@ V2 delivers accessible native iOS and Android applications and the highest-value
 
 Accessibility, localization, privacy, child safety, and tenant isolation are release requirements. They are not cleanup work deferred until the final sprint.
 
+## Native App Decision (October 2026)
+
+The question came up again before v1 launch: should BandWagon build a native iOS app now? The answer is not yet, and in this order:
+
+1. **Launch v1 on the web first** with FloMoGo. Twilio and Google approvals are still open, and one person maintains the code.
+2. **Measure before building.** Watch how many families add BandWagon to their home screen and turn on alerts. On iPhone, web alerts only work after that step, so a low number is the signal that a store app is needed.
+3. **Bridge step (optional, post-launch):** wrap the current site with Capacitor for an App Store listing, native push and passkeys. Same code, small upkeep. Apple can reject an app that is only a website in a wrapper (Guideline 4.2), so the wrapper needs real native features, and the support page needs a check against Apple's rules on donations.
+4. **Full native apps** stay as planned in the sprint map below.
+
+Costs to plan for: the Apple Developer Program fee, App Privacy answers, and the age rating and child-safety review already listed in Sprint 10.
+
 ## Planning assumptions
 
 - Two-week sprints.

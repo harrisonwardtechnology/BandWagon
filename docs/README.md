@@ -49,6 +49,7 @@ Every guide in one place. Last full refresh: 2026-09-29.
 | [Cloudflare And Caching](operations/CLOUDFLARE-PERFORMANCE.md) | Zone settings, cache headers, purge list, demo caching |
 | [Google OAuth Verification](operations/GOOGLE-OAUTH-VERIFICATION.md) | Google sign-in and calendar approval |
 | [SEO](operations/SEO.md) | Search, sitemap, robots |
+| [Analytics](operations/ANALYTICS.md) | Umami, cookieless page counts |
 | [Error Monitoring](operations/ERROR-MONITORING.md) | GlitchTip |
 | [Uptime Kuma Playbook](operations/UPTIME-KUMA-PLAYBOOK.md) | Monitors and status.bandwagon.club |
 | [High Availability](operations/HIGH-AVAILABILITY.md) | Web and worker roles, job queue |
@@ -66,7 +67,8 @@ Every guide in one place. Last full refresh: 2026-09-29.
 | [Test Automation](TEST_AUTOMATION.md) | CI gates and how to run tests |
 | [Repo Structure](REPO-STRUCTURE.md) | Folder layout |
 | [AI Gateway](architecture/AI-GATEWAY.md) | LiteLLM gateway design |
-| [Demo Site](../demo/README.md) | demo.bandwagon.club and its caching |
+| [Demo Site](operations/DEMO-SITE.md) | demo.bandwagon.club: fake data rules, files, build, caching, deploy (short version in [demo/README](../demo/README.md)) |
+| [Known Issues](KNOWN-ISSUES.md) | Gaps found in code review, each one a future issue or small PR |
 | [Web App](../apps/web/README.md) | App-level setup |
 
 ## Plans And Business

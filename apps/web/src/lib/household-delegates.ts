@@ -16,8 +16,10 @@ import {
   delegateGrantState,
   delegateInviteAcceptError,
   delegateInviteExpiresAt,
+  delegateInviteIsSelf,
   delegateInviteRateLimitError,
   delegateInviteState,
+  delegateRequestView,
   isValidDelegateEmail,
   looksLikeDelegateToken,
   maskContact,
@@ -112,6 +114,8 @@ async function householdManagerIds(householdId: string) {
 /**
  * The inviter's own guardian rights for each child. Only a guardian
  * relationship counts, never the inviter's own delegate grant elsewhere.
+ * No organization is passed on purpose: canActForChild refuses every delegate
+ * grant without one, and only `via === "guardian"` is read here.
  */
 async function guardianGrantRights(personId: string, childIds: string[]) {
   const rights: Record<string, GuardianGrantRights> = {};
@@ -298,12 +302,15 @@ export async function createDelegateInvitation(identity: SessionIdentity, input:
     if (!isValidDelegateEmail(input.contact)) throw new Error("Enter a valid email address");
     normalizedEmail = normalizeDelegateEmail(input.contact);
     const own = await verifiedEmailsForPerson(identity.personId);
-    if (own.includes(normalizedEmail)) throw new Error("You cannot invite yourself");
+    if (delegateInviteIsSelf({ contactType: "email", normalizedEmail, ownEmails: own, ownPhoneLookupHashes: [] })) throw new Error("You cannot invite yourself");
     contactHint = maskContact("email", normalizedEmail);
   } else if (input.contactType === "phone") {
     const phone = normalizePhoneInput(String(input.contact ?? ""));
     if (!phone) throw new Error("Enter a valid mobile number");
     phoneHash = lookupHash(phone);
+    // Any phone on the inviter's own account counts, verified or not.
+    const ownPhones = (await contactKeysForPerson(db, identity.personId)).phones;
+    if (delegateInviteIsSelf({ contactType: "phone", phoneLookupHash: phoneHash, ownEmails: [], ownPhoneLookupHashes: ownPhones })) throw new Error("You cannot invite yourself");
     contactHint = maskContact("phone", phone);
   } else {
     throw new Error("Choose email or phone");
@@ -765,7 +772,7 @@ export async function getDelegateOverview(identity: SessionIdentity) {
         const canView = grant.can_view_ride_details || grant.can_request_rides || grant.can_approve_rides;
         if (canView) {
           const requests = await db.query(
-            `select rr.id,rr.public_ref,rr.organization_id,rr.status,rr.direction,rr.guardian_approval_status,rr.requested_pickup_at,rr.pickup_note,
+            `select rr.id,rr.public_ref,rr.organization_id,rr.requester_person_id,rr.status,rr.direction,rr.guardian_approval_status,rr.requested_pickup_at,rr.pickup_note,
                     e.title as event_title,e.starts_at as event_starts_at,coalesce(o.display_name,o.name) as organization_name,
                     pl.generalized_area as pickup_area,
                     coalesce((select json_agg(json_build_object('id',ro.id,'driverName',dp.display_name,'seatsOffered',ro.seats_offered,'proposedPickupAt',ro.proposed_pickup_at) order by ro.created_at)
@@ -781,8 +788,18 @@ export async function getDelegateOverview(identity: SessionIdentity) {
             const view = await canActForChild(identity, child.id, "view_ride_details", { organizationId: request.organization_id });
             const approve = await canActForChild(identity, child.id, "approve_rides", { organizationId: request.organization_id });
             const manage = await canActForChild(identity, child.id, "manage_ride_request", { organizationId: request.organization_id });
-            if (approve.allowed && request.status === "pending_approval") entry.pendingApprovals.push(request);
-            if (view.allowed) entry.requests.push({ ...request, canManage: manage.allowed, offers: manage.allowed ? request.offers : [] });
+            // The creator's id is only used to decide what to show. It is never sent to the page.
+            const { requester_person_id: requesterPersonId, ...visible } = request;
+            if (approve.allowed && request.status === "pending_approval") entry.pendingApprovals.push(visible);
+            // With "See ride details": the full row. Without it, a delegate who can ask
+            // for rides still sees a short status view of the requests they created.
+            const shown = delegateRequestView({
+              request,
+              viewAllowed: view.allowed,
+              manageAllowed: manage.allowed,
+              createdByViewer: String(requesterPersonId) === identity.personId,
+            });
+            if (shown) entry.requests.push(shown);
           }
           const rides = await db.query(
             `select r.id,r.public_ref,r.organization_id,r.status,r.scheduled_pickup_at,d.display_name as driver_name,

@@ -10,6 +10,6 @@ export default function TurnstileWidget({action,onToken,resetKey=0}:{action:stri
   const siteKey=process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY||"",host=useRef<HTMLDivElement>(null),widgetId=useRef<string|null>(null);
   function render(){if(!siteKey||!window.turnstile||!host.current||widgetId.current)return;widgetId.current=window.turnstile.render(host.current,{sitekey:siteKey,action,callback:(value:string)=>onToken(value),"expired-callback":()=>onToken(""),"error-callback":()=>onToken("")});}
   useEffect(()=>{if(widgetId.current&&window.turnstile){window.turnstile.remove(widgetId.current);widgetId.current=null;}onToken("");render();return()=>{if(widgetId.current&&window.turnstile){window.turnstile.remove(widgetId.current);widgetId.current=null;}};},[resetKey]);
-  if(!siteKey)return <p role="status" style={{color:"#9a3412"}}><strong>The security check is not configured.</strong></p>;
+  if(!siteKey)return <p role="status" style={{color:"var(--text-warn)"}}><strong>The security check is not configured.</strong></p>;
   return <><Script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" strategy="afterInteractive" onLoad={render}/><div ref={host}/></>;
 }

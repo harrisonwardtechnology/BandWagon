@@ -64,6 +64,9 @@ const DELEGATE_GRANT_SELECT = `
    where hd.status<>'revoked'
      and exists(select 1 from household_members hm2 where hm2.household_id=hd.household_id and hm2.person_id=$1::uuid)`;
 
+// null means "not checked": no organization was given. The policy treats that
+// as a refusal for delegates, so a missing organizationId can never skip an
+// organization's "trusted adults off" setting.
 async function organizationAllowsDelegates(db: Queryable, organizationId: string | null | undefined) {
   if (!organizationId) return null;
   const result = await db.query(`select household_delegates_enabled from organizations where id=$1`, [organizationId]);
@@ -73,7 +76,9 @@ async function organizationAllowsDelegates(db: Queryable, organizationId: string
 
 /**
  * May `actor` perform `action` for `childId`? Pass organizationId whenever the
- * action happens inside an organization so its delegate setting is respected.
+ * action happens inside an organization. Without it, only the child themself
+ * and guardians can be allowed: a trusted adult (delegate) grant is refused,
+ * because the organization's "trusted adults off" setting could not be checked.
  * Pass `client` when running inside a transaction.
  */
 export async function canActForChild(

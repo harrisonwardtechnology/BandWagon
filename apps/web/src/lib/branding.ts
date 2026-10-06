@@ -19,5 +19,5 @@ export const floMoGoBrand: OrganizationBrand = {
   name: "FloMoGo",
   tagline: "Hop on the BandWagon.",
   communityName: "Flower Mound Band Community",
-  primaryDomain: "flomogo.app"
+  primaryDomain: "flomogo.bandwagon.club"
 };

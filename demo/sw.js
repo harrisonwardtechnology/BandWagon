@@ -1,7 +1,7 @@
 // Demo service worker: makes the demo installable and fast on repeat visits.
 // VERSION and the ?v= values are replaced with a content hash at Docker build time.
 const VERSION = "demo-v2";
-const SHELL = ["/", "/styles.css?v=2", "/app.js?v=2", "/bandwagon-logo.svg?v=2", "/icon.svg?v=2", "/icons/icon-192.png?v=2", "/manifest.webmanifest?v=2"];
+const SHELL = ["/", "/styles.css?v=2", "/app.js?v=2", "/bandwagon-logo.svg?v=2", "/bandwagon-logo-dark.svg?v=2", "/whats-new.json?v=2", "/icon.svg?v=2", "/icons/icon-192.png?v=2", "/manifest.webmanifest?v=2"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(VERSION).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()));

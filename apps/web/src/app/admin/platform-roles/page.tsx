@@ -57,12 +57,12 @@ export default function PlatformRolesPage() {
 
   useEffect(() => { void load(); }, []);
 
-  const card = { background: "white", border: "1px solid #e2e8f0", borderRadius: 16, padding: 18, marginTop: 18 } as const;
-  const input = { padding: 10, border: "1px solid #cbd5e1", borderRadius: 9 } as const;
+  const card = { background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 18, marginTop: 18 } as const;
+  const input = { padding: 10, border: "1px solid var(--line-strong)", borderRadius: 9 } as const;
 
   return (
     <main style={{ maxWidth: 1100, margin: "32px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif" }}>
-      <header style={{ background: "#101b33", color: "white", padding: 28, borderRadius: 22 }}>
+      <header style={{ background: "var(--panel-solid)", color: "white", padding: 28, borderRadius: 22 }}>
         <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1 }}>PLATFORM OWNER</div>
         <h1 style={{ fontSize: 40, margin: "6px 0" }}>Platform Roles</h1>
         <p style={{ margin: 0, opacity: 0.9 }}>Grant least-privilege access and keep every role change in the audit trail.</p>
@@ -74,7 +74,7 @@ export default function PlatformRolesPage() {
           <button type="submit">Search Accounts</button>
           <button type="button" onClick={() => { setQuery(""); void load(); }}>Current Roles</button>
         </form>
-        <p style={{ color: "#64748b", fontSize: 14, marginBottom: 0 }}>Search returns active accounts. Without a search, only accounts with platform access are shown.</p>
+        <p style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 0 }}>Search returns active accounts. Without a search, only accounts with platform access are shown.</p>
       </section>
 
       <section style={card}>
@@ -83,8 +83,8 @@ export default function PlatformRolesPage() {
             <thead><tr><th align="left">Account</th><th align="left">Current Role</th><th align="center">Organizations</th><th align="left">Change Role</th></tr></thead>
             <tbody>{accounts.map((account) => {
               const self = account.user_account_id === operatorId;
-              return <tr key={account.user_account_id} style={{ borderTop: "1px solid #e2e8f0" }}>
-                <td style={{ padding: "12px 8px 12px 0" }}><strong>{account.display_name}</strong>{self ? " (you)" : ""}<div style={{ color: "#64748b", fontSize: 13 }}>{account.email || "No verified email"}</div></td>
+              return <tr key={account.user_account_id} style={{ borderTop: "1px solid var(--line)" }}>
+                <td style={{ padding: "12px 8px 12px 0" }}><strong>{account.display_name}</strong>{self ? " (you)" : ""}<div style={{ color: "var(--text-muted)", fontSize: 13 }}>{account.email || "No verified email"}</div></td>
                 <td><code>{account.platform_role || "none"}</code></td>
                 <td align="center">{account.organization_count}</td>
                 <td>
@@ -105,7 +105,7 @@ export default function PlatformRolesPage() {
         {!accounts.length && <p>No matching active accounts.</p>}
       </section>
 
-      {message && <p style={{ padding: 14, background: "#f8fafc", borderRadius: 10 }}>{message}</p>}
+      {message && <p style={{ padding: 14, background: "var(--surface-2)", borderRadius: 10 }}>{message}</p>}
     </main>
   );
 }

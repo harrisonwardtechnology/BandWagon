@@ -68,20 +68,20 @@ const review = [
 
 export default function HelpPage() {
   const desk = helpDeskUrl();
-  const card = { background: "white", border: "1px solid #e2e8f0", borderRadius: 16, padding: 18 } as const;
+  const card = { background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 18 } as const;
   return (
-    <main style={{ maxWidth: 1120, margin: "32px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif", background: "#f8fafc" }}>
+    <main style={{ maxWidth: 1120, margin: "32px auto", padding: "0 20px", fontFamily: "system-ui,sans-serif", background: "var(--bg)" }}>
       <JsonLd data={faqJsonLd(review)} />
-      <header style={{ background: "#101b33", color: "white", padding: 30, borderRadius: 22, marginBottom: 18 }}>
+      <header style={{ background: "var(--panel-solid)", color: "white", padding: 30, borderRadius: 22, marginBottom: 18 }}>
         <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1 }}>BANDWAGON HELP CENTER</div>
         <h1 style={{ fontSize: 40, margin: "6px 0" }}>What are you trying to do?</h1>
         <p style={{ margin: 0, opacity: 0.9 }}>Plain-language guides for community admins, families, and drivers.</p>
       </header>
 
-      <section style={{ ...card, marginBottom: 22, background: "#eff6ff", borderColor: "#93c5fd" }} aria-labelledby="review-package-title">
-        <div style={{ fontSize: 12, fontWeight: 900, color: "#1d4ed8", letterSpacing: 0.8 }}>ORGANIZATION REVIEW PACKAGE</div>
-        <h2 id="review-package-title" style={{ margin: "6px 0 8px", color: "#101b33" }}>Review the full proposal before making a decision.</h2>
-        <p style={{ color: "#475569", lineHeight: 1.6, maxWidth: 850 }}>
+      <section style={{ ...card, marginBottom: 22, background: "var(--bg-info)", borderColor: "var(--line-info)" }} aria-labelledby="review-package-title">
+        <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-info)", letterSpacing: 0.8 }}>ORGANIZATION REVIEW PACKAGE</div>
+        <h2 id="review-package-title" style={{ margin: "6px 0 8px", color: "var(--text)" }}>Review the full proposal before making a decision.</h2>
+        <p style={{ color: "var(--text-3)", lineHeight: 1.6, maxWidth: 850 }}>
           The package covers governance, privacy, data flows, ThirdParty services, security, AI, transportation boundaries, consent, and reusable review worksheets. It is proposal material - not an approval or launch authorization. Each organization must complete its own review and attach its official decision.
         </p>
         <a href={reviewPackageUrl} download style={{ display: "inline-block", padding: "12px 16px", borderRadius: 10, background: "#2458d8", color: "white", textDecoration: "none", fontWeight: 900 }}>
@@ -94,9 +94,9 @@ export default function HelpPage() {
           <div key={section.title} style={card}>
             <h2 style={{ marginTop: 0 }}>{section.title}</h2>
             {section.items.map(([title, body]) => (
-              <details key={title} style={{ borderTop: "1px solid #e2e8f0", padding: "11px 0" }}>
+              <details key={title} style={{ borderTop: "1px solid var(--line)", padding: "11px 0" }}>
                 <summary style={{ cursor: "pointer", fontWeight: 850 }}>{title}</summary>
-                <p style={{ color: "#475569", lineHeight: 1.55, marginBottom: 0 }}>{body}</p>
+                <p style={{ color: "var(--text-3)", lineHeight: 1.55, marginBottom: 0 }}>{body}</p>
                 {title === "Review and Approval" && <p><a href={reviewPackageUrl} download><strong>Download the proposal and evidence package</strong></a></p>}
                 {title === "Report a Security Issue" && <p><a href="/security"><strong>Open Security Reporting</strong></a></p>}
                 {title === "Check Platform Status" && <p><a href="/status"><strong>Open Platform Status</strong></a></p>}
@@ -108,29 +108,29 @@ export default function HelpPage() {
 
       <section style={{ ...card, marginBottom: 18 }}>
         <h2 style={{ marginTop: 0 }}>For Organizations Reviewing BandWagon</h2>
-        <p style={{ color: "#64748b" }}>These are baseline answers from the BandWagon proposal and evidence package. Your organization keeps its own approval authority and should document any local conditions separately.</p>
+        <p style={{ color: "var(--text-muted)" }}>These are baseline answers from the BandWagon proposal and evidence package. Your organization keeps its own approval authority and should document any local conditions separately.</p>
         {review.map(([question, answer]) => (
-          <div key={question} style={{ padding: "11px 0", borderTop: "1px solid #e2e8f0" }}>
+          <div key={question} style={{ padding: "11px 0", borderTop: "1px solid var(--line)" }}>
             <strong>{question}</strong>
-            <div style={{ color: "#475569", marginTop: 4 }}>{answer}</div>
+            <div style={{ color: "var(--text-3)", marginTop: 4 }}>{answer}</div>
           </div>
         ))}
       </section>
 
-      <section style={{ ...card, marginBottom: 18, background: "#f5f3ff", borderColor: "#c4b5fd" }} aria-labelledby="ideas-title">
+      <section style={{ ...card, marginBottom: 18, background: "var(--bg-info)", borderColor: "var(--line-info)" }} aria-labelledby="ideas-title">
         <h2 id="ideas-title" style={{ marginTop: 0 }}>Have an Idea?</h2>
-        <p style={{ color: "#475569" }}>Suggest a feature, vote for ideas from other families and drivers, and see what the BandWagon team is planning.</p>
-        <a href="/help/ideas" style={{ display: "inline-block", padding: "12px 16px", borderRadius: 10, background: "#101b33", color: "white", textDecoration: "none", fontWeight: 900 }}>Suggest A Feature</a>
+        <p style={{ color: "var(--text-3)" }}>Suggest a feature, vote for ideas from other families and drivers, and see what the BandWagon team is planning.</p>
+        <a href="/help/ideas" style={{ display: "inline-block", padding: "12px 16px", borderRadius: 10, background: "var(--btn-solid)", color: "var(--on-btn-solid)", textDecoration: "none", fontWeight: 900 }}>Suggest A Feature</a>
       </section>
 
       <section style={{ ...card, marginBottom:18 }} aria-labelledby="contact-support-title">
         <h2 id="contact-support-title" style={{ marginTop: 0 }}>Contact BandWagon Support</h2>
-        <p style={{color:"#475569"}}>Send an account, technical, organization, ride, event, or general question directly to BandWagon Support. For a new feature idea, use <a href="/help/ideas"><strong>Suggest A Feature</strong></a> so others can vote on it.</p>
-        {desk && <p style={{color:"#475569"}}>You can also open a ticket and follow replies in the <a href={desk} target="_blank" rel="noreferrer"><strong>BandWagon help desk</strong><span className="sr-only"> (opens in a new tab)</span></a>.</p>}
+        <p style={{color:"var(--text-3)"}}>Send an account, technical, organization, ride, event, or general question directly to BandWagon Support. For a new feature idea, use <a href="/help/ideas"><strong>Suggest A Feature</strong></a> so others can vote on it.</p>
+        {desk && <p style={{color:"var(--text-3)"}}>You can also open a ticket and follow replies in the <a href={desk} target="_blank" rel="noreferrer"><strong>BandWagon help desk</strong><span className="sr-only"> (opens in a new tab)</span></a>.</p>}
         <HelpContactForm />
       </section>
 
-      <section style={{ ...card, background: "#eff6ff", borderColor: "#bfdbfe" }}>
+      <section style={{ ...card, background: "var(--bg-info)", borderColor: "var(--line-info)" }}>
         <h2 style={{ marginTop: 0 }}>Still stuck?</h2>
         <p>Use your organization admin for organization-specific questions. Use BandWagon Support (<SupportContact />) for account, privacy, or technical problems. Never send passwords, one-time codes, full payment-card details, or sensitive documents in a support message. For sensitive security evidence, use <a href="https://secret.harrisonward.com" target="_blank" rel="noreferrer"><strong>secret.harrisonward.com</strong></a>.</p>
       </section>

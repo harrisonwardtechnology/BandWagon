@@ -43,24 +43,24 @@ export default function MessagingTestPage() {
 
   return (
     <main style={{maxWidth: 900, margin: "40px auto", padding: "0 20px", fontFamily: "system-ui, sans-serif"}}>
-      <div style={{background:"#0f1d3a", color:"#fff", borderRadius:24, padding:"28px 32px", marginBottom:24}}>
+      <div style={{background:"var(--panel-solid)", color:"#fff", borderRadius:24, padding:"28px 32px", marginBottom:24}}>
         <div style={{fontSize:14, fontWeight:700, letterSpacing:1, opacity:.8}}>PLATFORM ADMIN</div>
         <h1 style={{fontSize:40, margin:"6px 0 4px"}}>Messaging Test</h1>
         <p style={{margin:0, opacity:.9}}>Test BandWagon → Twilio → RCS/SMS delivery without creating a ride.</p>
       </div>
 
-      <div style={{background:"#fff7ed", border:"1px solid #fed7aa", borderRadius:16, padding:18, marginBottom:24}}>
+      <div style={{background:"var(--bg-warn)", border:"1px solid var(--line-warn)", borderRadius:16, padding:18, marginBottom:24}}>
         <strong>Platform-owner test tool.</strong> This page uses your signed-in BandWagon session.
         If ADMIN_TEST_PHONE is configured, messages can only be sent to that number.
       </div>
 
-      <form onSubmit={submit} style={{background:"#fff", border:"1px solid #dbe3ef", borderRadius:18, padding:24}}>
+      <form onSubmit={submit} style={{background:"var(--surface)", border:"1px solid var(--line-2)", borderRadius:18, padding:24}}>
         <label htmlFor="test-recipient" style={{display:"block", fontWeight:700, marginBottom:6}}>Recipient</label>
         <PhoneNumberInput id="test-recipient" value={to} onChange={setTo} required />
 
         <label style={{display:"block", fontWeight:700, marginBottom:6}}>Delivery Test</label>
         <div style={{display:"grid", gap:10, marginBottom:18}}>
-          <label style={{padding:14, border:"1px solid #cbd5e1", borderRadius:10}}>
+          <label style={{padding:14, border:"1px solid var(--line-strong)", borderRadius:10}}>
             <input
               type="radio"
               name="mode"
@@ -68,12 +68,12 @@ export default function MessagingTestPage() {
               onChange={() => setMode("auto")}
             />{" "}
             <strong>RCS Preferred + SMS Fallback</strong>
-            <div style={{fontSize:13, color:"#64748b", marginLeft:22, marginTop:4}}>
+            <div style={{fontSize:13, color:"var(--text-muted)", marginLeft:22, marginTop:4}}>
               Sends through the BandWagon Messaging Service. Twilio chooses RCS first when the sender/device supports it, then falls back to SMS.
             </div>
           </label>
 
-          <label style={{padding:14, border:"1px solid #cbd5e1", borderRadius:10}}>
+          <label style={{padding:14, border:"1px solid var(--line-strong)", borderRadius:10}}>
             <input
               type="radio"
               name="mode"
@@ -81,17 +81,17 @@ export default function MessagingTestPage() {
               onChange={() => setMode("sms")}
             />{" "}
             <strong>Force SMS From (223) BANDWAG</strong>
-            <div style={{fontSize:13, color:"#64748b", marginLeft:22, marginTop:4}}>
+            <div style={{fontSize:13, color:"var(--text-muted)", marginLeft:22, marginTop:4}}>
               Forces the configured TWILIO_PHONE_NUMBER while retaining Messaging Service features.
             </div>
           </label>
         </div>
 
         <label style={{display:"block", fontWeight:700, marginBottom:6}}>Message</label>
-        <div style={{padding:12, border:"1px solid #cbd5e1", borderRadius:8, marginBottom:20, background:"#f8fafc"}}>
+        <div style={{padding:12, border:"1px solid var(--line-strong)", borderRadius:8, marginBottom:20, background:"var(--surface-2)"}}>
           BandWagon platform test: Transactional messaging is working. Reply HELP for help or STOP to opt out.
         </div>
-        <div style={{fontSize:13, color:"#64748b", marginTop:-12, marginBottom:20}}>The server controls this template; the test tool cannot send free-form messages.</div>
+        <div style={{fontSize:13, color:"var(--text-muted)", marginTop:-12, marginBottom:20}}>The server controls this template; the test tool cannot send free-form messages.</div>
 
         <button
           disabled={sending}
@@ -107,8 +107,8 @@ export default function MessagingTestPage() {
       {result && (
         <section style={{
           marginTop:24, padding:20, borderRadius:16,
-          background: result.ok ? "#ecfdf5" : "#fef2f2",
-          border: `1px solid ${result.ok ? "#a7f3d0" : "#fecaca"}`
+          background: result.ok ? "var(--bg-success)" : "var(--bg-danger)",
+          border: `1px solid ${result.ok ? "var(--line-success)" : "var(--line-danger)"}`
         }}>
           <h2 style={{marginTop:0}}>{result.ok ? "Accepted By Twilio" : "Test Failed"}</h2>
           {result.error && <p>{result.error}</p>}

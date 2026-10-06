@@ -3,8 +3,14 @@
 // The exact wording shown next to every SMS opt-in checkbox. It is stored
 // with each consent record, so change CONSENT_TEXT_VERSION when it changes.
 export const SMS_CONSENT_TEXT =
-  "I agree to receive transactional SMS messages from BandWagon, a Harrison Ward Technology product, about ride requests, ride offers, confirmations, schedule changes, reminders, account activity, pickup/drop-off status, cancellations, and ride coordination. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help.";
-export const SMS_CONSENT_TEXT_VERSION = "2026-09-26";
+  "I agree to receive transactional SMS messages from BandWagon, a Harrison Ward Technology product, about ride requests, ride offers, confirmations, schedule changes, reminders, driver alerts, pickup/drop-off status, cancellations, and ride coordination. Sign-in codes are separate and do not need this box. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help.";
+export const SMS_CONSENT_TEXT_VERSION = "2026-09-30";
+
+// Carrier rule: a one-time sign-in code request is its own consent, separate from ride texts.
+// Shown directly under the Send Sign-In Code button when the person picks Mobile Phone.
+export const OTP_SEND_BUTTON_LABEL = "Send Sign-In Code";
+export const SMS_OTP_DISCLOSURE_TEXT =
+  "By clicking Send Sign-In Code, you agree to receive a one-time verification passcode via text message from BandWagon. Message and data rates may apply.";
 
 // Sent once, right after someone opts in (checkbox or settings). Carriers
 // require brand, frequency, rates, HELP/STOP and a support contact.
@@ -22,6 +28,49 @@ export type SmsConsentSource =
   | "settings"
   | "carrier_keyword"
   | "twilio_advanced_opt_out";
+
+/**
+ * A registry row that says opted out came either from the person's own settings
+ * page ("settings") or from the carrier side: a STOP keyword, Twilio Advanced
+ * Opt-Out, or a STOP carried over by migration 053. After a carrier-side STOP,
+ * Twilio keeps blocking the number until the person texts START, whatever the
+ * app records. Only "settings" opt-outs are ours to undo from the web.
+ */
+export function isCarrierStop(input: { registryState?: string | null; registrySource?: string | null }) {
+  return input.registryState === "opted_out" && input.registrySource !== "settings";
+}
+
+/** True when a web opt-in (checkbox or settings) must not go ahead because a carrier STOP is still in force. */
+export function webOptInBlockedByCarrierStop(input: {
+  action: SmsConsentAction;
+  source: SmsConsentSource;
+  registryState?: string | null;
+  registrySource?: string | null;
+}) {
+  const fromWeb = input.source === "signup_checkbox" || input.source === "settings";
+  return input.action === "opt_in" && fromWeb && isCarrierStop(input);
+}
+
+/** What to tell someone who tries to opt in on the web while a carrier STOP is in force. */
+export function smsCarrierStopMessage(displayNumber?: string | null) {
+  const how = displayNumber
+    ? `Text START to ${displayNumber} to turn them back on.`
+    : "Reply START to any BandWagon text to turn them back on.";
+  return `Texts to this number are still blocked because it replied STOP. ${how} Then refresh this page.`;
+}
+
+/**
+ * The one rule for "which phone row counts" when more than one could match:
+ * newest verification first, then newest row, then id so the order is stable.
+ * Callers still add their own "verified_at is not null" filter. Used by the
+ * send path, the settings status, and the router's phone lookup, so they can
+ * never disagree about which row they mean.
+ */
+export function verifiedPhoneOrderBy(alias = "") {
+  if (alias && !/^[a-z_][a-z0-9_]*$/i.test(alias)) throw new Error("Invalid SQL alias");
+  const p = alias ? `${alias}.` : "";
+  return `${p}verified_at desc, ${p}created_at desc, ${p}id desc`;
+}
 
 // Twilio's default opt-out / opt-in keyword sets (case-insensitive, whole message).
 const OPT_OUT_KEYWORDS = new Set(["STOP", "STOPALL", "UNSUBSCRIBE", "CANCEL", "END", "QUIT", "REVOKE", "OPTOUT"]);

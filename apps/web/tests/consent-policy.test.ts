@@ -35,7 +35,7 @@ test("consent UI offers accept, reject, manage, and does not pre-authorize track
   assert.match(component, /Accept Optional/);
   assert.match(component, /Reject Optional/);
   assert.match(component, /Manage Preferences/);
-  assert.match(component, /Analytics[\s\S]*Not used/);
+  assert.match(component, /Anonymous Analytics[\s\S]*No cookies/);
   assert.match(component, /Advertising[\s\S]*Not used/);
   assert.match(policy, /will not add optional analytics or advertising technology under an existing functional-storage choice/i);
   assert.match(pwa, /privacyPreferencesFromCookieHeader/);

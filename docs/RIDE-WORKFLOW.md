@@ -81,7 +81,7 @@ A `ride-waitlists` scheduled task runs every 5 minutes as a safety net (late exp
 
 ### Notifications and audit
 
-- Offers use the `waitlist_offer` type (important: push first, then text or email if push is not available). Joined, expired, removed, and closed use `waitlist_update` (routine). A cancelled carpool uses `last_minute_cancellation`. All go through the normal router, so notification preferences, SMS consent, opt-outs, and organization texting limits apply. Minors' households are notified through the guardian who asked.
+- Offers use the `waitlist_offer` type (important: push first, then email if push is not available; a text only for people who agreed to texts and turned off "SMS for critical only"). Joined, expired, removed, and closed use `waitlist_update` (routine, never texted). A cancelled carpool uses `last_minute_cancellation` (critical), which texts every waitlisted rider who agreed to texts. Details: [WAITLISTS.md](WAITLISTS.md#notifications-sent). All go through the normal router, so notification preferences, SMS consent, opt-outs, and organization texting limits apply. Minors' households are notified through the guardian who asked.
 - Audit events use `ride_waitlist.<action>` with `target_type='ride_waitlist_entry'`: `joined`, `left`, `offered`, `accepted`, `declined`, `expired`, `offer_withdrawn`, `closed`, `removed`, `cancelled`, and `settings_updated`.
 
 ## Notifications

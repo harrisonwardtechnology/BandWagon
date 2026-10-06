@@ -18,6 +18,8 @@ services:
         NEXT_PUBLIC_ENVIRONMENT: staging
         NEXT_PUBLIC_HELP_DESK_URL: ${NEXT_PUBLIC_HELP_DESK_URL:-}
         NEXT_PUBLIC_STATUS_PAGE_URL: ${NEXT_PUBLIC_STATUS_PAGE_URL:-}
+        NEXT_PUBLIC_UMAMI_WEBSITE_ID: ${NEXT_PUBLIC_UMAMI_WEBSITE_ID:-}
+        NEXT_PUBLIC_UMAMI_SRC: ${NEXT_PUBLIC_UMAMI_SRC:-}
     image: bandwagon-app:staging
     restart: unless-stopped
     command: ["sh", "-c", "node scripts/migrate.mjs && node server.js"]
@@ -39,6 +41,9 @@ services:
       LEGACY_TENANT_BASE_DOMAINS: ""
       NEXT_PUBLIC_ENVIRONMENT: staging
       APP_ENVIRONMENT: staging
+      # GlitchTip error tracking. Blank = off. Set the DSN in Coolify, never in git.
+      GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
+      GLITCHTIP_ENVIRONMENT: ${GLITCHTIP_ENVIRONMENT:-staging}
       MESSAGING_SANDBOX: "true"
       SANDBOX_ALLOWED_PHONES: ${SANDBOX_ALLOWED_PHONES:-}
       SANDBOX_ALLOWED_EMAILS: ${SANDBOX_ALLOWED_EMAILS:-}

@@ -4,6 +4,14 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   reactStrictMode: true,
+  async redirects() {
+    return [
+      // Password managers open this well-known address to help people update
+      // their sign-in. BandWagon has no passwords, so it goes to the page where
+      // passkeys and sign-in security are managed. Temporary (302/307) per the spec.
+      { source: "/.well-known/change-password", destination: "/app/settings/security", permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

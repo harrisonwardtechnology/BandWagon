@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { requireSessionIdentity } from "@/lib/auth";
+import { requireSessionIdentity, type SessionIdentity } from "@/lib/auth";
 import { assertIdentityOrganizationAdmin } from "@/lib/admin-access";
 import { listAdminOrganizations } from "@/lib/admin-operations";
+import { canChangeOrganizationSettings, ORGANIZATION_SETTINGS_DENIED } from "@/lib/admin-policy";
 import { getDb } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -23,13 +24,26 @@ async function settings(organizationId: string) {
   return { organizationId: row.id, name: row.name, householdDelegatesEnabled: row.household_delegates_enabled !== false };
 }
 
+// The exact check POST makes: write access, then owners and admins only (or a platform owner).
+async function assertMayChangeSettings(identity: SessionIdentity, organizationId: string) {
+  const access = await assertIdentityOrganizationAdmin(identity, organizationId, { write: true });
+  // Same rule as event proposal settings: owners and admins, not managers.
+  if (!canChangeOrganizationSettings(access.organizationRole, access.platformAccess)) throw new Error(ORGANIZATION_SETTINGS_DENIED);
+  return access;
+}
+
+async function mayChangeSettings(identity: SessionIdentity, organizationId: string) {
+  return assertMayChangeSettings(identity, organizationId).then(() => true, () => false);
+}
+
 export async function GET(request: Request) {
   try {
     const identity = await requireSessionIdentity();
     const organizationId = new URL(request.url).searchParams.get("organizationId");
     if (!organizationId) return NextResponse.json({ ok: true, organizations: await listAdminOrganizations(identity) }, { headers });
     await assertIdentityOrganizationAdmin(identity, organizationId, { write: false, allowPlatformRoles: ["owner", "support", "readonly"] });
-    return NextResponse.json({ ok: true, settings: await settings(organizationId) }, { headers });
+    // Managers can see the setting. The page disables the box unless saving would be allowed.
+    return NextResponse.json({ ok: true, settings: { ...(await settings(organizationId)), canChangeSettings: await mayChangeSettings(identity, organizationId) } }, { headers });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Administrator access required" }, { status: 403, headers });
   }
@@ -43,7 +57,7 @@ export async function POST(request: Request) {
     identity = await requireSessionIdentity();
     body = await request.json().catch(() => ({}));
     organizationId = String(body.organizationId || "");
-    await assertIdentityOrganizationAdmin(identity, organizationId, { write: true });
+    await assertMayChangeSettings(identity, organizationId);
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Organization administrator access is required" }, { status: 403, headers });
   }
@@ -67,7 +81,7 @@ export async function POST(request: Request) {
     } finally {
       client.release();
     }
-    return NextResponse.json({ ok: true, settings: await settings(organizationId) }, { headers });
+    return NextResponse.json({ ok: true, settings: { ...(await settings(organizationId)), canChangeSettings: true } }, { headers });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to save" }, { status: 400, headers });
   }

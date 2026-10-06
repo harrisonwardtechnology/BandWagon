@@ -28,7 +28,9 @@ The wordmark is one text run (`Band` navy, `Wagon` gold) so it never splits into
 | --- | --- | --- |
 | `apps/web/public/bandwagon-icon.svg` | 512, rounded | Favicon, compact header logo |
 | `apps/web/public/bandwagon-logo.svg` / `.png` | 980x240 | Header wordmark; the PNG is Stripe checkout branding |
-| `apps/web/public/icons/icon-192.png`, `icon-512.png` | Maskable safe zone | PWA install, push notifications, JSON-LD logo |
+| `apps/web/public/bandwagon-logo-dark.svg` | 980x240 | Header wordmark in dark mode ("Band" in white, thin light edge on the tile) |
+| `apps/web/public/icons/icon-192.png`, `icon-512.png` | Full bleed, maskable safe zone | PWA install (`maskable`), push notifications, JSON-LD logo |
+| `apps/web/public/icons/icon-any-192.png`, `icon-any-512.png` | Rounded, transparent corners | PWA install (`any`), for launchers that do not mask icons |
 | `apps/web/public/icons/apple-touch-icon.png` | 180 | iPhone home screen |
 | `apps/web/public/brand/google-oauth-logo-120.png` | 120 | Google sign-in consent screen |
 | `apps/web/public/brand/rcs-logo-224.png` | 224, under 50 KB | Twilio RCS sender logo (shown as a circle) |
@@ -49,6 +51,35 @@ Update all of these when the logo changes:
 - Azure app registration branding (Microsoft sign-in)
 - DoDomain branding
 - Cloudflare: purge `/brand/*`, `/icons/*` and the logo files after a change, since `/brand` and `/icons` are cached for 7 days
+
+## Theme And Dark Mode
+
+BandWagon follows the device setting. There is no in-app switch.
+
+- **Tokens live in one place:** `apps/web/src/app/globals.css`. `:root` holds the light values and `@media (prefers-color-scheme: dark)` holds the dark ones.
+- **Pages never hard-code neutral colors.** Inline styles use `var(--surface)`, `var(--text)`, `var(--line)` and friends. `tests/theme-tokens.test.ts` fails the build on an old fixed gray, white card or navy block.
+- **Brand colors do not change:** navy `#071a33`, gold `#f5a800`, cream `#fffaf0`.
+- **Font:** the device's own system font. No web font is loaded.
+- **Icons:** [Lucide](https://lucide.dev) (`lucide-react`), with `className="icon"` so they take the text size and color.
+
+| Token | Light | Dark | Used For |
+| --- | --- | --- | --- |
+| `--bg` | `#f7f8fb` | `#0b1422` | Page background |
+| `--surface`, `--surface-2`, `--surface-3`, `--surface-4` | White to `#e2e8f0` | `#121e31` to `#2a3b55` | Cards, quiet panels, chips, progress tracks |
+| `--text`, `--text-2`, `--text-3`, `--text-muted`, `--text-faint` | Navy to gray | Near white to gray | Headings down to hints |
+| `--line`, `--line-soft`, `--line-2`, `--line-strong`, `--line-solid` | Light grays, navy | Dark blues, near white | Borders and dividers |
+| `--btn-solid` / `--on-btn-solid` | Navy / white | Gold / navy | Main buttons, active tab, progress fill |
+| `--panel-solid` | Navy | Lighter navy `#15294a` | Page banners and toasts (white text in both) |
+| `--bg-warn`, `--bg-danger`, `--bg-info`, `--bg-success` (and `--text-*`, `--line-*`) | Pale tints | Deep tints | Notices and status |
+
+Things that stay fixed on purpose:
+
+- **Pickup check card** (`/app/rides/verify`). The driver and the family compare the same color on two phones, so it looks the same in light and dark.
+- **Solid status buttons** (red delete, blue links, green approve) with white text.
+- **Share cards and emails**, which are rendered as images or sent to mail apps.
+- **A community's button color** from the branding editor. It is checked against navy text, which is what buttons use in dark mode.
+
+Other rules the shell enforces: buttons, fields and menu links are at least 44 points tall, `prefers-reduced-motion` turns off animation, and focus rings are gold in both themes.
 
 ## Community Branding
 

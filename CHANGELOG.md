@@ -2,6 +2,45 @@
 
 ## v1.0.0-rc1 - Unreleased
 
+### Analytics And Error Tracking Setup
+
+- **Compose examples pass the settings through.** `docker-compose.coolify.example.yml`, `.ha.yml` and `.staging.yml` now take `GLITCHTIP_DSN` and `GLITCHTIP_ENVIRONMENT` (blank means off), and the example and HA files pass the Umami build arguments the staging file already had. No values are committed.
+- **Docs.** `docs/COOLIFY.md` lists the Umami and GlitchTip variables, and `docs/operations/ANALYTICS.md` has a side-by-side summary of what each tool sends and never sends.
+- **Tests.** `tests/analytics-policy.test.ts` now checks the root layout renders the snippet, the compose files wire the variables without a real DSN, and a blank or non-https config renders nothing.
+
+### October 2026 Known Issue Fixes
+
+- **Safety page fixed.** `/app/safety` sent every signed-in person back to the sign-in page. Its query used `SELECT DISTINCT` with an `ORDER BY` column that was not selected, Postgres rejected it, and the API reported the failure as "not signed in". The query is fixed, and a real failure now returns a plain message instead of a redirect or database text.
+- **Pickup verification adoption** on Usage And Cost Trends read a table that does not exist and always showed 0. It now reads `ride_pickup_handshakes`.
+- **New check: `npm run db:check-sql`.** Prepares every fixed SQL string in `src/` against the migrated database (nothing is run). CI runs it after migrations. It found the three queries above plus one unused function, which was removed.
+
+Messaging:
+
+- **Brand name in every text.** Every SMS/RCS body now starts with `BandWagon: ` (waitlist offers, route assist, "Your driver is on the way.", and the rest). Bodies that already start with "BandWagon" are left alone. Push and email are unchanged. `docs/SMS-CONSENT-AND-TEXTS.md`.
+- **Web opt-in after a carrier STOP.** Opting in on the web no longer reports success while Twilio is still blocking the number. Nothing is changed, no welcome text is sent, and the person is told to text START. A carrier STOP is never cleared from the web.
+- **Delivery log shows the real channel.** The Twilio status callback now corrects `notification_deliveries.channel` to `rcs` or `sms`, and keeps the requested channel in `metadata`.
+- **One rule for picking a phone row.** The send path, the settings status, and the router all use `verifiedPhoneOrderBy`.
+- **Trusted adult notifications have router policies.** `household_delegate_activity` (important, push then email) and `household_delegate_invitation` (email only). Neither is ever texted. A new test keeps the table in `docs/NOTIFICATION-ROUTING.md` in step with the code.
+- **Waitlist texting docs corrected.** `docs/WAITLISTS.md` now says what really happens: standby offers are push or email for most people, and a cancelled carpool texts every waitlisted rider who agreed to texts. No behavior change.
+
+Security:
+
+- **No hard-coded fallback hash key.** Rate-limit and IP hashes no longer fall back to a fixed string when `AUTH_SECRET` and `DATA_ENCRYPTION_KEY` are both unset. The code now throws (`apps/web/src/lib/private-hash.ts`) and the affected public forms answer 503. Fixed in `feature-requests.ts`, `organization-requests.ts`, `routing-provider.ts`, and five API routes with the same pattern. Hash values are unchanged for a configured deployment. `docs/SECURITY-DEPLOYMENT.md`.
+- **Demo security headers.** `demo/nginx.conf` now repeats `Referrer-Policy`, `X-Frame-Options` and `Permissions-Policy` in every location that sets its own headers, so they are no longer dropped on the page, service worker, manifest, and static files.
+
+Households and events:
+
+- **Request-only trusted adults see their own requests.** A delegate with only "Ask For Rides" now sees a short status line for requests they created. No pickup details, drivers, offers, or other people's requests.
+- **The organization's trusted adult setting can no longer be skipped.** `canActForChild` refuses every delegate grant when no organization is passed. Guardians and the child are not affected.
+- **Settings permissions are consistent.** Turning trusted adults off for an organization now needs an owner or admin, the same as event proposal settings. Managers can still see the setting. (Behavior change for managers.)
+- **No inviting your own phone number.** The self-invite check now covers phone invites as well as email.
+- **Stale event proposals.** Approving a proposal whose start time has passed gives a clear message. Turning proposals off puts queued ones on hold (kept, declinable, not approvable until the feature is back on) and tells the admin how many are waiting. Nothing is deleted. `docs/EVENT-PROPOSALS.md`.
+
+Config and docs:
+
+- **Synthetic check skips cleanly.** `production-synthetic.yml` no longer fails every hour when `PRODUCTION_URL` is unset. It finishes green with a notice. The schedule is unchanged.
+- **Reserved example domain.** `docs/operations/CHANGING-TENANT-DOMAIN.md` now uses `example.org` instead of `bandwagonrides.com`.
+
 ### September 2026 Wave (PRs #35 to #50)
 
 - **New logo: Route To The Show** (#46). Site icons, PWA icons, header wordmark, Stripe logo, share card, BIMI, README image, Google sign-in logo (`/brand/google-oauth-logo-120.png`) and RCS images (`/brand/rcs-*.png`, #49). File list in `docs/BRANDING.md`.
@@ -13,6 +52,41 @@
 - **Status page link** in header and footer (#41). Old `harrisonward.net`/`.org` crumbs removed from docs (#40).
 - **Title Case everywhere** (#42, #43, #44) with a guard test; HSTS header and 7-day cache on `/icons` and `/brand` (#44).
 - **Docs refresh**: docs index, new ops guides (email, Cloudflare, Google verification), new feature guides, notification routing table rebuilt from code, stale setup notes moved to `docs/archive/`.
+
+### October 2026 Style Standards Pass
+
+- **Dark mode.** The whole app follows the device setting: public site, sign-in, family and driver screens, and every admin screen. Colors come from theme tokens in `globals.css`; about 960 fixed colors in 74 page files were replaced. Light mode looks the same apart from slightly darker gray text for contrast. `docs/BRANDING.md` has the token table.
+- **Main buttons are gold in dark mode** (navy in light), matching the logo.
+- **Dark logo.** `bandwagon-logo-dark.svg` is swapped in so "Band" stays readable.
+- **System font.** `Inter` is no longer named first, so every device uses its own font.
+- **Lucide icons** in the app menu and in place of arrow, check and close symbols.
+- **Friendly state screens:** branded 404, "Something Went Wrong" (reports to GlitchTip), and loading screens for the signed-in areas.
+- **Footer:** "Built By Harrison Ward Technology" credit, and footer links are now full-size tap targets.
+- **Touch targets:** buttons, fields and menu links are at least 44 points tall. Sign Out moved up beside the logo.
+- **Pickup check card keeps fixed colors** in both themes so two phones always match.
+- **Install icons** split into `any` (rounded) and `maskable` (full bleed).
+- **Offline page** has a dark version.
+- **Guard test:** `tests/theme-tokens.test.ts` fails on a hard-coded neutral color in a page.
+
+### October 2026 Demo Stays Current
+
+- **The demo deploys itself** on every merge that touches `demo/` or What's New (`.github/workflows/deploy-demo.yml`). It needs a deploy-only Coolify token as a GitHub secret. Setup: `docs/operations/DEMO-DEPLOY.md`.
+- **What's New in the demo**, copied from the site by `npm run demo:sync` and checked by a test.
+- **Dark mode and the dark logo in the demo**, matching the site.
+- **Reminder on pull requests** that change screens without touching the demo.
+
+### October 2026 Address Reuse
+
+- **Removed communities free their web address** once outside cleanup finishes, instead of holding it for the 30-day retention period. A new community can sign up with the same address. Tested end to end on Postgres.
+- FloMoGo's default home is now `flomogo.bandwagon.club`, and the SaaS Tenants form no longer pre-fills FloMoGo.
+
+### October 2026 Standards Gaps
+
+- **What's New page** at `/whats-new`, linked in the footer and listed in the sitemap. Entries live in `apps/web/src/lib/whats-new.ts` and are written for families, not developers.
+- **`/.well-known/change-password`** now redirects to `/app/settings/security`, so password managers land on the passkey and sign-in security page.
+- **README screenshots** of the main screens in light and dark (`docs/assets/screenshots/`).
+- **Anonymous analytics (Umami, self-hosted).** On for everyone once `NEXT_PUBLIC_UMAMI_WEBSITE_ID` is set; off until then. No cookies, Do Not Track honored, query strings and invite tokens removed. Cookie, privacy, subprocessor pages, the home page and the privacy banner now say so, and the banner version is bumped so everyone sees it once. Setup: `docs/operations/ANALYTICS.md`.
+- **Native app decision** recorded at the top of `docs/V2-ROADMAP-AND-SPRINT-MAP.md`: web first, measure, optional wrapped app, then full native.
 
 ### Earlier In RC1
 

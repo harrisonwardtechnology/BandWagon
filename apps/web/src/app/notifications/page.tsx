@@ -92,7 +92,7 @@ export default function NotificationsPage() {
   }
 
   return <main style={{maxWidth:760,margin:"40px auto",padding:"0 20px",fontFamily:"system-ui,sans-serif"}}>
-    <section style={{background:"#101b33",color:"#fff",padding:30,borderRadius:24}}>
+    <section style={{background:"var(--panel-solid)",color:"#fff",padding:30,borderRadius:24}}>
       <div style={{fontSize:13,fontWeight:800,letterSpacing:1}}>BANDWAGON NOTIFICATIONS</div>
       <h1 style={{fontSize:38,margin:"8px 0"}}>Stay Updated Without Extra Texts</h1>
       <p style={{fontSize:18,lineHeight:1.6}}>
@@ -101,7 +101,7 @@ export default function NotificationsPage() {
       </p>
     </section>
 
-    <section style={{marginTop:22,padding:24,border:"1px solid #dbe3ef",borderRadius:18}}>
+    <section style={{marginTop:22,padding:24,border:"1px solid var(--line-2)",borderRadius:18}}>
       <p>Browser/PWA support: <strong>{supported?"Supported":"Not supported"}</strong></p>
       <p>Permission: <strong>{permission||"Unknown"}</strong></p>
       <p>This device: <strong>{subscribed?"Subscribed":"Not subscribed"}</strong></p>
@@ -111,30 +111,30 @@ export default function NotificationsPage() {
         : <button onClick={disable} style={{padding:"12px 18px"}}>Disable Push Notifications</button>
       }
 
-      {message&&<p style={{marginTop:16,padding:14,background:"#f8fafc",borderRadius:10}}>{message}</p>}
+      {message&&<p style={{marginTop:16,padding:14,background:"var(--surface-2)",borderRadius:10}}>{message}</p>}
 
-      <p style={{marginTop:24,color:"#475569"}}>
+      <p style={{marginTop:24,color:"var(--text-3)"}}>
         Push is optional. Important ride alerts can still be delivered through the notification methods you choose.
       </p>
 
-      <p style={{fontSize:14,color:"#64748b"}}>
+      <p style={{fontSize:14,color:"var(--text-muted)"}}>
         On iPhone/iPad, web push requires iOS/iPadOS 16.4 or later and BandWagon must be installed on the Home Screen as a web app.
       </p>
     </section>
 
-    {sms&&<section style={{marginTop:22,padding:24,border:"1px solid #dbe3ef",borderRadius:18}}>
+    {sms&&<section style={{marginTop:22,padding:24,border:"1px solid var(--line-2)",borderRadius:18}}>
       <h2 style={{marginTop:0}}>Text Messages</h2>
       {!sms.hasPhone
-        ? <p style={{color:"#475569"}}>Add and verify a mobile number on your account to get ride texts.</p>
+        ? <p style={{color:"var(--text-3)"}}>Add and verify a mobile number on your account to get ride texts.</p>
         : <>
           <label style={{display:"flex",gap:10,alignItems:"flex-start",lineHeight:1.5}}>
             <input type="checkbox" checked={smsChecked} onChange={e=>setSmsChecked(e.target.checked)} style={{marginTop:4,flex:"0 0 auto"}}/>
             <span>{sms.consentText}</span>
           </label>
-          <p style={{fontSize:14,color:"#64748b"}}>Optional. You can use BandWagon without text messages. See our <a href="/terms">Terms of Use</a> and <a href="/privacy">Privacy Policy</a>.</p>
+          <p style={{fontSize:14,color:"var(--text-muted)"}}>Optional. You can use BandWagon without text messages. See our <a href="/terms">Terms of Use</a> and <a href="/privacy">Privacy Policy</a>.</p>
           <button onClick={saveSms} disabled={smsChecked===sms.optedIn} style={{padding:"12px 18px"}}>Save Text Message Setting</button>
         </>}
-      {smsMessage&&<p style={{marginTop:16,padding:14,background:"#f8fafc",borderRadius:10}}>{smsMessage}</p>}
+      {smsMessage&&<p style={{marginTop:16,padding:14,background:"var(--surface-2)",borderRadius:10}}>{smsMessage}</p>}
     </section>}
   </main>;
 }

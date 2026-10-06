@@ -49,6 +49,8 @@ Plain-English guide: [EVENT-PROPOSALS.md](EVENT-PROPOSALS.md).
 
 Managers can review proposals but cannot change these settings. Settings live in `organization_event_proposal_settings`.
 
+Turning the feature off never deletes proposals. Queued ones are on hold: they stay in the queue, can be declined, and can be approved again once the feature is back on. A proposal whose start time has passed needs a new date before it can be approved. See [EVENT-PROPOSALS.md](EVENT-PROPOSALS.md#stale-proposals).
+
 ### Who can propose
 
 - Only people with an active membership in the organization.

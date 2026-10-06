@@ -24,12 +24,19 @@ x-app-env: &app-env
   DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY}
   LOOKUP_HASH_KEY: ${LOOKUP_HASH_KEY}
   NOTIFICATION_DELIVERY: queue
+  # GlitchTip error tracking. Blank = off. Set the DSN in Coolify, never in git.
+  GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
+  GLITCHTIP_ENVIRONMENT: ${GLITCHTIP_ENVIRONMENT:-production}
   # Add the rest of your production variables (Twilio, SMTP2GO, S3, Google,
   # Stripe, VAPID, Turnstile...) in Coolify; they are shared by every role.
 
 x-app: &app
   build:
     context: ./apps/web
+    args:
+      # Umami analytics (build-time, public). Blank website ID = no script.
+      NEXT_PUBLIC_UMAMI_WEBSITE_ID: ${NEXT_PUBLIC_UMAMI_WEBSITE_ID:-}
+      NEXT_PUBLIC_UMAMI_SRC: ${NEXT_PUBLIC_UMAMI_SRC:-}
   image: bandwagon-app:latest
   restart: unless-stopped
   stop_grace_period: 30s
