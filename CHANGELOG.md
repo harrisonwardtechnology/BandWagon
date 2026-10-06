@@ -2,6 +2,12 @@
 
 ## v1.0.0-rc1 - Unreleased
 
+### Analytics And Error Tracking Setup
+
+- **Compose examples pass the settings through.** `docker-compose.coolify.example.yml`, `.ha.yml` and `.staging.yml` now take `GLITCHTIP_DSN` and `GLITCHTIP_ENVIRONMENT` (blank means off), and the example and HA files pass the Umami build arguments the staging file already had. No values are committed.
+- **Docs.** `docs/COOLIFY.md` lists the Umami and GlitchTip variables, and `docs/operations/ANALYTICS.md` has a side-by-side summary of what each tool sends and never sends.
+- **Tests.** `tests/analytics-policy.test.ts` now checks the root layout renders the snippet, the compose files wire the variables without a real DSN, and a blank or non-https config renders nothing.
+
 ### October 2026 Known Issue Fixes
 
 - **Safety page fixed.** `/app/safety` sent every signed-in person back to the sign-in page. Its query used `SELECT DISTINCT` with an `ORDER BY` column that was not selected, Postgres rejected it, and the API reported the failure as "not signed in". The query is fixed, and a real failure now returns a plain message instead of a redirect or database text.

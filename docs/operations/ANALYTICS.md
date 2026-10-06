@@ -19,3 +19,17 @@ Blank or invalid ID means no script loads at all.
 - `umami.identify()` is never called. Nothing is tied to an account, household or student.
 
 The cookie policy, privacy policy, subprocessors page and privacy banner all describe this. Change them together, and bump `PRIVACY_CONSENT_VERSION` in `src/lib/consent-policy.ts` when what the banner says changes. Tests: `tests/analytics-policy.test.ts`.
+
+## Analytics And Error Tracking At A Glance
+
+| | Umami | GlitchTip |
+|---|---|---|
+| Purpose | Anonymous page counts | Error grouping and alerts |
+| Host | `stats.harrisonward.net` | Your GlitchTip host |
+| Switch | `NEXT_PUBLIC_UMAMI_WEBSITE_ID` (build-time) | `GLITCHTIP_DSN` (runtime, secret) |
+| Unset means | No script is rendered | Nothing is sent |
+| Never sent | Names, emails, phones, user IDs, query strings, invite tokens | The same, plus IPs, cookies, headers, request bodies and ride locations |
+
+Both are set in Coolify, never in git. The Docker Compose examples pass them through blank by default. BandWagon posts GlitchTip events from its own server code with its own redaction, so no third-party SDK runs in the browser. See [ERROR-MONITORING.md](ERROR-MONITORING.md).
+
+Browsers talk to Umami directly, so if you add a Content-Security-Policy, allow `https://stats.harrisonward.net` in `script-src` and `connect-src`. Browser errors go through `/api/client-errors`, so GlitchTip needs no CSP entry.

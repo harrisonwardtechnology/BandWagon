@@ -49,6 +49,7 @@ Every guide in one place. Last full refresh: 2026-09-29.
 | [Cloudflare And Caching](operations/CLOUDFLARE-PERFORMANCE.md) | Zone settings, cache headers, purge list, demo caching |
 | [Google OAuth Verification](operations/GOOGLE-OAUTH-VERIFICATION.md) | Google sign-in and calendar approval |
 | [SEO](operations/SEO.md) | Search, sitemap, robots |
+| [Analytics](operations/ANALYTICS.md) | Umami, cookieless page counts |
 | [Error Monitoring](operations/ERROR-MONITORING.md) | GlitchTip |
 | [Uptime Kuma Playbook](operations/UPTIME-KUMA-PLAYBOOK.md) | Monitors and status.bandwagon.club |
 | [High Availability](operations/HIGH-AVAILABILITY.md) | Web and worker roles, job queue |

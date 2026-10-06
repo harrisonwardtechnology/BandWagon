@@ -38,6 +38,10 @@
 | `NEXT_PUBLIC_HELP_DESK_URL` | `https://help.bandwagon.club` | Help desk portal (FreeScout). Support links use it and keep email as a fallback. Build-time value: mark it as a build variable. |
 | `NEXT_PUBLIC_STATUS_PAGE_URL` | your Uptime Kuma status page | Shown on `/status` when set. `/status` always shows a live readiness check. Build-time value. (`NEXT_PUBLIC_STATUS_URL` is still read as a fallback.) |
 | `NEXT_PUBLIC_ENVIRONMENT` | `production` or `staging` | `staging` shows a red banner and forces the messaging sandbox on. Build-time and runtime. |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | Umami website ID | Turns on Umami analytics. Blank means no script. Build-time value: mark it as a build variable. See [operations/ANALYTICS.md](operations/ANALYTICS.md). |
+| `NEXT_PUBLIC_UMAMI_SRC` | `https://stats.harrisonward.net/script.js` | Only set if the Umami script lives somewhere else. Build-time value. |
+| `GLITCHTIP_DSN` | from GlitchTip project settings | Turns on GlitchTip error tracking. Blank means off. Set on every role, as a secret, never in git. See [operations/ERROR-MONITORING.md](operations/ERROR-MONITORING.md). |
+| `GLITCHTIP_ENVIRONMENT` | `production` or `staging` | Environment tag on every event. |
 | `MESSAGING_SANDBOX` | `false` | `true` sends SMS and email only to `SANDBOX_ALLOWED_PHONES` and `SANDBOX_ALLOWED_EMAILS`. Never true in production; the readiness check fails if it is. |
 | `PLATFORM_HOSTNAMES` | `bandwagon.club,www.bandwagon.club` | Product-site hostnames, primary first. |
 | `TENANT_BASE_DOMAIN` | `bandwagon.club` | Parent domain for new tenant hostnames. |
