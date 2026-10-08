@@ -44,6 +44,13 @@ services:
       # GlitchTip error tracking. Blank = off. Set the DSN in Coolify, never in git.
       GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
       GLITCHTIP_ENVIRONMENT: ${GLITCHTIP_ENVIRONMENT:-staging}
+      # Bills and Renewals check (/api/health/upkeep). Blank UPKEEP_TOKEN = route stays a 404.
+      # Use a different UPKEEP_TOKEN than production.
+      UPKEEP_TOKEN: ${UPKEEP_TOKEN:-}
+      GITHUB_STATUS_TOKEN: ${GITHUB_STATUS_TOKEN:-}
+      GITHUB_REPO: ${GITHUB_REPO:-harrisonwardtechnology/BandWagon}
+      GITHUB_BRANCH: ${GITHUB_BRANCH:-main}
+      WATCH_DOMAINS: ${WATCH_DOMAINS:-}
       MESSAGING_SANDBOX: "true"
       SANDBOX_ALLOWED_PHONES: ${SANDBOX_ALLOWED_PHONES:-}
       SANDBOX_ALLOWED_EMAILS: ${SANDBOX_ALLOWED_EMAILS:-}

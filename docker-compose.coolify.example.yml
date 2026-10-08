@@ -17,6 +17,13 @@ services:
       # GlitchTip error tracking. Leave blank to turn it off. Set the DSN in Coolify, never in git.
       - GLITCHTIP_DSN=${GLITCHTIP_DSN:-}
       - GLITCHTIP_ENVIRONMENT=${GLITCHTIP_ENVIRONMENT:-production}
+      # Bills and Renewals check (/api/health/upkeep). Blank UPKEEP_TOKEN = route stays a 404.
+      # Set the tokens in Coolify as secrets, never in git. See docs/operations/UPTIME-KUMA-PLAYBOOK.md.
+      - UPKEEP_TOKEN=${UPKEEP_TOKEN:-}
+      - GITHUB_STATUS_TOKEN=${GITHUB_STATUS_TOKEN:-}
+      - GITHUB_REPO=${GITHUB_REPO:-harrisonwardtechnology/BandWagon}
+      - GITHUB_BRANCH=${GITHUB_BRANCH:-main}
+      - WATCH_DOMAINS=${WATCH_DOMAINS:-}
     depends_on:
       postgres:
         condition: service_healthy

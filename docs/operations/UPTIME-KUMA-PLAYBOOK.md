@@ -138,6 +138,36 @@ JSON Query Expression: status
 Expected Value: healthy
 ```
 
+### Bills and Renewals Check
+
+```text
+GET https://bandwagon.club/api/health/upkeep
+Authorization: Bearer <UPKEEP_TOKEN>
+```
+
+Purpose: catch the things that quietly stop BandWagon when a bill or a renewal slips. In October 2026 a failed GitHub payment stopped every build for a day and nothing said so.
+
+- **Domains:** the renewal date of the `APP_URL` domain plus any in `WATCH_DOMAINS` (for example `flomogo.app`), from the public RDAP lookup. Yellow inside 30 days, red inside 7.
+- **Builds:** whether GitHub actually ran the last build on `GITHUB_BRANCH`. When GitHub refuses to start it, the check says so in plain words: that is almost always a failed payment or the Actions spending limit.
+- Returns 200 when all is well and 503 when something is red. Results are kept 6 hours, so frequent checks don't hammer GitHub or the registries.
+- Without the bearer header it is a plain 404 and gives nothing away. The tokens never appear in pages, logs or the response.
+
+Set it up once:
+
+1. Make `UPKEEP_TOKEN`: 32+ random characters (Bitwarden's generator works). Put it in Coolify as a secret.
+2. Recommended, the GitHub part: GitHub > Settings > Developer settings > Fine-grained tokens > Generate.
+   - Repository access: **only this repo** (`harrisonwardtechnology/BandWagon`)
+   - Permissions: **Actions: Read**, **Contents: Read**. Nothing else.
+   - Expiration: 1 year, with a calendar reminder to renew.
+   - Put it in Coolify as `GITHUB_STATUS_TOKEN`. `GITHUB_REPO` and `GITHUB_BRANCH` default to this repo and `main`.
+3. In Uptime Kuma, add an HTTP(s) monitor named "Bills and Renewals":
+   - URL: `https://bandwagon.club/api/health/upkeep`
+   - Interval: 6 hours. Retries: 1.
+   - Headers: `{"Authorization": "Bearer <UPKEEP_TOKEN>"}`
+   - Shared phone alert channel. Keep it **private**: not on the public status page.
+
+Why the GitHub token is safe: it can only read build results and file names in one repo. It can't push, change settings, see other repos or see billing. If it leaked, the worst case is someone seeing whether builds passed. Revoke it in GitHub any time.
+
 ## Recommended Monitor Set
 
 | Monitor | Type | Target | Interval | Retries | Public? | Purpose |
@@ -145,6 +175,7 @@ Expected Value: healthy
 | BandWagon Core Readiness | HTTP(s) | `/api/health/ready` | 60 sec | 2 | Yes | Primary platform uptime |
 | BandWagon Liveness | HTTP(s) | `/api/health/live` | 30 sec | 2 | No | Process-level troubleshooting |
 | BandWagon Deep Health | HTTP(s) JSON Query | `/api/health/deep` | 300 sec | 2 | No | Integration / cron degradation |
+| Bills and Renewals | HTTP(s) | `/api/health/upkeep` with the bearer header | 6 hours | 1 | No | Domain renewals and GitHub billing stops |
 | BandWagon Web Experience | HTTP(s) Keyword | `https://bandwagon.club/` | 60 sec | 2 | Yes | Confirms the public application renders |
 | FloMoGo Web Experience | HTTP(s) Keyword | `https://flomogo.app/` | 60 sec | 2 | Yes | First production community availability |
 
