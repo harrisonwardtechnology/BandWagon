@@ -28,6 +28,12 @@ export const envSchema = z.object({
   GLITCHTIP_ENVIRONMENT: z.string().optional(), // defaults to NEXT_PUBLIC_ENVIRONMENT or NODE_ENV
   GLITCHTIP_RELEASE: z.string().optional(), // defaults to Coolify's SOURCE_COMMIT
   GLITCHTIP_MAX_EVENTS_PER_MINUTE: z.coerce.number().int().positive().default(60), // per process
+  // Bills and Renewals check (/api/health/upkeep). Blank UPKEEP_TOKEN keeps the route a 404.
+  UPKEEP_TOKEN: z.string().min(24).optional().or(z.literal("")), // 32+ random characters, secret
+  GITHUB_STATUS_TOKEN: z.string().optional(), // fine-grained, this repo only, Actions: Read, Contents: Read, secret
+  GITHUB_REPO: z.string().regex(/^[\w.-]+\/[\w.-]+$/).default("harrisonwardtechnology/BandWagon"),
+  GITHUB_BRANCH: z.string().default("main"),
+  WATCH_DOMAINS: z.string().optional(), // comma list, e.g. flomogo.app; the APP_URL domain is always watched
   // Staging safety. Staging forces the sandbox on even if this is false.
   MESSAGING_SANDBOX: bool.default(false),
   SANDBOX_ALLOWED_PHONES: z.string().optional(), // comma list of E.164 numbers

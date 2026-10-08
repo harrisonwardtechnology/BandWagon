@@ -42,6 +42,11 @@
 | `NEXT_PUBLIC_UMAMI_SRC` | `https://stats.harrisonward.net/script.js` | Only set if the Umami script lives somewhere else. Build-time value. |
 | `GLITCHTIP_DSN` | from GlitchTip project settings | Turns on GlitchTip error tracking. Blank means off. Set on every role, as a secret, never in git. See [operations/ERROR-MONITORING.md](operations/ERROR-MONITORING.md). |
 | `GLITCHTIP_ENVIRONMENT` | `production` or `staging` | Environment tag on every event. |
+| `UPKEEP_TOKEN` | 32+ random characters | Unlocks the Bills and Renewals check at `/api/health/upkeep`. Blank or shorter than 24 means the route stays a 404. Secret. Use a different value on staging. |
+| `GITHUB_STATUS_TOKEN` | fine-grained GitHub token | Read-only: this repo only, Actions: Read, Contents: Read, 1 year expiry. Lets the check see whether GitHub actually ran the last build. Blank means that part is off. Secret. |
+| `GITHUB_REPO` | `harrisonwardtechnology/BandWagon` | Repo the build check reads. |
+| `GITHUB_BRANCH` | `main` | Branch the build check reads. |
+| `WATCH_DOMAINS` | `flomogo.app` | Extra domains whose renewal date the check watches, comma separated. The `APP_URL` domain is always watched. |
 | `MESSAGING_SANDBOX` | `false` | `true` sends SMS and email only to `SANDBOX_ALLOWED_PHONES` and `SANDBOX_ALLOWED_EMAILS`. Never true in production; the readiness check fails if it is. |
 | `PLATFORM_HOSTNAMES` | `bandwagon.club,www.bandwagon.club` | Product-site hostnames, primary first. |
 | `TENANT_BASE_DOMAIN` | `bandwagon.club` | Parent domain for new tenant hostnames. |
@@ -53,6 +58,7 @@ For a staging copy, see [operations/STAGING.md](operations/STAGING.md). To move 
 - `/api/health/live` - process is running.
 - `/api/health/ready` - database, encryption key, and (if `HEALTH_REQUIRE_REDIS=true`) Redis are available. Reports the instance's `APP_ROLE`.
 - `/api/health/deep` - integrations, scheduled jobs, workers and the job queue; 503 when anything has failed.
+- `/api/health/upkeep` - Bills and Renewals check: domain renewal dates and whether GitHub actually ran the last build. 503 when something is red. A plain 404 unless the request carries `Authorization: Bearer <UPKEEP_TOKEN>`. See [operations/UPTIME-KUMA-PLAYBOOK.md](operations/UPTIME-KUMA-PLAYBOOK.md#bills-and-renewals-check).
 - `/admin/config-health` - authenticated Platform Admin page showing status only, never secret values.
 
 Example safe health display:

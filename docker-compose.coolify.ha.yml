@@ -27,6 +27,13 @@ x-app-env: &app-env
   # GlitchTip error tracking. Blank = off. Set the DSN in Coolify, never in git.
   GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
   GLITCHTIP_ENVIRONMENT: ${GLITCHTIP_ENVIRONMENT:-production}
+  # Bills and Renewals check (/api/health/upkeep). Blank UPKEEP_TOKEN = route stays a 404.
+  # Set the tokens in Coolify as secrets, never in git. See docs/operations/UPTIME-KUMA-PLAYBOOK.md.
+  UPKEEP_TOKEN: ${UPKEEP_TOKEN:-}
+  GITHUB_STATUS_TOKEN: ${GITHUB_STATUS_TOKEN:-}
+  GITHUB_REPO: ${GITHUB_REPO:-harrisonwardtechnology/BandWagon}
+  GITHUB_BRANCH: ${GITHUB_BRANCH:-main}
+  WATCH_DOMAINS: ${WATCH_DOMAINS:-}
   # Add the rest of your production variables (Twilio, SMTP2GO, S3, Google,
   # Stripe, VAPID, Turnstile...) in Coolify; they are shared by every role.
 

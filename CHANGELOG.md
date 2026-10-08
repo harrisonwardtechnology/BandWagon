@@ -2,6 +2,12 @@
 
 ## v1.0.0-rc1 - Unreleased
 
+### Bills and Renewals Check
+
+- **New private health route: `GET /api/health/upkeep`.** Checks the renewal date of the `APP_URL` domain and any in `WATCH_DOMAINS` (public RDAP), and whether GitHub actually ran the last build on `GITHUB_BRANCH` (read-only `GITHUB_STATUS_TOKEN`). Names billing in plain words when GitHub never started the jobs. 200 when all is well, 503 when something is red, cached 6 hours. A plain 404 unless the request carries `Authorization: Bearer <UPKEEP_TOKEN>` (24+ characters, constant-time compare). `apps/web/src/lib/upkeep.ts`.
+- **Settings.** `UPKEEP_TOKEN`, `GITHUB_STATUS_TOKEN`, `GITHUB_REPO`, `GITHUB_BRANCH` and `WATCH_DOMAINS` in the compose examples, `config/env.schema.example.ts` and `docs/COOLIFY.md`. Uptime Kuma setup in `docs/operations/UPTIME-KUMA-PLAYBOOK.md`.
+- **Tests.** `tests/upkeep.test.ts` (all network mocked).
+
 ### Analytics And Error Tracking Setup
 
 - **Compose examples pass the settings through.** `docker-compose.coolify.example.yml`, `.ha.yml` and `.staging.yml` now take `GLITCHTIP_DSN` and `GLITCHTIP_ENVIRONMENT` (blank means off), and the example and HA files pass the Umami build arguments the staging file already had. No values are committed.
