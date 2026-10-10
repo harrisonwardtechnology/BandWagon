@@ -1,5 +1,11 @@
 import { getDb } from "@/lib/db";
+import { env } from "@/lib/env";
 import { routeNotification } from "@/lib/notification-router";
+
+// Reminder copy is read by families, so the time must be in their zone, not the
+// container's (which is UTC in Docker). Organizations do not carry a timezone
+// yet, so the platform default is used.
+const REMINDER_TIME_ZONE = process.env.DEFAULT_TIME_ZONE || env.DEFAULT_TIMEZONE;
 
 function dbRequired(){const db=getDb();if(!db)throw new Error("Database is not configured");return db;}
 
@@ -51,7 +57,7 @@ export async function dispatchRideReminders(){
         if(!claimed.rowCount){summary.skipped++;continue;}
         summary.attempted++;
         const when=new Date(ride.pickup_at);
-        const body=kind==="24h"?`Reminder: your BandWagon ride${ride.event_title?` for ${ride.event_title}`:""} is tomorrow at ${when.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})}.`:`Your BandWagon ride${ride.event_title?` for ${ride.event_title}`:""} is about 1 hour away.`;
+        const body=kind==="24h"?`Reminder: your BandWagon ride${ride.event_title?` for ${ride.event_title}`:""} is tomorrow at ${when.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:REMINDER_TIME_ZONE})}.`:`Your BandWagon ride${ride.event_title?` for ${ride.event_title}`:""} is about 1 hour away.`;
         try{
           const result=await routeNotification({notificationType:WINDOWS[kind].notificationType,title:kind==="24h"?"Ride tomorrow":"Ride in about 1 hour",body,personId,organizationId:ride.organization_id,url:`/app/rides`});
           await db.query(`update ride_reminder_dispatches set status='sent',notification_correlation_id=$1,sent_at=now(),updated_at=now() where ride_id=$2 and person_id=$3 and reminder_type=$4`,[result.correlationId,ride.id,personId,kind]);

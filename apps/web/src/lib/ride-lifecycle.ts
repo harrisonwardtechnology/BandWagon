@@ -82,7 +82,7 @@ export async function transitionRide(input:{rideId:string;actorPersonId:string;t
     }
     await afterDelegateRideAction({decision:access,kind:input.toStatus==='cancelled'?'cancelled':'managed',actorPersonId:input.actorPersonId,childId:ride.passenger_person_id,organizationId:ride.organization_id,targetType:'ride',targetId:ride.id});
     if(input.toStatus==='driver_en_route'||input.toStatus==='arrived'){
-      await queueNotification({notificationType:'driver_arriving',title:'Driver update',body:input.toStatus==='driver_en_route'?'Your driver is on the way.':'Your driver has arrived.',personId:ride.requester_person_id,organizationId:ride.organization_id,url:`/rides/${ride.public_ref}`}).catch(()=>{});
+      await queueNotification({notificationType:'driver_arriving',title:'Driver update',body:input.toStatus==='driver_en_route'?'Your driver is on the way.':'Your driver has arrived.',personId:ride.requester_person_id,organizationId:ride.organization_id,url:`/app/rides`}).catch(()=>{});
     }else if(input.toStatus==='cancelled'){
       const unique=new Map<string,any>();for(const n of notifications)if(n.personId)unique.set(n.personId,n);
       await Promise.allSettled(Array.from(unique.values()).map(n=>queueNotification({notificationType:'last_minute_cancellation',title:n.requestStatus==='open'?'Ride cancelled - request reopened':'Ride cancelled',body:n.requestStatus==='open'?'This carpool was cancelled. Your ride request has been reopened so another driver can help.':'Your BandWagon ride was cancelled.',personId:n.personId,organizationId:ride.organization_id,url:'/app/rides'})));

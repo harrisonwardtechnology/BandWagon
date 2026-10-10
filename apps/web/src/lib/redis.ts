@@ -5,7 +5,13 @@ let redis: Redis | undefined;
 
 export function getRedis() {
   if (!env.REDIS_URL) return undefined;
-  redis ??= new Redis(env.REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 1 });
+  if (!redis) {
+    redis = new Redis(env.REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 1 });
+    // ioredis emits connection errors as events; an unhandled one crashes the process.
+    redis.on("error", (error) => {
+      console.error("Redis error", { message: error.message });
+    });
+  }
   return redis;
 }
 

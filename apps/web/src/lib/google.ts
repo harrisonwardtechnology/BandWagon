@@ -147,10 +147,26 @@ export async function setSelectedCalendars(calendarIds: string[]) {
   }
 }
 
-function eventTime(event: any, field: "start" | "end") {
+// Midnight on a calendar date in a given IANA zone. All-day events only carry a
+// date, so pinning them to UTC midnight shows them the evening before in US zones.
+function midnightInZone(date: string, timeZone: string | null | undefined) {
+  const guess = new Date(`${date}T00:00:00Z`);
+  if (!timeZone) return guess;
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }).formatToParts(guess);
+    const get = (type: string) => Number(parts.find((p) => p.type === type)?.value || 0);
+    const asUtc = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
+    // asUtc is what the zone's wall clock read at `guess`; the difference is the zone offset.
+    return new Date(guess.getTime() - (asUtc - guess.getTime()));
+  } catch {
+    return guess;
+  }
+}
+
+function eventTime(event: any, field: "start" | "end", timeZone?: string | null) {
   const value = event[field]; if (!value) return null;
   if (value.dateTime) return new Date(value.dateTime);
-  if (value.date) return new Date(`${value.date}T00:00:00Z`);
+  if (value.date) return midnightInZone(value.date, value.timeZone || timeZone);
   return null;
 }
 
@@ -173,7 +189,7 @@ export async function syncSelectedGoogleCalendars() {
           await db.query(`insert into calendar_events (provider,provider_calendar_id,provider_event_id,title,description,location,starts_at,ends_at,all_day,status,html_link,raw_etag,updated_at)
             values ('google',$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,now()) on conflict (provider,provider_calendar_id,provider_event_id) do update set title=excluded.title,
             description=excluded.description,location=excluded.location,starts_at=excluded.starts_at,ends_at=excluded.ends_at,all_day=excluded.all_day,status=excluded.status,
-            html_link=excluded.html_link,raw_etag=excluded.raw_etag,updated_at=now()`, [cal.external_calendar_id,event.id,event.summary || "(Untitled event)",event.description || null,event.location || null,eventTime(event,"start"),eventTime(event,"end"),Boolean(event.start?.date && !event.start?.dateTime),event.status || "confirmed",event.htmlLink || null,event.etag || null]);
+            html_link=excluded.html_link,raw_etag=excluded.raw_etag,updated_at=now()`, [cal.external_calendar_id,event.id,event.summary || "(Untitled event)",event.description || null,event.location || null,eventTime(event,"start",cal.time_zone),eventTime(event,"end",cal.time_zone),Boolean(event.start?.date && !event.start?.dateTime),event.status || "confirmed",event.htmlLink || null,event.etag || null]);
           totalEvents++;
         }
         pageToken = body.nextPageToken || "";

@@ -2,6 +2,18 @@
 
 ## v1.0.0-rc1 - Unreleased
 
+### Repository Review Fixes
+
+- Push subscribe and unsubscribe now require a signed-in session and bind the subscription to that person, so one account can no longer receive another person's ride and pickup alerts.
+- Notification deep links point at `/app/rides`; the previous `/rides/...` targets had no page.
+- Ride reminder times are rendered in the platform timezone instead of the container's UTC clock.
+- Google all-day events are anchored to midnight in the calendar's timezone instead of UTC.
+- Organization policy acknowledgement history is only returned to active members of that organization.
+- Pickup fallback codes expire the handshake after five wrong attempts.
+- Three cron routes and the error-monitor ingest route use a shared constant-time bearer check.
+- PostgreSQL and Redis clients attach error listeners; `DATABASE_CA` enables verified database TLS.
+- Added `apps/web/.env.example` (referenced by the deployment docs but previously missing), Dependabot config, Postgres 17 in the Coolify compose example, and removed a duplicate 736 KB social preview image from the repository root.
+
 ### Analytics And Error Tracking Setup
 
 - **Compose examples pass the settings through.** `docker-compose.coolify.example.yml`, `.ha.yml` and `.staging.yml` now take `GLITCHTIP_DSN` and `GLITCHTIP_ENVIRONMENT` (blank means off), and the example and HA files pass the Umami build arguments the staging file already had. No values are committed.

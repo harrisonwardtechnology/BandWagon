@@ -65,9 +65,18 @@ export async function savePushSubscription(input: {
   );
 }
 
-export async function revokePushSubscription(endpoint: string) {
+export async function revokePushSubscription(endpoint: string, personId?: string | null) {
   const db = getDb();
   if (!db) throw new Error("Database is not configured");
+  if (personId) {
+    await db.query(
+      `update push_subscriptions
+       set status='revoked', revoked_at=now()
+       where endpoint=$1 and (person_id=$2 or person_id is null)`,
+      [endpoint, personId]
+    );
+    return;
+  }
   await db.query(
     `update push_subscriptions
      set status='revoked', revoked_at=now()

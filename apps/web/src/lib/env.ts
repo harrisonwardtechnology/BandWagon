@@ -12,6 +12,7 @@ const schema = z.object({
   DEFAULT_TIMEZONE: z.string().default("America/Chicago"),
   DATABASE_URL: z.string().optional().transform(v => v || undefined),
   DATABASE_SSL: boolish.default("false"),
+  DATABASE_CA: z.string().optional().transform(v => v || undefined),
   REDIS_URL: z.string().optional().transform(v => v || undefined),
   HEALTH_REQUIRE_DATABASE: boolish.default("false"),
   HEALTH_REQUIRE_REDIS: boolish.default("false"),

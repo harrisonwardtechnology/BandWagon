@@ -135,8 +135,8 @@ export async function attachRequestToRide(input: {rideId:string;rideRequestId:st
     await client.query('COMMIT');
 
     await Promise.allSettled([
-      queueNotification({notificationType:'ride_matched',title:'Carpool confirmed',body:'Your ride request was added to a BandWagon carpool.',personId:request.requester_person_id,organizationId:request.organization_id,url:`/rides/${ride.public_ref}`}),
-      queueNotification({notificationType:'ride_matched',title:'Passenger added',body:'Another passenger was added to your BandWagon carpool.',personId:ride.driver_person_id,organizationId:request.organization_id,url:`/rides/${ride.public_ref}`}),
+      queueNotification({notificationType:'ride_matched',title:'Carpool confirmed',body:'Your ride request was added to a BandWagon carpool.',personId:request.requester_person_id,organizationId:request.organization_id,url:`/app/rides`}),
+      queueNotification({notificationType:'ride_matched',title:'Passenger added',body:'Another passenger was added to your BandWagon carpool.',personId:ride.driver_person_id,organizationId:request.organization_id,url:`/app/rides`}),
     ]);
     return getRideManifest(ride.id);
   } catch (error) {

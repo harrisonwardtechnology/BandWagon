@@ -229,7 +229,7 @@ export async function notifyTopDriverMatches(input: { rideRequestId: string; lim
      order by ms.score desc limit $2`,[input.rideRequestId,limit]);
   const results = [];
   for (const row of rows.rows) {
-    const result = await queueNotification({notificationType:'new_ride_available',title:'Ride help needed',body:`A BandWagon ride${row.event_title ? ` for ${row.event_title}` : ''} may be a good fit for you.`,personId:row.driver_person_id,organizationId:row.organization_id,url:`/rides/requests/${row.public_ref}`}).catch((error)=>({ error:error instanceof Error ? error.message : 'notification failed' }));
+    const result = await queueNotification({notificationType:'new_ride_available',title:'Ride help needed',body:`A BandWagon ride${row.event_title ? ` for ${row.event_title}` : ''} may be a good fit for you.`,personId:row.driver_person_id,organizationId:row.organization_id,url:`/app/rides`}).catch((error)=>({ error:error instanceof Error ? error.message : 'notification failed' }));
     results.push({ suggestionId:row.id,driverPersonId:row.driver_person_id,result });
   }
   return results;

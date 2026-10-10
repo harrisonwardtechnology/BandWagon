@@ -27,6 +27,10 @@ async function organizationOwner(identity: SessionIdentity, organizationId: stri
     [organizationId, identity.personId]
   );
   if (!result.rowCount) throw new Error("Organization not found or access denied");
+  // The membership join is a left join so the organization row is still found;
+  // a missing role means the caller is not an active member and must not see
+  // who acknowledged which policy version.
+  if (!result.rows[0].role) throw new Error("Organization not found or access denied");
   return result.rows[0];
 }
 

@@ -1,8 +1,16 @@
+import { requireSessionIdentity } from "@/lib/auth";
 import { savePushSubscription } from "@/lib/push";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  let identity;
+  try {
+    identity = await requireSessionIdentity();
+  } catch {
+    return Response.json({ error: "Authentication required" }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const endpoint = typeof body.endpoint === "string" ? body.endpoint : "";
@@ -13,14 +21,22 @@ export async function POST(request: Request) {
       return Response.json({ error: "Invalid push subscription" }, { status: 400 });
     }
 
+    // The subscription is always bound to the signed-in person. A client may
+    // name one of its own organizations for routing, never someone else's.
+    const requestedOrganizationId = typeof body.organizationId === "string" ? body.organizationId : null;
+    const organizationId =
+      requestedOrganizationId && identity.organizationIds.includes(requestedOrganizationId)
+        ? requestedOrganizationId
+        : null;
+
     await savePushSubscription({
       endpoint,
       p256dh,
       auth,
       userAgent: request.headers.get("user-agent"),
-      deviceLabel: typeof body.deviceLabel === "string" ? body.deviceLabel : null,
-      personId: typeof body.personId === "string" ? body.personId : null,
-      organizationId: typeof body.organizationId === "string" ? body.organizationId : null,
+      deviceLabel: typeof body.deviceLabel === "string" ? body.deviceLabel.slice(0, 80) : null,
+      personId: identity.personId,
+      organizationId,
     });
 
     return Response.json({ ok: true });

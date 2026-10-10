@@ -1,11 +1,11 @@
 import { recordApplicationError } from "@/lib/error-monitoring";
+import { validCronBearer } from "@/lib/cron-auth";
 
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 
 export async function POST(request:Request){
-  const configured=process.env.ERROR_MONITOR_INGEST_SECRET;
-  if(!configured||request.headers.get("authorization")!==`Bearer ${configured}`)return Response.json({error:"Unauthorized"},{status:401,headers:{"cache-control":"no-store"}});
+  if(!validCronBearer(request,["ERROR_MONITOR_INGEST_SECRET"]))return Response.json({error:"Unauthorized"},{status:401,headers:{"cache-control":"no-store"}});
   try{
     const body=await request.json().catch(()=>({}));
     const error=new Error(String(body.message||"Application error"));

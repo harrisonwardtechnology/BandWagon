@@ -5,11 +5,22 @@ let pool: Pool | undefined;
 
 export function getDb() {
   if (!env.DATABASE_URL) return undefined;
-  pool ??= new Pool({
-    connectionString: env.DATABASE_URL,
-    max: 10,
-    ssl: env.DATABASE_SSL ? { rejectUnauthorized: false } : undefined
-  });
+  if (!pool) {
+    // With a CA configured the server certificate is verified. Without one we
+    // still encrypt the connection but cannot detect a man-in-the-middle, so
+    // DATABASE_CA should be set for any database reached over a shared network.
+    const ssl = !env.DATABASE_SSL
+      ? undefined
+      : env.DATABASE_CA
+        ? { ca: env.DATABASE_CA, rejectUnauthorized: true }
+        : { rejectUnauthorized: false };
+    pool = new Pool({ connectionString: env.DATABASE_URL, max: 10, ssl });
+    // An idle client error (server restart, network blip) is emitted on the
+    // pool. Without a listener Node treats it as unhandled and exits.
+    pool.on("error", (error) => {
+      console.error("PostgreSQL pool error", { message: error.message });
+    });
+  }
   return pool;
 }
 

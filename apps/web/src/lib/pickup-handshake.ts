@@ -6,6 +6,7 @@ const COLORS = ["Blue","Pink","Green","Orange","Purple","Yellow"] as const;
 const WORDS = ["Cow","Spoon","Rocket","Tiger","Apple","Kite","Panda","Star","Turtle","Drum"] as const;
 const ICONS: Record<string,string> = { Cow:"🐄",Spoon:"🥄",Rocket:"🚀",Tiger:"🐯",Apple:"🍎",Kite:"🪁",Panda:"🐼",Star:"⭐",Turtle:"🐢",Drum:"🥁" };
 const TTL_MINUTES = 10;
+const MAX_FALLBACK_CODE_ATTEMPTS = 5;
 
 function dbRequired(){const db=getDb();if(!db)throw new Error("Database is not configured");return db;}
 function secret(){const value=process.env.AUTH_SECRET||process.env.DATA_ENCRYPTION_KEY;if(!value)throw new Error("AUTH_SECRET or DATA_ENCRYPTION_KEY is required");return value;}
@@ -70,6 +71,13 @@ export async function resolvePickupFallbackCode(identity:SessionIdentity,rideId:
   const result=await db.query(`select * from ride_pickup_handshakes where ride_id=$1 and status in ('pending','driver_confirmed','passenger_confirmed') and expires_at>now() order by created_at desc limit 1`,[rideId]);
   if(!result.rowCount)throw new Error("No active pickup verification");
   const h=result.rows[0];
+  // A 4-digit code is only safe with a hard attempt cap. After the cap the whole
+  // handshake expires so a guesser cannot keep going against the same code.
+  const failures=await db.query(`select count(*)::int as failed from ride_pickup_handshake_events where handshake_id=$1 and event_type='fallback_code' and outcome='failed'`,[h.id]);
+  if(Number(failures.rows[0]?.failed||0)>=MAX_FALLBACK_CODE_ATTEMPTS){
+    await db.query(`update ride_pickup_handshakes set status='expired',updated_at=now() where id=$1 and status in ('pending','driver_confirmed','passenger_confirmed')`,[h.id]).catch(()=>{});
+    throw new Error("Too many incorrect codes. Start a new pickup verification.");
+  }
   const supplied=hash(`pickup-code:${rideId}:${String(code).trim()}`);
   const valid=crypto.timingSafeEqual(Buffer.from(supplied),Buffer.from(h.fallback_code_hash));
   if(!valid){await db.query(`insert into ride_pickup_handshake_events(handshake_id,ride_id,actor_person_id,event_type,outcome) values($1,$2,$3,'fallback_code','failed')`,[h.id,rideId,identity.personId]);throw new Error("Pickup verification code does not match");}

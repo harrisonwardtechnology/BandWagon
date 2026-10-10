@@ -8,10 +8,10 @@ import {
 } from "../src/lib/phone-format.ts";
 
 test("ordinary US phone entry displays nationally and normalizes internationally", () => {
-  assert.equal(formatPhoneAsYouType("4696931077", "US"), "(469) 693-1077");
-  assert.equal(normalizePhoneInput("4696931077", "US"), "+14696931077");
-  assert.equal(normalizePhoneInput("(469) 693-1077", "US"), "+14696931077");
-  assert.equal(formatPhoneForDisplay("+14696931077", "US"), "(469) 693-1077");
+  assert.equal(formatPhoneAsYouType("4695550147", "US"), "(469) 555-0147");
+  assert.equal(normalizePhoneInput("4695550147", "US"), "+14695550147");
+  assert.equal(normalizePhoneInput("(469) 555-0147", "US"), "+14695550147");
+  assert.equal(formatPhoneForDisplay("+14695550147", "US"), "(469) 555-0147");
 });
 
 test("country selection supports international local entry without teaching E.164", () => {
